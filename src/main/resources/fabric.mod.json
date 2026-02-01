@@ -1,21 +1,21 @@
 {
   "schemaVersion": 1,
-  "id": "exampleaddon",
+  "id": "rsa",
   "version": "${version}",
-  "name": "Example Addon",
-  "description": "An example addon for RSM",
+  "name": "rsa",
+  "description": "idk",
   "authors": [
     "ricedotwho"
   ],
-  "icon": "assets/exampleaddon/icon.png",
+  "icon": "assets/rsa/icon.png",
   "environment": "client",
   "entrypoints": {
     "rsm": [
-      "com.example.ExampleAddon"
+      "com.ricedotwho.rsa.RSA"
     ]
   },
   "mixins": [
-    "exampleaddon.mixins.json"
+    "rsa.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.17.3",

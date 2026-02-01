@@ -1,4 +1,4 @@
-package com.example.component.impl;
+package com.ricedotwho.rsa.component.impl;
 
 import com.ricedotwho.rsm.component.ModComponent;
 import com.ricedotwho.rsm.event.annotations.SubscribeEvent;

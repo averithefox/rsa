@@ -1,4 +1,4 @@
-package com.example.command.impl;
+package com.ricedotwho.rsa.command.impl;
 
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;

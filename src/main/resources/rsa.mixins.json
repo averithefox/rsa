@@ -1,12 +1,12 @@
 {
   "required": true,
-  "package": "com.example.mixins",
+  "package": "com.ricedotwho.rsa.mixins",
   "compatibilityLevel": "JAVA_21",
   "injectors": {
     "defaultRequire": 1
   },
-  "mixins": [],
-  "client": [
-    "ExampleMixin"
-  ]
+  "mixins": [
+    "MixinPlayer"
+  ],
+  "client": []
 }
