@@ -1,8 +1,11 @@
 package com.ricedotwho.rsa;
 
 import com.ricedotwho.rsa.command.impl.RouteCommand;
+import com.ricedotwho.rsa.module.impl.RandomAuto.AutoJax;
+import com.ricedotwho.rsa.module.impl.Render.ScoreBoard;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.DungeonBreaker;
+import com.ricedotwho.rsa.module.impl.dungeon.PadTimer;
 import com.ricedotwho.rsm.addon.Addon;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.component.ModComponent;
@@ -32,7 +35,10 @@ public class RSA implements Addon {
     public List<Class<? extends Module>> getModules() {
         return List.of(
                 DungeonBreaker.class,
-                AutoRoutes.class
+                AutoRoutes.class,
+                AutoJax.class,
+                ScoreBoard.class,
+                PadTimer.class
         );
     }
 
