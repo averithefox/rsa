@@ -9,7 +9,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.DungeonBreaker;
 import com.ricedotwho.rsa.module.impl.dungeon.PadTimer;
 import com.ricedotwho.rsm.addon.Addon;
 import com.ricedotwho.rsm.command.Command;
-import com.ricedotwho.rsm.component.ModComponent;
+import com.ricedotwho.rsm.component.api.ModComponent;
 import com.ricedotwho.rsm.module.Module;
 import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
