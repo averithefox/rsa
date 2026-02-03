@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Getter
-@ModuleInfo(aliases = "DB", id = "Dungeonbreaker", category = Category.DUNGEONS)
+@ModuleInfo(aliases = "DB", id = "DungeonBreaker", category = Category.DUNGEONS)
 public class DungeonBreaker extends Module {
 
     private static final List<Block> BLACKLIST = Arrays.asList(
