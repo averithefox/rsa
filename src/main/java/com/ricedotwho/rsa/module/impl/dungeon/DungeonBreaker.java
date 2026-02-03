@@ -2,7 +2,7 @@ package com.ricedotwho.rsa.module.impl.dungeon;
 
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.location.Island;
-import com.ricedotwho.rsm.component.impl.location.Loc;
+import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
@@ -92,7 +92,7 @@ public class DungeonBreaker extends Module {
 //    }
 
     public static void handleDigSpeed(BlockState state, ItemStack held, CallbackInfoReturnable<Float> cir) {
-        if (Loc.getArea().is(Island.Dungeon)
+        if (Location.getArea().is(Island.Dungeon)
                 && "DUNGEONBREAKER".equals(ItemUtils.getID(held))
                 && RSM.getModule(DungeonBreaker.class).isEnabled()
         ) {

@@ -6,6 +6,9 @@
     "defaultRequire": 1
   },
   "mixins": [
+    "MixinClientConnection",
+    "MixinMinecraft",
+    "MixinMultiPlayerGameMode",
     "MixinPlayer"
   ],
   "client": []

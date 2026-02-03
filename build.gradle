@@ -29,7 +29,13 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
     def lwjglVersion = property("minecraft_lwjgl_version")
-    compileOnly "org.lwjgl:lwjgl-nanovg:$lwjglVersion"
+    modImplementation "org.lwjgl:lwjgl-nanovg:$lwjglVersion"
+    include "org.lwjgl:lwjgl-nanovg:$lwjglVersion"
+
+    ["windows", "linux", "macos", "macos-arm64"].each { os ->
+        modImplementation "org.lwjgl:lwjgl-nanovg:$lwjglVersion:natives-$os"
+        include "org.lwjgl:lwjgl-nanovg:$lwjglVersion:natives-$os"
+    }
 
     compileOnly"com.ricedotwho:rsm:1.0.0"
 

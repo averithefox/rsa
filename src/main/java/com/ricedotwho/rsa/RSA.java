@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa;
 
+import com.ricedotwho.rsa.module.impl.dungeon.BloodBlink;
 import com.ricedotwho.rsa.command.impl.RouteCommand;
 import com.ricedotwho.rsa.module.impl.other.AutoJax;
 import com.ricedotwho.rsa.module.impl.render.ScoreBoard;
@@ -38,7 +39,8 @@ public class RSA implements Addon {
                 AutoRoutes.class,
                 AutoJax.class,
                 ScoreBoard.class,
-                PadTimer.class
+                PadTimer.class,
+                BloodBlink.class
         );
     }
 

@@ -8,7 +8,7 @@ import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
 import com.ricedotwho.rsm.component.impl.location.Island;
-import com.ricedotwho.rsm.component.impl.location.Loc;
+import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
@@ -25,7 +25,7 @@ public class RouteCommand extends Command {
     public void execute(String[] args, String message) {
         if (mc.player == null) return;
 
-        if (!Loc.getArea().is(Island.Dungeon)) {
+        if (!Location.getArea().is(Island.Dungeon)) {
             ChatUtils.chat("Cant use autoroutes outside of dungeons");
             return;
         }
