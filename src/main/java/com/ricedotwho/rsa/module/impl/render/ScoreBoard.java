@@ -1,4 +1,4 @@
-package com.ricedotwho.rsa.module.impl.Render;
+package com.ricedotwho.rsa.module.impl.render;
 
 import com.ricedotwho.rsm.event.annotations.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
@@ -9,9 +9,6 @@ import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
-import net.minecraft.network.protocol.game.ClientboundSetDisplayObjectivePacket;
-import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket;
-import net.minecraft.network.protocol.game.ClientboundSetScorePacket;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

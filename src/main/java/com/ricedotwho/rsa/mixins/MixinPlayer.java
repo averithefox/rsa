@@ -1,10 +1,6 @@
 package com.ricedotwho.rsa.mixins;
 
 import com.ricedotwho.rsa.module.impl.dungeon.DungeonBreaker;
-import com.ricedotwho.rsm.RSM;
-import com.ricedotwho.rsm.component.impl.location.Island;
-import com.ricedotwho.rsm.component.impl.location.Loc;
-import com.ricedotwho.rsm.utils.ItemUtils;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
@@ -21,12 +17,6 @@ public abstract class MixinPlayer {
 
     @Inject(method = "getDestroySpeed", at = @At("RETURN"), cancellable = true)
     private void modifyBreakSpeed(BlockState state, CallbackInfoReturnable<Float> cir) {
-        if (!Loc.getArea().is(Island.Dungeon) || !RSM.getModule(DungeonBreaker.class).isEnabled()) return;
-
-        String itemId = ItemUtils.getID(this.getInventory().getSelectedItem());
-        if (!"DUNGEONBREAKER".equals(itemId)) return;
-
-        cir.setReturnValue(DungeonBreaker.canInstantMine(state) ? 1500f : 0f);
+        DungeonBreaker.handleDigSpeed(state, this.getInventory().getSelectedItem(), cir);
     }
-
 }

@@ -1,8 +1,8 @@
 package com.ricedotwho.rsa;
 
 import com.ricedotwho.rsa.command.impl.RouteCommand;
-import com.ricedotwho.rsa.module.impl.RandomAuto.AutoJax;
-import com.ricedotwho.rsa.module.impl.Render.ScoreBoard;
+import com.ricedotwho.rsa.module.impl.other.AutoJax;
+import com.ricedotwho.rsa.module.impl.render.ScoreBoard;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.DungeonBreaker;
 import com.ricedotwho.rsa.module.impl.dungeon.PadTimer;

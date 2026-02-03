@@ -5,13 +5,12 @@ import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import lombok.Getter;
 
-@Getter // please don't use spaces in the id
-@ModuleInfo(aliases = "Template", id = "template", category = Category.OTHER)
+@Getter
+@ModuleInfo(aliases = "Template", id = "Template", category = Category.OTHER)
 public class Template extends Module {
 
     public Template() {
         this.registerProperty(
-                // todo: register settings
         );
     }
 

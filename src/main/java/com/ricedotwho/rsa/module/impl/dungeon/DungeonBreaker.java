@@ -1,20 +1,26 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
+import com.ricedotwho.rsm.RSM;
+import com.ricedotwho.rsm.component.impl.location.Island;
+import com.ricedotwho.rsm.component.impl.location.Loc;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
+import com.ricedotwho.rsm.utils.ItemUtils;
 import lombok.Getter;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Arrays;
 import java.util.List;
 
 @Getter
-@ModuleInfo(aliases = "DB", id = "DungeonBreaker", category = Category.DUNGEONS)
+@ModuleInfo(aliases = "DB", id = "Dungeonbreaker", category = Category.DUNGEONS)
 public class DungeonBreaker extends Module {
 
     private static final List<Block> BLACKLIST = Arrays.asList(
@@ -30,15 +36,18 @@ public class DungeonBreaker extends Module {
             Blocks.END_PORTAL,
             Blocks.END_PORTAL_FRAME,
             Blocks.END_GATEWAY,
-            Blocks.NETHER_PORTAL
+            Blocks.NETHER_PORTAL,
+            Blocks.CHEST,
+            Blocks.ENDER_CHEST,
+            Blocks.TRAPPED_CHEST
     );
 
     private static final List<TagKey<Block>> TAGS = List.of(
-            BlockTags.BUTTONS
+            BlockTags.BUTTONS,
+            BlockTags.COPPER_CHESTS
     );
 
     private static final List<Class<?>> CLASSES = List.of(
-            MenuProvider.class,
             LeverBlock.class,
             RedstoneTorchBlock.class,
             BushBlock.class,
@@ -82,10 +91,22 @@ public class DungeonBreaker extends Module {
 //        maxCharges = chargeData.getSecond();
 //    }
 
+    public static void handleDigSpeed(BlockState state, ItemStack held, CallbackInfoReturnable<Float> cir) {
+        if (Loc.getArea().is(Island.Dungeon)
+                && "DUNGEONBREAKER".equals(ItemUtils.getID(held))
+                && RSM.getModule(DungeonBreaker.class).isEnabled()
+        ) {
+            if (DungeonBreaker.canInstantMine(state)) {
+                cir.setReturnValue(1500f);
+            } else {
+                cir.setReturnValue(0f);
+            }
+        }
+    }
+
     public static boolean canInstantMine(BlockState state) {
         return !BLACKLIST.contains(state.getBlock())
                 && TAGS.stream().noneMatch(state::is)
                 && CLASSES.stream().noneMatch(c -> c.isInstance(state.getBlock()));
     }
-
 }

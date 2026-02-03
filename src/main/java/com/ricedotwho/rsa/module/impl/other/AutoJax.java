@@ -1,4 +1,4 @@
-package com.ricedotwho.rsa.module.impl.RandomAuto;
+package com.ricedotwho.rsa.module.impl.other;
 
 import com.ricedotwho.rsm.event.annotations.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.game.ChatEvent;

@@ -1,4 +1,4 @@
-package com.ricedotwho.rsa.module.impl.Render.utils;
+package com.ricedotwho.rsa.module.impl.render.utils;
 
 import com.ricedotwho.rsm.module.Module;
 
