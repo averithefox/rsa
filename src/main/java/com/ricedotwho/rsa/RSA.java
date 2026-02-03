@@ -1,6 +1,8 @@
 package com.ricedotwho.rsa;
 
-import com.ricedotwho.rsa.module.impl.dungeon.Dungeonbreaker;
+import com.ricedotwho.rsa.command.impl.RouteCommand;
+import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
+import com.ricedotwho.rsa.module.impl.dungeon.DungeonBreaker;
 import com.ricedotwho.rsm.addon.Addon;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.component.ModComponent;
@@ -12,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.List;
 
 public class RSA implements Addon {
+
     @Getter
     private static final Logger logger = LogManager.getLogger("rsa");
 
@@ -28,7 +31,8 @@ public class RSA implements Addon {
     @Override
     public List<Class<? extends Module>> getModules() {
         return List.of(
-                Dungeonbreaker.class
+                DungeonBreaker.class,
+                AutoRoutes.class
         );
     }
 
@@ -39,6 +43,9 @@ public class RSA implements Addon {
 
     @Override
     public List<Class<? extends Command>> getCommands() {
-        return List.of();
+        return List.of(
+                RouteCommand.class
+        );
     }
+
 }

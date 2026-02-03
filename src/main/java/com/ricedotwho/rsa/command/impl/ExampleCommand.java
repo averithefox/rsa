@@ -15,4 +15,5 @@ public class ExampleCommand extends Command {
             ChatUtils.chat("...");
         }
     }
+
 }

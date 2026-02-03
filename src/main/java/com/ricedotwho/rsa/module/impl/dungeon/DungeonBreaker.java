@@ -14,8 +14,8 @@ import java.util.Arrays;
 import java.util.List;
 
 @Getter
-@ModuleInfo(aliases = "DB", id = "Dungeonbreaker", category = Category.DUNGEONS)
-public class Dungeonbreaker extends Module {
+@ModuleInfo(aliases = "DB", id = "DungeonBreaker", category = Category.DUNGEONS)
+public class DungeonBreaker extends Module {
 
     private static final List<Block> BLACKLIST = Arrays.asList(
             Blocks.BARRIER,
@@ -52,7 +52,7 @@ public class Dungeonbreaker extends Module {
     private static int maxCharges = 20;
     private static int charges = 20;
 
-    public Dungeonbreaker() {
+    public DungeonBreaker() {
         this.registerProperty(
                 // todo: register settings
         );
@@ -87,4 +87,5 @@ public class Dungeonbreaker extends Module {
                 && TAGS.stream().noneMatch(state::is)
                 && CLASSES.stream().noneMatch(c -> c.isInstance(state.getBlock()));
     }
+
 }

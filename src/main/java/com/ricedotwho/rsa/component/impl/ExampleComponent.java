@@ -16,4 +16,5 @@ public class ExampleComponent extends ModComponent {
     public void onSecond(TimeEvent.Second event) {
         ChatUtils.chat("On Second!");
     }
+
 }
