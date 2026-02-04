@@ -7,6 +7,7 @@ import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundSetHeldSlotPacket;
 import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket;
@@ -17,7 +18,7 @@ import net.minecraft.world.level.GameType;
 
 public class SwapManager {
     @Getter
-    private static int serverSlot = -1;
+    private static int serverSlot;
     private static boolean swappedThisTick = false;
 
     public static void onPreTickStart() {
@@ -26,16 +27,23 @@ public class SwapManager {
 
     public static boolean onPostSendPacket(Packet<?> packet) {
         if (!(packet instanceof ServerboundSetCarriedItemPacket slotPacket)) return true;
-        ChatUtils.chat("Item Packet!");
 
         if (swappedThisTick || slotPacket.getSlot() == serverSlot) {
-            //ChatUtils.chatOfficial("Prevented 0 tick swap!");
+            //ChatUtils.chat("Prevented 0 tick swap!");
             return false;
         }
 
         swappedThisTick = true;
         serverSlot = slotPacket.getSlot();
         return true;
+    }
+
+    // Cancels call if returns false
+    public static boolean onEnsureHasSentCarriedItem(int managerServerSlot) {
+        if (serverSlot != managerServerSlot) {
+            //ChatUtils.chat("Server slot miss match!");
+        }
+        return !swappedThisTick;
     }
 
     public static void sendC08(float yaw, float pitch, boolean syncSlots) {
