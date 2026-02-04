@@ -1,5 +1,8 @@
 package com.ricedotwho.rsa.command.impl;
 
+import com.mojang.brigadier.arguments.DoubleArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.Ring;
@@ -16,89 +19,97 @@ import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.data.Rotation;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import net.minecraft.world.phys.Vec3;
 
-@CommandInfo(aliases = {"route"}, description = "Handles creating autoroutes")
+@CommandInfo(name = "route", aliases = "r", description = "Handles creating autoroutes")
 public class RouteCommand extends Command {
 
     @Override
-    public void execute(String[] args, String message) {
-        if (mc.player == null) return;
-
-        if (!Location.getArea().is(Island.Dungeon)) {
-            ChatUtils.chat("Cant use autoroutes outside of dungeons");
-            return;
-        }
-
-        if (args.length == 0) {
-            ChatUtils.chat("Invalid arguments (example: route <add, remove> <action> <wx> <h> <wz>)");
-            return;
-        }
-
-        Room room = Map.getCurrentRoom();
-        if (room == null) {
-            ChatUtils.chat("Couldn't find current room");
-            return;
-        }
-
-        AutoRoutes routesModule = RSM.getModule(AutoRoutes.class);
-
-        Pos pos = new Pos(mc.player.getX(), mc.player.getY(), mc.player.getX());
-        Pos relativePos = RoomUtils.getRelativePosition(pos, room);
-        if (relativePos == null) {
-            ChatUtils.chat("Failed to get relative position");
-            return;
-        }
-
-        Rotation rot = new Rotation(mc.player.getXRot(), mc.player.getYRot());
-        Rotation relativeRot = RoomUtils.getRelativeYaw(rot);
-
-        switch (args[0].toLowerCase()) {
-            case "add" -> {
-                String actionName = args[1].toLowerCase();
-
-                RingAction action = routesModule.getAction(actionName);
-                if (action == null) {
-                    ChatUtils.chat("Couldn't find an action named: {}", actionName);
-                    return;
-                }
-
-                Ring ring = new Ring(
-                        room.getData().name(),
-                        action,
-                        relativePos,
-                        relativeRot
-                );
-
-                if (args.length >= 4) {
-                    try {
-                        String widthX = args[2];
-                        String height = args[3];
-                        String widthZ = args[4];
-
-                        ring.widthX = Double.parseDouble(widthX);
-                        ring.height = Double.parseDouble(height);
-                        ring.widthZ = Double.parseDouble(widthZ);
-                    } catch (NumberFormatException error) {
-                        ChatUtils.chat("Failed to parse size arguments");
-                        RSA.getLogger().error("Failed to parse size arguments", error);
+    public LiteralArgumentBuilder<ClientSuggestionProvider> build() {
+        return literal(name())
+                .requires(src -> {
+                    if (!Location.getArea().is(Island.Dungeon)) {
+                        ChatUtils.chat("Cannot use AutoRoutes outside of Dungeons!");
+                        return false;
                     }
-                }
 
-                routesModule.rings.add(ring);
-                ChatUtils.chat("Added a %s ring", ring.action.name);
-            }
-            case "remove" -> {
-                Ring ring = routesModule.getClosestRing(room, relativePos.x, relativePos.y, relativePos.z);
-                if (ring == null) {
-                    ChatUtils.chat("Couldn't find any rings");
-                    return;
-                }
+                    Room room = Map.getCurrentRoom();
+                    if (room == null) {
+                        ChatUtils.chat("Couldn't find current room");
+                        return false;
+                    }
 
-                routesModule.rings.remove(ring);
-                ChatUtils.chat("Removed a {} ring", ring.action.name);
-            }
-        }
+                    return true;
+                })
+                .then(literal("add")
+                        .then(argument("type", StringArgumentType.word())
+                                .then(argument("widthX", DoubleArgumentType.doubleArg(0))
+                                        .then(argument("height", DoubleArgumentType.doubleArg(0))
+                                                .then(argument("widthZ", DoubleArgumentType.doubleArg(0))
+                                                        .executes(ctx -> {
+                                                            Room room = Map.getCurrentRoom();
+
+                                                            AutoRoutes routesModule = RSM.getModule(AutoRoutes.class);
+                                                            String actionName = StringArgumentType.getString(ctx, "type");
+                                                            RingAction action = routesModule.getAction(actionName);
+                                                            if (action == null) {
+                                                                ChatUtils.chat("Couldn't find an action named: {}", actionName);
+                                                                return 1;
+                                                            }
+
+                                                            Pos pos = new Pos(mc.player.getX(), mc.player.getY(), mc.player.getX());
+                                                            Pos relativePos = RoomUtils.getRelativePosition(pos, room);
+                                                            if (relativePos == null) {
+                                                                ChatUtils.chat("Failed to get relative position");
+                                                                return 1;
+                                                            }
+
+                                                            Rotation rot = new Rotation(mc.player.getXRot(), mc.player.getYRot());
+                                                            Rotation relativeRot = RoomUtils.getRelativeYaw(rot);
+
+                                                            Ring ring = new Ring(
+                                                                    room.getData().name(),
+                                                                    action,
+                                                                    relativePos,
+                                                                    relativeRot
+                                                            );
+
+                                                            ring.widthX = DoubleArgumentType.getDouble(ctx, "widthX");
+                                                            ring.height = DoubleArgumentType.getDouble(ctx, "height");
+                                                            ring.widthZ = DoubleArgumentType.getDouble(ctx, "widthZ");
+
+                                                            routesModule.rings.add(ring);
+                                                            ChatUtils.chat("Added a %s ring", ring.action.name);
+                                                            return 1;
+                                                        })
+                                                )
+                                        )
+                                )
+                        )
+                )
+                .then(literal("remove")
+                        .executes(ctx -> {
+                            AutoRoutes routesModule = RSM.getModule(AutoRoutes.class);
+                            Room room = Map.getCurrentRoom();
+                            Pos pos = new Pos(mc.player.getX(), mc.player.getY(), mc.player.getX());
+                            Pos relativePos = RoomUtils.getRelativePosition(pos, room);
+                            if (relativePos == null) {
+                                ChatUtils.chat("Failed to get relative position");
+                                return 1;
+                            }
+
+                            Ring ring = routesModule.getClosestRing(room, relativePos.x, relativePos.y, relativePos.z);
+                            if (ring == null) {
+                                ChatUtils.chat("Couldn't find any rings");
+                                return 1;
+                            }
+
+                            routesModule.rings.remove(ring);
+                            ChatUtils.chat("Removed a {} ring", ring.action.name);
+                            return 1;
+                        })
+                );
     }
 
 }
