@@ -1,14 +1,22 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
+import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.component.impl.map.handler.DungeonScanner;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
+import com.ricedotwho.rsm.component.impl.map.map.RoomRotation;
+import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.component.impl.map.utils.ScanUtils;
+import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
+import com.ricedotwho.rsm.event.impl.client.InputEvent;
+import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
+import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
+import com.ricedotwho.rsm.event.impl.game.DungeonEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
@@ -18,22 +26,30 @@ import com.ricedotwho.rsm.utils.EtherUtils;
 import lombok.Getter;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Options;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.common.ClientboundPingPacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
+import net.minecraft.network.protocol.game.ClientboundSetTimePacket;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.phys.Vec3;
 
 import java.awt.*;
+import java.util.Arrays;
 
 @Getter
 @ModuleInfo(aliases = "BB", id = "BloodBlink", category = Category.DUNGEONS)
 public class BloodBlink extends Module {
-    private static final Vec3 SLAB_BLOCK_OFFSET = new Vec3(-10, 82.5, -13); // Sometimes y = 81.5
+    private static final Pos SLAB_BLOCK_OFFSET = new Pos(-10, 82, -13); // Sometimes y = 81.5
     private static final Vec3 MIDDLE_MAP_COORDS = new Vec3(-104.5, 0, -104.5);
 
     private Room bloodRoom;
@@ -53,7 +69,7 @@ public class BloodBlink extends Module {
 
     @Override
     public void onEnable() {
-
+        this.resetState();
     }
 
     @Override
@@ -62,14 +78,14 @@ public class BloodBlink extends Module {
     }
 
     private int serverTickTimer = -1;
-    private boolean loaded = false;
+    private int serverTotalTickTimer = 0;
     private int state = 0;
     private boolean isLower = false;
 
     public boolean forceNextSneak = false;
 
     // Options
-    public boolean waitForGround = false;
+    public boolean waitForGround = true;
     public boolean auto = true;
     public int deathTickOffset = 0;
 
@@ -82,16 +98,16 @@ public class BloodBlink extends Module {
     public void WorldEventLoad(WorldEvent.Load event) {
         this.bloodRoom = null;
         this.startRoom = null;
-        this.isLower = false;
         this.serverTickTimer = -1;
-        reset();
+        this.serverTotalTickTimer = 0;
+        resetState();
 
         state = -1;
-        loaded = true;
     }
 
     private void resetState() {
         state = -1;
+        this.isLower = false;
         this.forceNextSneak = false;
     }
 
@@ -119,7 +135,7 @@ public class BloodBlink extends Module {
             return;
         }
 
-        if (serverTickTimer > 5) {
+        if (serverTotalTickTimer > 2) {
             switch (state) {
                 case -1: {
                     if (!auto) break;
@@ -137,19 +153,36 @@ public class BloodBlink extends Module {
 
                     if (goToSlab()) {
                         state = 1;
-                        forceNextSneak = true; // To align with C08
+                        // Can't merge with previous tick because C08 is sent before C03
+                        ItemStack item = player.getInventory().getItem(player.getInventory().getSelectedSlot());
+                        if (item.getItem() != Items.DIAMOND_SHOVEL) {
+                            if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) break;
+                        }
+
+                        forceNextSneak = true;
+                        PacketOrderManager.register(() -> {
+                            Pos slab = RoomUtils.getRealPosition(SLAB_BLOCK_OFFSET, startRoom);
+
+                            // Need to add after because sign may change
+                            slab.x += 0.5d;
+                            slab.z += 0.5d;
+
+                            Block block = Minecraft.getInstance().level.getBlockState(slab.asBlockPos()).getBlock();
+                            if (block == Blocks.AIR) {
+                                isLower = true;
+                                slab.selfAdd(0.0, -1.0, 0.0);
+                            }
+
+                            float[] angles = EtherUtils.getYawAndPitch(slab.asVec3(), true, Minecraft.getInstance().player, true);
+                            SwapManager.sendC08(angles[0], angles[1], false);
+                            }, PacketOrderManager.STATE.ITEM_USE);
+                        ChatUtils.chat("EtherPos : " + EtherUtils.getEtherPosFromOrigin(Minecraft.getInstance().player.getEyePosition(), Minecraft.getInstance().player.getYRot(), Minecraft.getInstance().player.getXRot()));
+                        state = 2;
                     }
                     break;
                 }
 
                 case 1: {
-                    // Can't merge with previous tick because C08 is sent before C03
-                    ItemStack item = player.getInventory().getItem(player.getInventory().getSelectedSlot());
-                    if (item == null || item.getItem() != Items.DIAMOND_SHOVEL) {
-                        if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) break;
-                    }
-
-                    //PacketOrderManager.register(this::rightClick, PacketOrderManager.STATE.ITEM_USE);
                     state = 2;
                     break;
                 }
@@ -233,19 +266,19 @@ public class BloodBlink extends Module {
                     if (goToSlab()) {
                         state = 12;
                         forceNextSneak = true; // To align with C08
+                        ItemStack item = player.getInventory().getItem(player.getInventory().getSelectedSlot());
+                        if (item.getItem() != Items.DIAMOND_SHOVEL) {
+                            if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) break;
+                        }
+
+                        PacketOrderManager.register(() -> SwapManager.sendC08(Minecraft.getInstance().player.getYRot(), Minecraft.getInstance().player.getXRot(), false), PacketOrderManager.STATE.ITEM_USE);
+                        state = 13;
                     }
                     break;
                 }
 
                 case 12: {
-                    // Can't merge with previous tick because C08 is sent before C03
-                    ItemStack item = player.getInventory().getItem(player.getInventory().getSelectedSlot());
-                    if (item.getItem() != Items.DIAMOND_SHOVEL) {
-                        if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) break;
-                    }
 
-                    //PacketOrderManager.register(this::rightClick, PacketOrderManager.STATE.ITEM_USE);
-                    state = 13;
                     break;
                 }
 
@@ -382,33 +415,32 @@ public class BloodBlink extends Module {
     }
 
     public void doBlink() {
-        reset();
+        resetState();
         state = 0; // Bypass auto
         KeyMapping.releaseAll();
     }
 
-//    @Override
-//    public void onKeyPressed(InputUtil.Key key, CancellableEventCallback callback) {
-//        if (!this.isEnabled() || !isBlinking()) return;
-//        GameOptions settings = Minecraft.getInstance().options;
-//        if (settings == null) return;
-//
-//        if (key.getCode() == settings.forwardKey.getDefaultKey().getCode() || key.getCode() == settings.leftKey.getDefaultKey().getCode() || key.getCode() == settings.rightKey.getDefaultKey().getCode() || key.getCode() == settings.backKey.getDefaultKey().getCode() || key.getCode() == settings.jumpKey.getDefaultKey().getCode()) {
-//            cancel();
-//            return;
-//        }
-//    }
+    @SubscribeEvent
+    public void onPollInputs(InputPollEvent event) {
+        if (!this.isEnabled() || !this.isBlinking()) return;
+        Input input = event.getClientInput();
+        if (input.forward() || input.backward() || input.left() || input.right()) {
+            this.cancel();
+            return;
+        }
+
+        if (this.forceNextSneak)
+            ChatUtils.chat("Override inputs!");
+
+        Input newInputs = new Input(false, false, false, false, false, this.forceNextSneak, false);
+        this.forceNextSneak = false;
+        event.getInputConsumer().accept(newInputs);
+    }
 
     private void cancel() {
         reset();
         this.state = 31; // End
         ChatUtils.chat("Cancelling blood blink!");
-    }
-
-    private Vec3 getSlabLocalPosition() {
-        Direction dir = startRoom.getUniqueRoom().getRotation().toDir();
-        if (dir == null) return null;
-        return fastRotateVec(dir, SLAB_BLOCK_OFFSET).add(0.5, 0.0, 0.5);
     }
 
     private boolean aotv(int count) {
@@ -431,101 +463,109 @@ public class BloodBlink extends Module {
         if (!SwapManager.checkClientItem(Items.ENDER_PEARL)) {
             if (!SwapManager.swapItem(Items.ENDER_PEARL)) return false; // C09 is sent before C08 so should swap in time
         }
+        this.rightClick();
         //PacketOrderManager.register(this::rightClick, PacketOrderManager.STATE.ITEM_USE);
         return true;
     }
 
 
     private boolean goToSlab() {
-//        if (Minecraft.getInstance().player == null || !loaded) return false;
-//        Vec3 slab = getSlabLocalPosition();
-//        if (slab == null) return false;
-//        Block block = startRoom.getLocalBlock(BlockPos.ofFloored(slab));
-//        if (block == null) return false;
-//        if (block == Blocks.AIR) {
-//            isLower = true;
-//            slab = slab.add(0.0, -1.0, 0.0);
-//        }
-//
-//        float[] angles = EtherUtils.getYawAndPitch(slab.add(startRoom.getX(), 0.0d, startRoom.getZ()), true, Minecraft.getInstance().player, true);
-//        Minecraft.getInstance().player.setYRot(angles[0]);
-//        Minecraft.getInstance().player.setXRot(angles[1]);
+        if (Minecraft.getInstance().player == null || Minecraft.getInstance().level == null) return false;
+        if (startRoom.getUniqueRoom().getRotation() == RoomRotation.UNKNOWN) return false;
+
+        //Direction dir = startRoom.getUniqueRoom().getRotation().toDir();
+        Pos slab = RoomUtils.getRealPosition(SLAB_BLOCK_OFFSET, startRoom);
+
+        // Need to add after because sign may change
+        slab.x += 0.5d;
+        slab.z += 0.5d;
+
+        Block block = Minecraft.getInstance().level.getBlockState(slab.asBlockPos()).getBlock();
+        if (block == Blocks.AIR) {
+            isLower = true;
+            slab.selfAdd(0.0, -1.0, 0.0);
+        }
+
+        float[] angles = EtherUtils.getYawAndPitch(slab.asVec3(), true, Minecraft.getInstance().player, true);
+        Minecraft.getInstance().player.setYRot(angles[0]);
+        Minecraft.getInstance().player.setXRot(angles[1]);
         return true;
     }
 
-//
-//    @Override
-//    public void onLoadRoom(Room room) {
-//        if (Arrays.stream(room.getRoomData().cores()).anyMatch(i -> i == 1898104308 || i == 698844034)) {
-//            this.bloodRoom = room;
-//            ChatUtils.chat("Found blood at : " + room.getX() + ", " + room.getZ());
-//        }
-//    }
-//
-//    @SubscribeEvent
-//    public void onReceivePacket(PacketEvent.Receive event) {
-//        Packet<?> packet = event.getPacket();
-//        if (serverTickTimer > -1 && packet instanceof CommonPingS2CPacket) {
-//            serverTickTimer++;
-//            return;
-//        }
-//
-//        if (packet instanceof WorldTimeUpdateS2CPacket timePacket) {
-//            long time = timePacket.time();
-//            this.serverTickTimer = (int) (time + deathTickOffset) % 40;
-//        }
-//
-//        if (packet instanceof PlayerPositionLookS2CPacket s08) {
-//            System.out.println(s08.change().position().y);
-//            switch (state) {
-//                case 2: {
-//                    state = 3;
-//                    break;
-//                }
-//                case 13: {
-//                    state = 14;
-//                    break;
-//                }
-//
-//                case 5: {
-//                    if (s08.change().position().getY() <= (isLower ? 97.0 : 98.0))
-//                        state = 4;
-//                    else
-//                        state = 6;
-//                    break;
-//                }
-//
-//
-//                case 16: {
-//                    if (s08.change().position().getY() <= (isLower ? 97.0 : 98.0))
-//                        state = 15;
-//                    else
-//                        state = 17;
-//                    break;
-//                }
-//
-//                case 30: {
-//                    Vec3 pos = s08.change().position();
-//                    if (DungeonScan.getRoomFromPos(BlockPos.ofFloored(pos)) != bloodRoom || pos.getY() < 65d || pos.getY() > 73d) break; // 66 bedrock block blood, this stops aotv S08s from getting considered as pearls
-//                    if (pos.getY() <= 67.0)
-//                        state = 29;
-//                    else
-//                        state = 31;
-//                    break;
-//                }
-//
-//                case 7: {
-//                    state = 8; // May get called many times but should be received at same time so should be fine.
-//                    break;
-//                }
-//
-//                case 10: {
-//                    double y = s08.change().position().getY();
-//                    if (y == 76.5 || y == 75.5) // respawn Y, should be reliable *enough
-//                        state = 11;
-//                    break;
-//                }
-//            }
-//        }
-//    }
+    @SubscribeEvent
+    public void onLoadRoom(DungeonEvent.RoomScanned event) {
+        int core = event.getUnique().getMainRoom().getCore();
+        if (core == 1898104308 || core == 698844034) {
+            this.bloodRoom = event.getUnique().getMainRoom();
+            ChatUtils.chat("Found blood at : " + bloodRoom.getX() + ", " + bloodRoom.getZ());
+        }
+    }
+
+    @SubscribeEvent
+    public void onReceivePacket(PacketEvent.Receive event) {
+        Packet<?> packet = event.getPacket();
+        if (serverTickTimer > -1 && packet instanceof ClientboundPingPacket) {
+            serverTickTimer++;
+            serverTotalTickTimer++;
+            return;
+        }
+
+        if (packet instanceof ClientboundSetTimePacket timePacket) {
+            long time = timePacket.gameTime();
+            this.serverTickTimer = (int) (time + deathTickOffset) % 40;
+        }
+
+        if (packet instanceof ClientboundPlayerPositionPacket s08) {
+            System.out.println(s08.change().position().y);
+            switch (state) {
+                case 2: {
+                    state = 3;
+                    break;
+                }
+                case 13: {
+                    state = 14;
+                    break;
+                }
+
+                case 5: {
+                    if (s08.change().position().y <= (isLower ? 97.0 : 98.0))
+                        state = 4;
+                    else
+                        state = 6;
+                    break;
+                }
+
+
+                case 16: {
+                    if (s08.change().position().y <= (isLower ? 97.0 : 98.0))
+                        state = 15;
+                    else
+                        state = 17;
+                    break;
+                }
+
+                case 30: {
+                    Vec3 pos = s08.change().position();
+                    if (ScanUtils.getRoomFromPos(Mth.floor(pos.x), Mth.floor(pos.z)) != bloodRoom || pos.y < 65d || pos.y > 73d) break; // 66 bedrock block blood, this stops aotv S08s from getting considered as pearls
+                    if (pos.y <= 67.0)
+                        state = 29;
+                    else
+                        state = 31;
+                    break;
+                }
+
+                case 7: {
+                    state = 8; // May get called many times but should be received at same time so should be fine.
+                    break;
+                }
+
+                case 10: {
+                    double y = s08.change().position().y;
+                    if (y == 76.5 || y == 75.5) // respawn Y, should be reliable *enough
+                        state = 11;
+                    break;
+                }
+            }
+        }
+    }
 }
