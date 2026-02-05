@@ -12,6 +12,7 @@
     "MixinPlayer"
   ],
   "client": [
+    "LocalPlayerAccessor",
     "MixinClientPacketListener"
   ]
 }

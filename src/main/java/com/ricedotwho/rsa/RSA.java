@@ -3,6 +3,7 @@ package com.ricedotwho.rsa;
 import com.ricedotwho.rsa.command.impl.BloodBlinkCommand;
 import com.ricedotwho.rsa.module.impl.dungeon.BloodBlink;
 import com.ricedotwho.rsa.command.impl.RouteCommand;
+import com.ricedotwho.rsa.module.impl.movement.NoRotate;
 import com.ricedotwho.rsa.module.impl.other.AutoJax;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.DungeonBreaker;
@@ -39,7 +40,8 @@ public class RSA implements Addon {
                 AutoRoutes.class,
                 AutoJax.class,
                 PadTimer.class,
-                BloodBlink.class
+                BloodBlink.class,
+                NoRotate.class
         );
     }
 
