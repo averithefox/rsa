@@ -3,9 +3,12 @@ package com.ricedotwho.rsa.module.impl.movement;
 
 import com.ricedotwho.rsa.mixins.LocalPlayerAccessor;
 import com.ricedotwho.rsa.module.impl.dungeon.DungeonBreaker;
+import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
+import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
+import com.ricedotwho.rsm.component.impl.map.utils.ScanUtils;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.DungeonEvent;
@@ -36,6 +39,7 @@ import java.util.List;
 @Getter
 @ModuleInfo(aliases = "No Rotate", id = "NoRotate", category = Category.MOVEMENT)
 public class NoRotate extends Module {
+    private boolean shouldNoRotate = false;
 
     private final BooleanSetting teleportItem = new BooleanSetting("Teleport Items", true);
     private final BooleanSetting outbounds = new BooleanSetting("Outbounds", false);
@@ -54,8 +58,6 @@ public class NoRotate extends Module {
             Blocks.LEVER
     );
 
-    private boolean shouldNoRotate = false;
-
     public NoRotate() {
         this.registerProperty(
                 teleportItem,
@@ -67,7 +69,7 @@ public class NoRotate extends Module {
     // maybe this should have a timeout
     @SubscribeEvent
     public void onUseItem(PacketEvent.Send event) {
-        if (!this.teleportItem.getValue() || Dungeon.isInBoss()) return;
+        if (!this.teleportItem.getValue() || (Dungeon.isInBoss() && (Location.getFloor() == Floor.F7 || Location.getFloor() == Floor.M7))) return;
         if (event.getPacket() instanceof ServerboundUseItemPacket packet) {
             ItemStack stack = mc.player.getItemBySlot(packet.getHand().asEquipmentSlot());
             if (isHoldingTpItem(stack)) {
