@@ -28,6 +28,7 @@ public class NoRotate extends Module {
 
     public void onHandleMovePlayer(ClientboundPlayerPositionPacket packet, Connection connection, CallbackInfo ci) {
         if (!this.isEnabled()) return;
+        // Thanks noob for the code
 
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;

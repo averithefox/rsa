@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
-import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
@@ -42,7 +41,6 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.phys.Vec3;
 
 import java.awt.*;
-import java.util.Arrays;
 
 @Getter
 @ModuleInfo(aliases = "BB", id = "BloodBlink", category = Category.DUNGEONS)
@@ -167,7 +165,7 @@ public class BloodBlink extends Module {
                 }
 
                 float[] angles = EtherUtils.getYawAndPitch(slab.asVec3(), true, Minecraft.getInstance().player, true);
-                SwapManager.sendC08(angles[0], angles[1], true);
+                SwapManager.sendAirC08(angles[0], angles[1], true);
                 state = 2;
                 break;
             }
@@ -247,7 +245,7 @@ public class BloodBlink extends Module {
                 }
 
                 float[] angles = EtherUtils.getYawAndPitch(slab.asVec3(), true, Minecraft.getInstance().player, true);
-                SwapManager.sendC08(angles[0], angles[1], true);
+                SwapManager.sendAirC08(angles[0], angles[1], true);
                 state = 13;
                 break;
             }
@@ -346,7 +344,7 @@ public class BloodBlink extends Module {
 
     private void aotv0(int count, float yaw, float pitch) {
         for (int i = 0; i < count; i++) {
-            SwapManager.sendC08(yaw, pitch, true);
+            SwapManager.sendAirC08(yaw, pitch, true);
         }
     }
 
@@ -382,7 +380,7 @@ public class BloodBlink extends Module {
 
     private boolean pearl(float yaw, float pitch) {
         if (!SwapManager.swapItem(Items.ENDER_PEARL)) return false;
-        return SwapManager.sendC08(yaw, pitch, true);
+        return SwapManager.sendAirC08(yaw, pitch, true);
     }
 
     @SubscribeEvent

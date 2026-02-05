@@ -1,21 +1,22 @@
 package com.ricedotwho.rsa.component.impl.managers;
 
-import com.mojang.authlib.minecraft.client.MinecraftClient;
 import com.ricedotwho.rsa.IMixin.IMultiPlayerGameMode;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientboundSetHeldSlotPacket;
 import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 
 public class SwapManager {
     @Getter
@@ -64,7 +65,7 @@ public class SwapManager {
         return false;
     }
 
-    public static boolean sendC08(float yaw, float pitch, boolean syncSlots) {
+    public static boolean sendAirC08(float yaw, float pitch, boolean syncSlots) {
         if (Minecraft.getInstance().player == null || Minecraft.getInstance().player.gameMode() == GameType.SPECTATOR) return false;
         if (Minecraft.getInstance().gameMode == null || Minecraft.getInstance().level == null) return false;
 
@@ -79,6 +80,17 @@ public class SwapManager {
 
         manager.sendPacketSequenced(Minecraft.getInstance().level, sequence -> new ServerboundUseItemPacket(InteractionHand.MAIN_HAND, sequence, yaw, pitch));
         return true;
+    }
+
+    // Haven't implement syncSlots because I haven't found the need
+    public static void sendBlockC08(Vec3 pos, Direction direction) {
+        if (Minecraft.getInstance().player == null || Minecraft.getInstance().player.gameMode() == GameType.SPECTATOR) return;
+        if (Minecraft.getInstance().gameMode == null || Minecraft.getInstance().level == null) return;
+
+
+        BlockHitResult result = new BlockHitResult(pos, direction, BlockPos.containing(pos), false);
+
+        ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode).sendPacketSequenced(Minecraft.getInstance().level, sequence -> new ServerboundUseItemOnPacket(InteractionHand.MAIN_HAND, result, sequence));
     }
 
     public static boolean swapItem(Item item) {
