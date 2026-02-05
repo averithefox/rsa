@@ -174,7 +174,6 @@ public class AutoSS extends Module {
         BlockState state = level.getBlockState(BlockPos.containing(START_BUTTON));
         VoxelShape shape = state.getCollisionShape(level, pos);
 
-
         Renderer3D.addTask(new FilledOutlineBox(shape.bounds(), colorFill, colorOutline, true));
     }
 

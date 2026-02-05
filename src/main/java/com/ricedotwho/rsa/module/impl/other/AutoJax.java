@@ -1,5 +1,7 @@
 package com.ricedotwho.rsa.module.impl.other;
 
+import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
+import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.game.ChatEvent;
 import com.ricedotwho.rsm.event.impl.game.ServerTickEvent;
@@ -169,13 +171,21 @@ public class AutoJax extends Module {
         rotateToClickTicks = ROTATE_TO_CLICK_DELAY;
     }
 
+
     private void rightClick() {
         LocalPlayer player = mc.player;
         if (player == null) return;
 
-        player.connection.send(
-                new ServerboundUseItemPacket(InteractionHand.MAIN_HAND, 0, player.getYRot(), player.getXRot())
-        );
+        player.connection.send(new ServerboundUseItemPacket(InteractionHand.MAIN_HAND, 0, player.getYRot(), player.getXRot()));
         player.swing(InteractionHand.MAIN_HAND);
     }
+
+//    private void rightClick() {
+//        PacketOrderManager.register(() -> {
+//            LocalPlayer player = mc.player;
+//            if (player == null) return;
+//            SwapManager.sendAirC08(player.getYRot(), player.getXRot(), false);
+//            player.swing(InteractionHand.MAIN_HAND);
+//        }, PacketOrderManager.STATE.ITEM_USE);
+//    }
 }
