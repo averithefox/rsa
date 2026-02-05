@@ -14,11 +14,14 @@ import net.minecraft.network.protocol.game.ServerboundUseItemPacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 
 public class SwapManager {
     @Getter
     private static int serverSlot;
+
+    private static int lastSentServerSlot;
     private static boolean swappedThisTick = false;
 
     public static void onPreTickStart() {
@@ -28,37 +31,62 @@ public class SwapManager {
     public static boolean onPostSendPacket(Packet<?> packet) {
         if (!(packet instanceof ServerboundSetCarriedItemPacket slotPacket)) return true;
 
-        if (swappedThisTick || slotPacket.getSlot() == serverSlot) {
-            //ChatUtils.chat("Prevented 0 tick swap!");
+        if (swappedThisTick || slotPacket.getSlot() == lastSentServerSlot) {
+            ChatUtils.chat("Prevented packet 0 tick swap! This shouldn't happen, tell hyper!");
             return false;
         }
 
         swappedThisTick = true;
         serverSlot = slotPacket.getSlot();
+        lastSentServerSlot = slotPacket.getSlot();
         return true;
+    }
+
+    public static void onHandleLogin() {
+        // The Minecraft.MultiPlayerGameMode is reset here, so its server slot is also reset
+        serverSlot = 0;
+        lastSentServerSlot = 0; // Scary but should be fine
     }
 
     // Cancels call if returns false
     public static boolean onEnsureHasSentCarriedItem(int managerServerSlot) {
+        if (Minecraft.getInstance().player == null) return false;
         if (serverSlot != managerServerSlot) {
-            //ChatUtils.chat("Server slot miss match!");
+            ChatUtils.chat("Slot mismatch! Tell Hyper if you see this!");
+            ChatUtils.chat("SwapManger : " + serverSlot);
+            ChatUtils.chat("GameMode : " + managerServerSlot);
         }
-        return !swappedThisTick;
+        int i = Minecraft.getInstance().player.getInventory().getSelectedSlot();
+        if (i != managerServerSlot && !swappedThisTick) {
+            serverSlot = i;
+            return true;
+        }
+        return false;
     }
 
-    public static void sendC08(float yaw, float pitch, boolean syncSlots) {
-        if (Minecraft.getInstance().player == null || Minecraft.getInstance().player.gameMode() == GameType.SPECTATOR) return;
+    public static boolean sendC08(float yaw, float pitch, boolean syncSlots) {
+        if (Minecraft.getInstance().player == null || Minecraft.getInstance().player.gameMode() == GameType.SPECTATOR) return false;
+        if (Minecraft.getInstance().gameMode == null || Minecraft.getInstance().level == null) return false;
 
-        if (Minecraft.getInstance().gameMode == null || Minecraft.getInstance().level == null) return;
         IMultiPlayerGameMode manager = ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode);
 
+        int i = Minecraft.getInstance().player.getInventory().getSelectedSlot();
         if (syncSlots) manager.syncSlot();
+        if (syncSlots && !checkServerSlot(i)) {
+            ChatUtils.chat("Failed to swap to slot : " + i);
+            return false;
+        }
+
         manager.sendPacketSequenced(Minecraft.getInstance().level, sequence -> new ServerboundUseItemPacket(InteractionHand.MAIN_HAND, sequence, yaw, pitch));
+        return true;
     }
 
     public static boolean swapItem(Item item) {
         LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null || item == null || swappedThisTick || player.getInventory().getItem(player.getInventory().getSelectedSlot()).getItem() == item) return false;
+        if (player == null || item == null) return false;
+        if (item == player.getInventory().getItem(player.getInventory().getSelectedSlot()).getItem()) return true; // Already on this item
+
+        if (swappedThisTick) return false;
         for (int i = 0; i < 9; i++) {
             ItemStack stack = player.getInventory().getItem(i); // Hotbar is 0 - 8
             if (stack.getItem() != item) continue;
@@ -69,14 +97,19 @@ public class SwapManager {
 
     public static boolean swapSlot(int slot) {
         LocalPlayer player = Minecraft.getInstance().player;
+        if (slot == serverSlot) return true;
         if (player == null || swappedThisTick) return false;
         if (slot < 0 || slot > 8) {
             System.err.println("Invalid swap slot! : " + slot);
             return false;
         }
-        // Might zero tick
+
         player.getInventory().setSelectedSlot(slot);
         return true;
+    }
+
+    public static boolean checkServerSlot(int slot) {
+        return serverSlot == slot;
     }
 
     public static boolean checkServerItem(Item item) {

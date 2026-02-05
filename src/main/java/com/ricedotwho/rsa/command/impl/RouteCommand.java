@@ -17,7 +17,6 @@ import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.data.Rotation;
-import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import net.minecraft.world.phys.Vec3;

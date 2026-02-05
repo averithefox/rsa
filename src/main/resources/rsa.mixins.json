@@ -11,5 +11,7 @@
     "MixinMultiPlayerGameMode",
     "MixinPlayer"
   ],
-  "client": []
+  "client": [
+    "MixinClientPacketListener"
+  ]
 }

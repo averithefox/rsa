@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa;
 
+import com.ricedotwho.rsa.command.impl.BloodBlinkCommand;
 import com.ricedotwho.rsa.module.impl.dungeon.BloodBlink;
 import com.ricedotwho.rsa.command.impl.RouteCommand;
 import com.ricedotwho.rsa.module.impl.other.AutoJax;
@@ -50,7 +51,8 @@ public class RSA implements Addon {
     @Override
     public List<Class<? extends Command>> getCommands() {
         return List.of(
-                RouteCommand.class
+                RouteCommand.class,
+                BloodBlinkCommand.class
         );
     }
 

@@ -8,11 +8,11 @@ import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.component.impl.map.handler.DungeonScanner;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.map.RoomRotation;
+import com.ricedotwho.rsm.component.impl.map.map.RoomType;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.component.impl.map.utils.ScanUtils;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
-import com.ricedotwho.rsm.event.impl.client.InputEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
@@ -21,24 +21,22 @@ import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
 import lombok.Getter;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.Options;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ClientboundPingPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTimePacket;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Input;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.phys.Vec3;
@@ -60,10 +58,23 @@ public class BloodBlink extends Module {
     // C08
     // C03 ??
 
+    private int serverTickTimer = -1;
+    private int serverTotalTickTimer = 0;
+    private int state = 0;
+    private boolean isLower = false;
+
+    public boolean forceNextSneak = false;
+
+    // Options
+    private final BooleanSetting waitForGround = new BooleanSetting("Wait For Ground", false);
+    private final BooleanSetting auto = new BooleanSetting("Auto Blink", true);
+    private final NumberSetting deathTickOffset = new NumberSetting("Death Tick Offset", 0.0d, 20.0d, 0.0d, 1.0d);
+
     public BloodBlink() {
         this.registerProperty(
-                // todo: register settings
-
+                waitForGround,
+                auto,
+                deathTickOffset
         );
     }
 
@@ -77,23 +88,6 @@ public class BloodBlink extends Module {
         this.resetState();
     }
 
-    private int serverTickTimer = -1;
-    private int serverTotalTickTimer = 0;
-    private int state = 0;
-    private boolean isLower = false;
-
-    public boolean forceNextSneak = false;
-
-    // Options
-    public boolean waitForGround = true;
-    public boolean auto = true;
-    public int deathTickOffset = 0;
-
-    @Override
-    public String getName() {
-        return "BloodBlink";
-    }
-
     @SubscribeEvent
     public void WorldEventLoad(WorldEvent.Load event) {
         this.bloodRoom = null;
@@ -105,7 +99,7 @@ public class BloodBlink extends Module {
         state = -1;
     }
 
-    private void resetState() {
+    public void resetState() {
         state = -1;
         this.isLower = false;
         this.forceNextSneak = false;
@@ -120,222 +114,207 @@ public class BloodBlink extends Module {
         return encodeIndex(p.x, p.y);
     }
 
-    private void rightClick() {
-        Minecraft.getInstance().gameMode.useItem(Minecraft.getInstance().player, InteractionHand.MAIN_HAND);
-    }
-
 
     @SubscribeEvent
     public void onTickStart(ClientTickEvent.Start event) {
         if (Location.getArea() != Island.Dungeon || Minecraft.getInstance().player == null) return;
         LocalPlayer player = Minecraft.getInstance().player;
 
-        if (this.isEnabled() && isBlinking() && Minecraft.getInstance().screen != null && Minecraft.getInstance().screen instanceof AbstractContainerScreen<?>) {
+        if (this.isEnabled() && this.isBlinking() && Minecraft.getInstance().screen != null && Minecraft.getInstance().screen instanceof AbstractContainerScreen<?>) {
             cancel();
             return;
         }
+        if (serverTotalTickTimer <= 2) return;
 
-        if (serverTotalTickTimer > 2) {
-            switch (state) {
-                case -1: {
-                    if (!auto) break;
-                    KeyMapping.releaseAll();
-                    state = 0;
-                    // Don't break here, overflow into next state
-                }
+        switch (state) {
+            case -1: {
+                if (!auto.getValue()) break;
+                KeyMapping.releaseAll();
+                state = 0;
+                // Don't break here, overflow into next state
+            }
 
-                case 0: {
-                    if (waitForGround && !player.onGround()) break;
-                    if (startRoom == null) {
-                        startRoom = ScanUtils.getRoomFromPos(player.getBlockX(), player.getBlockZ());
-                    }
-                    if (startRoom == null) break;
-
-                    if (goToSlab()) {
-                        state = 1;
-                        // Can't merge with previous tick because C08 is sent before C03
-                        ItemStack item = player.getInventory().getItem(player.getInventory().getSelectedSlot());
-                        if (item.getItem() != Items.DIAMOND_SHOVEL) {
-                            if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) break;
-                        }
-
-                        forceNextSneak = true;
-                        PacketOrderManager.register(() -> {
-                            Pos slab = RoomUtils.getRealPosition(SLAB_BLOCK_OFFSET, startRoom);
-
-                            // Need to add after because sign may change
-                            slab.x += 0.5d;
-                            slab.z += 0.5d;
-
-                            Block block = Minecraft.getInstance().level.getBlockState(slab.asBlockPos()).getBlock();
-                            if (block == Blocks.AIR) {
-                                isLower = true;
-                                slab.selfAdd(0.0, -1.0, 0.0);
-                            }
-
-                            float[] angles = EtherUtils.getYawAndPitch(slab.asVec3(), true, Minecraft.getInstance().player, true);
-                            SwapManager.sendC08(angles[0], angles[1], false);
-                            }, PacketOrderManager.STATE.ITEM_USE);
-                        ChatUtils.chat("EtherPos : " + EtherUtils.getEtherPosFromOrigin(Minecraft.getInstance().player.getEyePosition(), Minecraft.getInstance().player.getYRot(), Minecraft.getInstance().player.getXRot()));
-                        state = 2;
-                    }
+            case 0: {
+                if (bloodRoom == null && Dungeon.isStarted()) {
+                    ChatUtils.chat("Cannot blood blink while run has started and blood has not been loaded!");
+                    state = 31;
                     break;
                 }
 
-                case 1: {
-                    state = 2;
-                    break;
+                if (Minecraft.getInstance().player == null || Minecraft.getInstance().level == null) break;
+                forceNextSneak = true; // Must be setup for etherwarp
+
+                if (waitForGround.getValue() && !player.onGround()) break;
+                if (startRoom == null) {
+                    startRoom = ScanUtils.getRoomFromPos(player.getBlockX(), player.getBlockZ());
+                }
+                if (startRoom == null) break;
+                if (startRoom.getUniqueRoom().getRotation() == RoomRotation.UNKNOWN) break;
+
+                if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) break;
+                if (!Minecraft.getInstance().player.getLastSentInput().shift()) break;
+
+                Pos slab = RoomUtils.getRealPosition(SLAB_BLOCK_OFFSET, startRoom);
+
+                // Need to add after because sign may change
+                slab.x += 0.5d;
+                slab.z += 0.5d;
+
+                Block block = Minecraft.getInstance().level.getBlockState(slab.asBlockPos()).getBlock();
+                if (block == Blocks.AIR) {
+                    isLower = true;
+                    slab.selfAdd(0.0, -1.0, 0.0);
                 }
 
-                case 2: {
+                float[] angles = EtherUtils.getYawAndPitch(slab.asVec3(), true, Minecraft.getInstance().player, true);
+                SwapManager.sendC08(angles[0], angles[1], true);
+                state = 2;
+                break;
+            }
 
+            case 2: {
+                // Wait for aotv S08s
+                break;
+            }
+
+            case 4: {
+                if (pearl(player.getYRot(), -90f)) state = 5;
+                break;
+            }
+
+            case 5: {
+                // Wait for pearl S08s
+                break;
+            }
+
+            case 6: {
+                if (bloodRoom != null) {
+                    // Loaded we can skip to next, since we break here it will be 1 tick behind but whatever
+                    state = 17;
                     break;
                 }
+                if ((serverTickTimer % 40) < 10) {
+                    if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) break;
+                    float playerYaw = player.getYRot();
 
-                case 3: {
-                    player.setXRot(-90.0f);
-                    state = 4;
-                    break;
-                }
-                case 4: {
-                    if (pearl()) state = 5;
-                    break;
-                }
-
-                case 5: {
-                    // Wait for pearl S08s
-                    break;
-                }
-
-                case 6: {
-                    if (bloodRoom != null) {
-                        // Loaded we can skip to next, since we break here it will be 1 tick behind but whatever
-                        state = 17;
-                        break;
-                    }
-                    if ((serverTickTimer % 40) < 10) {
-                        if (aotv(7)) {
-                            state = 7;
-                        }
-                    }
-                    break;
-                }
-
-                case 7: {
-                    // Wait for S08s
-                    break;
-                }
-
-                case 8: {
                     float[] angles = EtherUtils.getYawAndPitch(MIDDLE_MAP_COORDS.add(0.0d, player.getY(), 0.0d), false, player, false);
-                    player.setYRot(angles[0]);
-                    player.setXRot(0.0f);
-                    state = 9;
-                    break;
-                }
-
-                case 9: {
                     float deltaX = (float) (player.getX() - MIDDLE_MAP_COORDS.x);
                     float deltaZ = (float) (player.getZ() - MIDDLE_MAP_COORDS.z);
-                    if (aotv(Math.round(Mth.sqrt(deltaX * deltaX + deltaZ * deltaZ) / 12f))) {
-                        state = 10;
-                    }
+
+                    aotv0(7, playerYaw, -90f);
+                    aotv0(Math.round(Mth.sqrt(deltaX * deltaX + deltaZ * deltaZ) / 12f), angles[0], 0.0f);
+                    state = 10;
                 }
-
-                case 10: {
-                    // Await S08 to respawn in start room
-
-                    break;
-                }
-
-                case 11: {
-                    // Most of this should be done in case 0 anyways
-                    if (waitForGround && !player.onGround()) break;
-                    if (bloodRoom == null) {
-                        // Still null, we didn't find it
-                        ChatUtils.chat("Could not find blood!");
-                        state = 31;
-                        break;
-                    }
-
-                    if (startRoom == null) {
-                        startRoom = ScanUtils.getRoomFromPos(player.getBlockX(), player.getBlockZ());
-                    }
-                    if (startRoom == null) break;
-
-                    if (goToSlab()) {
-                        state = 12;
-                        forceNextSneak = true; // To align with C08
-                        ItemStack item = player.getInventory().getItem(player.getInventory().getSelectedSlot());
-                        if (item.getItem() != Items.DIAMOND_SHOVEL) {
-                            if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) break;
-                        }
-
-                        PacketOrderManager.register(() -> SwapManager.sendC08(Minecraft.getInstance().player.getYRot(), Minecraft.getInstance().player.getXRot(), false), PacketOrderManager.STATE.ITEM_USE);
-                        state = 13;
-                    }
-                    break;
-                }
-
-                case 12: {
-
-                    break;
-                }
-
-                case 13: {
-                    // Wait for S08
-                    break;
-                }
-
-                case 14: {
-                    player.setXRot(-90f);
-                    state = 15;
-                    break;
-                }
-
-                case 15: {
-                    if (pearl()) state = 16;
-                    break;
-                }
-
-                case 16: {
-                    // Wait for pearl S08
-                    break;
-                }
-
-                case 17: {
-                    if (Minecraft.getInstance().gameMode == null) break;
-                    ItemStack item = player.getInventory().getItem(player.getInventory().getSelectedSlot());;
-                    if (item.getItem() != Items.DIAMOND_SHOVEL) {
-                        SwapManager.swapItem(Items.DIAMOND_SHOVEL);
-                        break;
-                    }
-                    if (Dungeon.isStarted() && (serverTickTimer % 40) < 35) {
-                        if (bigBlink())
-                            state = 30;
-                    }
-                    break;
-                }
-
-                case 29: {
-                    player.setXRot(-90f);
-                    if (pearl()) state = 30;
-                    break;
-                }
-
-                case 30: {
-                    // Wait for pearl S08
-                    break;
-                }
-
-                case 31: {
-                    // Done
-                    break;
-                }
-
-                default:
-                    break;
+                break;
             }
+
+            case 10: {
+                // Await S08 to respawn in start room
+                break;
+            }
+
+            case 11: {
+                if (Minecraft.getInstance().player == null || Minecraft.getInstance().level == null) break;
+                forceNextSneak = true; // Must be setup for etherwarp
+
+                if (waitForGround.getValue() && !player.onGround()) break;
+                if (bloodRoom == null) {
+                    // Still null, we didn't find it
+                    ChatUtils.chat("Could not find blood!");
+                    state = 31;
+                    break;
+                }
+
+                if (startRoom == null) {
+                    startRoom = ScanUtils.getRoomFromPos(player.getBlockX(), player.getBlockZ());
+                }
+                if (startRoom == null) break;
+                if (startRoom.getUniqueRoom().getRotation() == RoomRotation.UNKNOWN) break;
+
+                if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) break;
+                if (!Minecraft.getInstance().player.getLastSentInput().shift()) break;
+
+                Pos slab = RoomUtils.getRealPosition(SLAB_BLOCK_OFFSET, startRoom);
+
+                // Need to add after because sign may change
+                slab.x += 0.5d;
+                slab.z += 0.5d;
+
+                Block block = Minecraft.getInstance().level.getBlockState(slab.asBlockPos()).getBlock();
+                if (block == Blocks.AIR) {
+                    isLower = true;
+                    slab.selfAdd(0.0, -1.0, 0.0);
+                }
+
+                float[] angles = EtherUtils.getYawAndPitch(slab.asVec3(), true, Minecraft.getInstance().player, true);
+                SwapManager.sendC08(angles[0], angles[1], true);
+                state = 13;
+                break;
+            }
+
+            case 13: {
+                // Wait for S08
+                break;
+            }
+
+            case 15: {
+                if (pearl(player.getYRot(), -90.0f)) state = 16;
+                break;
+            }
+
+            case 16: {
+                // Wait for pearl S08
+                break;
+            }
+
+            case 17: {
+                SwapManager.swapItem(Items.DIAMOND_SHOVEL);
+
+                if (Dungeon.isStarted() && (serverTickTimer % 40) < 35) {
+                    if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) break;
+
+                    float playerYaw = player.getYRot();
+
+                    Direction dir = getVoidRotation();
+                    aotv0(4, dir.toYRot(), 0f);
+                    aotv0(10, playerYaw, 90f);
+
+                    Vec3 playerPos = Minecraft.getInstance().player.position().add(fastRotateVec(dir, 0, 0d, -48d)); // We don't care about the Y
+
+                    float deltaX = (float) ((bloodRoom.getX() + 0.5d) - playerPos.x());
+                    float deltaZ = (float) ((bloodRoom.getZ() + 0.5d) - playerPos.z());
+
+                    float[] angles = EtherUtils.getYawAndPitch(deltaX, 0.0d, deltaZ);
+                    aotv0(Math.round(Mth.sqrt(deltaX * deltaX + deltaZ * deltaZ) / 12f), angles[0], 0f);
+                    aotv0(5, playerYaw, -90f);
+
+                    if (!pearl(playerYaw, -90f)) {
+                        ChatUtils.chat("Pearl failed!");
+                        state = 29; // If we can't pearl
+                        break;
+                    }
+                    state = 30;
+                }
+                break;
+            }
+
+            case 29: {
+                if (pearl(player.getYRot(), -90.0f)) state = 30;
+                break;
+            }
+
+            case 30: {
+                // Wait for pearl S08
+                break;
+            }
+
+            case 31: {
+                // Done
+                break;
+            }
+
+            default:
+                break;
         }
     }
 
@@ -355,15 +334,6 @@ public class BloodBlink extends Module {
         return rotation;
     }
 
-    private static Vec3 fastRotateVec(Direction direction, Vec3 vec) {
-        return switch (direction) {
-            case EAST -> new Vec3(-vec.z, vec.y, vec.x);
-            case SOUTH -> new Vec3(-vec.x, vec.y, -vec.z);
-            case WEST -> new Vec3(vec.z, vec.y, -vec.x);
-            default -> vec; // North returns itself
-        };
-    }
-
     private static Vec3 fastRotateVec(Direction direction, double x, double y, double z) {
         return switch (direction) {
             case NORTH -> new Vec3(x, y, z);
@@ -374,39 +344,9 @@ public class BloodBlink extends Module {
         };
     }
 
-    private boolean bigBlink() {
-        if (!SwapManager.checkServerItem(Items.DIAMOND_SHOVEL)) return false; // Need to check order because packet order gets cooked here
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null) return false;
-
-        Direction dir = getVoidRotation();
-        aotv0(4, dir.toYRot(), 0f, player);
-        aotv0(9, 0f, 90f, player);
-
-        Vec3 playerPos = Minecraft.getInstance().player.position().add(fastRotateVec(dir, 0, 0d, -48d));
-
-        float deltaX = (float) ((bloodRoom.getX() + 0.5d) - playerPos.x());
-        float deltaZ = (float) ((bloodRoom.getZ() + 0.5d) - playerPos.z());
-
-        float[] angles = EtherUtils.getYawAndPitch(deltaX, 0.0d, deltaZ);
-        aotv0(Math.round(Mth.sqrt(deltaX * deltaX + deltaZ * deltaZ) / 12f), angles[0], 0f, player);
-        aotv0(5, 0f, -90f, player);
-
-        boolean bl = SwapManager.swapItem(Items.ENDER_PEARL);
-        if (!bl) {
-            ChatUtils.chat("Could not swap to pearls!");
-            return true;
-        }
-        player.setXRot(-90f);
-        Minecraft.getInstance().gameMode.useItem(Minecraft.getInstance().player, InteractionHand.MAIN_HAND);
-        return true;
-    }
-
-    private void aotv0(int count, float yaw, float pitch, LocalPlayer playerEntity) {
-        playerEntity.setYRot(yaw);
-        playerEntity.setXRot(pitch);
+    private void aotv0(int count, float yaw, float pitch) {
         for (int i = 0; i < count; i++) {
-            Minecraft.getInstance().gameMode.useItem(Minecraft.getInstance().player, InteractionHand.MAIN_HAND);
+            SwapManager.sendC08(yaw, pitch, true);
         }
     }
 
@@ -429,9 +369,6 @@ public class BloodBlink extends Module {
             return;
         }
 
-        if (this.forceNextSneak)
-            ChatUtils.chat("Override inputs!");
-
         Input newInputs = new Input(false, false, false, false, false, this.forceNextSneak, false);
         this.forceNextSneak = false;
         event.getInputConsumer().accept(newInputs);
@@ -443,60 +380,15 @@ public class BloodBlink extends Module {
         ChatUtils.chat("Cancelling blood blink!");
     }
 
-    private boolean aotv(int count) {
-        if (Minecraft.getInstance().player == null || Minecraft.getInstance().gameMode == null) return false;
-        ItemStack item = Minecraft.getInstance().player.getInventory().getItem(Minecraft.getInstance().player.getInventory().getSelectedSlot());;
-        if (item.getItem() != Items.DIAMOND_SHOVEL) {
-            SwapManager.swapItem(Items.DIAMOND_SHOVEL);
-            return false;
-        }
-
-        if (!SwapManager.checkServerItem(Items.DIAMOND_SHOVEL)) return false; // Need to check order because packet order gets cooked here
-
-        for (int i = 0; i < count; i++) {
-            Minecraft.getInstance().gameMode.useItem(Minecraft.getInstance().player, InteractionHand.MAIN_HAND);
-        }
-        return true;
-    }
-
-    private boolean pearl() {
-        if (!SwapManager.checkClientItem(Items.ENDER_PEARL)) {
-            if (!SwapManager.swapItem(Items.ENDER_PEARL)) return false; // C09 is sent before C08 so should swap in time
-        }
-        this.rightClick();
-        //PacketOrderManager.register(this::rightClick, PacketOrderManager.STATE.ITEM_USE);
-        return true;
-    }
-
-
-    private boolean goToSlab() {
-        if (Minecraft.getInstance().player == null || Minecraft.getInstance().level == null) return false;
-        if (startRoom.getUniqueRoom().getRotation() == RoomRotation.UNKNOWN) return false;
-
-        //Direction dir = startRoom.getUniqueRoom().getRotation().toDir();
-        Pos slab = RoomUtils.getRealPosition(SLAB_BLOCK_OFFSET, startRoom);
-
-        // Need to add after because sign may change
-        slab.x += 0.5d;
-        slab.z += 0.5d;
-
-        Block block = Minecraft.getInstance().level.getBlockState(slab.asBlockPos()).getBlock();
-        if (block == Blocks.AIR) {
-            isLower = true;
-            slab.selfAdd(0.0, -1.0, 0.0);
-        }
-
-        float[] angles = EtherUtils.getYawAndPitch(slab.asVec3(), true, Minecraft.getInstance().player, true);
-        Minecraft.getInstance().player.setYRot(angles[0]);
-        Minecraft.getInstance().player.setXRot(angles[1]);
-        return true;
+    private boolean pearl(float yaw, float pitch) {
+        if (!SwapManager.swapItem(Items.ENDER_PEARL)) return false;
+        return SwapManager.sendC08(yaw, pitch, true);
     }
 
     @SubscribeEvent
-    public void onLoadRoom(DungeonEvent.RoomScanned event) {
-        int core = event.getUnique().getMainRoom().getCore();
-        if (core == 1898104308 || core == 698844034) {
-            this.bloodRoom = event.getUnique().getMainRoom();
+    public void onLoadRoom(DungeonEvent.RoomLoad event) {
+        if (event.getRoom().getData().type() == RoomType.BLOOD) {
+            this.bloodRoom = event.getRoom();
             ChatUtils.chat("Found blood at : " + bloodRoom.getX() + ", " + bloodRoom.getZ());
         }
     }
@@ -512,18 +404,18 @@ public class BloodBlink extends Module {
 
         if (packet instanceof ClientboundSetTimePacket timePacket) {
             long time = timePacket.gameTime();
-            this.serverTickTimer = (int) (time + deathTickOffset) % 40;
+            this.serverTickTimer = (int) (time + deathTickOffset.getValue()) % 40;
         }
 
         if (packet instanceof ClientboundPlayerPositionPacket s08) {
-            System.out.println(s08.change().position().y);
             switch (state) {
                 case 2: {
-                    state = 3;
+                    state = 4;
                     break;
                 }
+
                 case 13: {
-                    state = 14;
+                    state = 15;
                     break;
                 }
 
@@ -551,11 +443,6 @@ public class BloodBlink extends Module {
                         state = 29;
                     else
                         state = 31;
-                    break;
-                }
-
-                case 7: {
-                    state = 8; // May get called many times but should be received at same time so should be fine.
                     break;
                 }
 
