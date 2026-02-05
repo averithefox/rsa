@@ -1,12 +1,10 @@
 package com.ricedotwho.rsa;
 
-import com.ricedotwho.rsa.module.impl.dungeon.BloodBlink;
+import com.ricedotwho.rsa.module.impl.dungeon.*;
 import com.ricedotwho.rsa.command.impl.RouteCommand;
+import com.ricedotwho.rsa.module.impl.movement.NoRotate;
 import com.ricedotwho.rsa.module.impl.other.AutoJax;
-import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
-import com.ricedotwho.rsa.module.impl.dungeon.DungeonBreaker;
 import com.ricedotwho.rsa.module.impl.render.EffectsAndRender;
-import com.ricedotwho.rsa.module.impl.dungeon.PadTimer;
 import com.ricedotwho.rsa.module.impl.render.EffectsAndRender;
 import com.ricedotwho.rsm.addon.Addon;
 import com.ricedotwho.rsm.command.Command;
@@ -42,6 +40,8 @@ public class RSA implements Addon {
                 AutoJax.class,
                 PadTimer.class,
                 BloodBlink.class,
+                NoRotate.class,
+                AutoSS.class,
                 EffectsAndRender.class
         );
     }

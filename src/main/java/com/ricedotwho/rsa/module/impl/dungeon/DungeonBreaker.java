@@ -61,22 +61,6 @@ public class DungeonBreaker extends Module {
     private static int maxCharges = 20;
     private static int charges = 20;
 
-    public DungeonBreaker() {
-        this.registerProperty(
-                // todo: register settings
-        );
-    }
-
-    @Override
-    public void onEnable() {
-
-    }
-
-    @Override
-    public void onDisable() {
-
-    }
-
     @Override
     public void reset() {
         charges = 20;
