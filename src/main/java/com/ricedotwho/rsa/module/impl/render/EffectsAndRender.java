@@ -34,7 +34,6 @@ public class EffectsAndRender extends Module {
         ParticleFactoryRegistry.getInstance().register(
                 ParticleTypes.EXPLOSION,
                 spriteSet -> {
-                    //its so gay that I need the fucking var
                     var originalFactory = new net.minecraft.client.particle.HugeExplosionParticle.Provider(spriteSet);
                     return (simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource) ->
                             RSM.getModule(EffectsAndRender.class).Explosions.getValue() ? null : originalFactory.createParticle(simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource);
@@ -45,7 +44,6 @@ public class EffectsAndRender extends Module {
         ParticleFactoryRegistry.getInstance().register(
                 ParticleTypes.EXPLOSION_EMITTER,
                 spriteSet -> {
-                    //its so gay that I need the fucking var
                     var originalFactory = new net.minecraft.client.particle.HugeExplosionSeedParticle.Provider();
                     return (simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource) ->
                             RSM.getModule(EffectsAndRender.class).Explosions.getValue() ? null : originalFactory.createParticle(simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource);
@@ -56,7 +54,6 @@ public class EffectsAndRender extends Module {
         ParticleFactoryRegistry.getInstance().register(
                 ParticleTypes.DRAGON_BREATH,
                 spriteSet -> {
-                    //its so gay that I need the fucking var
                     var originalFactory = new net.minecraft.client.particle.DragonBreathParticle.Provider(spriteSet);
                     return (simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource) ->
                             RSM.getModule(EffectsAndRender.class).Fires.getValue() ? null : originalFactory.createParticle(simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource);
@@ -66,7 +63,6 @@ public class EffectsAndRender extends Module {
         ParticleFactoryRegistry.getInstance().register(
                 ParticleTypes.FLAME,
                 spriteSet -> {
-                    //its so gay that I need the fucking var
                     var originalFactory = new net.minecraft.client.particle.FlameParticle.Provider(spriteSet);
                     return (simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource) ->
                             RSM.getModule(EffectsAndRender.class).Fires.getValue() ? null : originalFactory.createParticle(simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource);
@@ -77,7 +73,6 @@ public class EffectsAndRender extends Module {
         ParticleFactoryRegistry.getInstance().register(
                 ParticleTypes.PORTAL,
                 spriteSet -> {
-                    //its so gay that I need the fucking var
                     var originalFactory = new net.minecraft.client.particle.PortalParticle.Provider(spriteSet);
                     return (simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource) ->
                             RSM.getModule(EffectsAndRender.class).EtherWarp.getValue() ? null : originalFactory.createParticle(simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource);
@@ -87,7 +82,6 @@ public class EffectsAndRender extends Module {
         ParticleFactoryRegistry.getInstance().register(
                 ParticleTypes.WITCH,
                 spriteSet -> {
-                    //its so gay that I need the fucking var
                     var originalFactory = new net.minecraft.client.particle.SpellParticle.WitchProvider(spriteSet);
                     return (simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource) ->
                             RSM.getModule(EffectsAndRender.class).EtherWarp.getValue() ? null : originalFactory.createParticle(simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource);
@@ -98,7 +92,6 @@ public class EffectsAndRender extends Module {
         ParticleFactoryRegistry.getInstance().register(
                 ParticleTypes.LARGE_SMOKE,
                 spriteSet -> {
-                    //its so gay that I need the fucking var
                     var originalFactory = new net.minecraft.client.particle.LargeSmokeParticle.Provider(spriteSet);
                     return (simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource) ->
                             RSM.getModule(EffectsAndRender.class).SMOKE.getValue() ? null : originalFactory.createParticle(simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource);
@@ -108,7 +101,6 @@ public class EffectsAndRender extends Module {
         ParticleFactoryRegistry.getInstance().register(
                 ParticleTypes.SMOKE,
                 spriteSet -> {
-                    //its so gay that I need the fucking var
                     var originalFactory = new net.minecraft.client.particle.SmokeParticle.Provider(spriteSet);
                     return (simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource) ->
                             RSM.getModule(EffectsAndRender.class).SMOKE.getValue() ? null : originalFactory.createParticle(simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource);
@@ -118,7 +110,6 @@ public class EffectsAndRender extends Module {
         ParticleFactoryRegistry.getInstance().register(
                 ParticleTypes.CAMPFIRE_COSY_SMOKE,
                 spriteSet -> {
-                    //its so gay that I need the fucking var
                     var originalFactory = new net.minecraft.client.particle.CampfireSmokeParticle.CosyProvider(spriteSet);
                     return (simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource) ->
                             RSM.getModule(EffectsAndRender.class).SMOKE.getValue() ? null : originalFactory.createParticle(simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource);
@@ -128,7 +119,6 @@ public class EffectsAndRender extends Module {
         ParticleFactoryRegistry.getInstance().register(
                 ParticleTypes.CAMPFIRE_SIGNAL_SMOKE,
                 spriteSet -> {
-                    //its so gay that I need the fucking var
                     var originalFactory = new net.minecraft.client.particle.CampfireSmokeParticle.SignalProvider(spriteSet);
                     return (simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource) ->
                             RSM.getModule(EffectsAndRender.class).SMOKE.getValue() ? null : originalFactory.createParticle(simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource);
@@ -138,7 +128,6 @@ public class EffectsAndRender extends Module {
         ParticleFactoryRegistry.getInstance().register(
                 ParticleTypes.WHITE_SMOKE,
                 spriteSet -> {
-                    //its so gay that I need the fucking var
                     var originalFactory = new net.minecraft.client.particle.WhiteSmokeParticle.Provider(spriteSet);
                     return (simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource) ->
                             RSM.getModule(EffectsAndRender.class).SMOKE.getValue() ? null : originalFactory.createParticle(simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource);
