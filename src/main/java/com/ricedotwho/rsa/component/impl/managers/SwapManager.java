@@ -65,7 +65,7 @@ public class SwapManager {
         return false;
     }
 
-    public static boolean sendAirC08(float yaw, float pitch, boolean syncSlots) {
+    public static boolean sendAirC08(float yaw, float pitch, boolean syncSlots, boolean swing) {
         if (Minecraft.getInstance().player == null || Minecraft.getInstance().player.gameMode() == GameType.SPECTATOR) return false;
         if (Minecraft.getInstance().gameMode == null || Minecraft.getInstance().level == null) return false;
 
@@ -79,11 +79,18 @@ public class SwapManager {
         }
 
         manager.sendPacketSequenced(Minecraft.getInstance().level, sequence -> new ServerboundUseItemPacket(InteractionHand.MAIN_HAND, sequence, yaw, pitch));
+        if (swing) Minecraft.getInstance().player.swing(InteractionHand.MAIN_HAND);
         return true;
     }
 
+
+    public static boolean sendAirC08(float yaw, float pitch, boolean syncSlots) {
+        return sendAirC08(yaw, pitch, syncSlots, false);
+    }
+
+
     // Haven't implement syncSlots because I haven't found the need
-    public static void sendBlockC08(Vec3 pos, Direction direction) {
+    public static void sendBlockC08(Vec3 pos, Direction direction, boolean swing) {
         if (Minecraft.getInstance().player == null || Minecraft.getInstance().player.gameMode() == GameType.SPECTATOR) return;
         if (Minecraft.getInstance().gameMode == null || Minecraft.getInstance().level == null) return;
 
@@ -91,6 +98,7 @@ public class SwapManager {
         BlockHitResult result = new BlockHitResult(pos, direction, BlockPos.containing(pos), false);
 
         ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode).sendPacketSequenced(Minecraft.getInstance().level, sequence -> new ServerboundUseItemOnPacket(InteractionHand.MAIN_HAND, result, sequence));
+        if (swing) Minecraft.getInstance().player.swing(InteractionHand.MAIN_HAND);
     }
 
     public static boolean swapItem(Item item) {
