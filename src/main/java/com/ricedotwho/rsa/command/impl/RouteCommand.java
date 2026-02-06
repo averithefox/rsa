@@ -1,25 +1,41 @@
 package com.ricedotwho.rsa.command.impl;
 
+import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.ricedotwho.rsa.RSA;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.Ring;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.RingAction;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.Node;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.NodeType;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.Map;
+import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.data.Rotation;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.network.chat.Component;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @CommandInfo(name = "route", aliases = "r", description = "Handles creating autoroutes")
 public class RouteCommand extends Command {
@@ -27,88 +43,104 @@ public class RouteCommand extends Command {
     @Override
     public LiteralArgumentBuilder<ClientSuggestionProvider> build() {
         return literal(name())
-                .requires(src -> {
-                    if (!Location.getArea().is(Island.Dungeon)) {
-                        ChatUtils.chat("Cannot use AutoRoutes outside of Dungeons!");
-                        return false;
-                    }
-
-                    Room room = Map.getCurrentRoom();
-                    if (room == null) {
-                        ChatUtils.chat("Couldn't find current room");
-                        return false;
-                    }
-
-                    return true;
-                })
                 .then(literal("add")
-                        .then(argument("type", StringArgumentType.word())
-                                .then(argument("widthX", DoubleArgumentType.doubleArg(0))
-                                        .then(argument("height", DoubleArgumentType.doubleArg(0))
-                                                .then(argument("widthZ", DoubleArgumentType.doubleArg(0))
-                                                        .executes(ctx -> {
-                                                            Room room = Map.getCurrentRoom();
-
-                                                            AutoRoutes routesModule = RSM.getModule(AutoRoutes.class);
-                                                            String actionName = StringArgumentType.getString(ctx, "type");
-                                                            RingAction action = routesModule.getAction(actionName);
-                                                            if (action == null) {
-                                                                ChatUtils.chat("Couldn't find an action named: {}", actionName);
-                                                                return 1;
-                                                            }
-
-                                                            Pos pos = new Pos(mc.player.getX(), mc.player.getY(), mc.player.getX());
-                                                            Pos relativePos = RoomUtils.getRelativePosition(pos, room);
-                                                            if (relativePos == null) {
-                                                                ChatUtils.chat("Failed to get relative position");
-                                                                return 1;
-                                                            }
-
-                                                            Rotation rot = new Rotation(mc.player.getXRot(), mc.player.getYRot());
-                                                            Rotation relativeRot = RoomUtils.getRelativeYaw(rot);
-
-                                                            Ring ring = new Ring(
-                                                                    room.getData().name(),
-                                                                    action,
-                                                                    relativePos,
-                                                                    relativeRot
-                                                            );
-
-                                                            ring.widthX = DoubleArgumentType.getDouble(ctx, "widthX");
-                                                            ring.height = DoubleArgumentType.getDouble(ctx, "height");
-                                                            ring.widthZ = DoubleArgumentType.getDouble(ctx, "widthZ");
-
-                                                            routesModule.rings.add(ring);
-                                                            ChatUtils.chat("Added a %s ring", ring.action.name);
-                                                            return 1;
-                                                        })
-                                                )
-                                        )
-                                )
+                        .then(argument("node", NodeArgumentType.nodeArgument())
+                                .executes(RouteCommand::addNode)
                         )
                 )
+                .then(literal("clear")
+                        .executes(RouteCommand::clearNodes)
+                )
                 .then(literal("remove")
-                        .executes(ctx -> {
-                            AutoRoutes routesModule = RSM.getModule(AutoRoutes.class);
-                            Room room = Map.getCurrentRoom();
-                            Pos pos = new Pos(mc.player.getX(), mc.player.getY(), mc.player.getX());
-                            Pos relativePos = RoomUtils.getRelativePosition(pos, room);
-                            if (relativePos == null) {
-                                ChatUtils.chat("Failed to get relative position");
-                                return 1;
-                            }
-
-                            Ring ring = routesModule.getClosestRing(room, relativePos.x, relativePos.y, relativePos.z);
-                            if (ring == null) {
-                                ChatUtils.chat("Couldn't find any rings");
-                                return 1;
-                            }
-
-                            routesModule.rings.remove(ring);
-                            ChatUtils.chat("Removed a {} ring", ring.action.name);
-                            return 1;
-                        })
+                        .executes(RouteCommand::removeNode)
                 );
     }
 
+    private static int clearNodes(CommandContext<ClientSuggestionProvider> ctx) {
+        Room room = Map.getCurrentRoom();
+        if (room == null || room.getUniqueRoom() == null) {
+            ChatUtils.chat("Failed to find room!");
+            return 0;
+        }
+
+        if (!RSM.getModule(AutoRoutes.class).clearNodes(room.getUniqueRoom())) {
+            ChatUtils.chat("No nodes found in this room!");
+            return 0;
+        }
+        ChatUtils.chat("Cleared all nodes!");
+        return 1;
+    }
+
+    private static int removeNode(CommandContext<ClientSuggestionProvider> ctx) {
+        Room room = Map.getCurrentRoom();
+        if (room == null || room.getUniqueRoom() == null) {
+            ChatUtils.chat("Failed to find room!");
+            return 0;
+        }
+
+        if (!RSM.getModule(AutoRoutes.class).removeNearest(room.getUniqueRoom())) {
+            ChatUtils.chat("No nodes found in this room!");
+            return 0;
+        }
+        ChatUtils.chat("Removed node!");
+        return 1;
+    }
+
+    private static int addNode(CommandContext<ClientSuggestionProvider> ctx) {
+        if (!Location.getArea().is(Island.Dungeon) || Map.getCurrentRoom() == null) {
+            ChatUtils.chat("Failed to add node, please enter a dungeon!");
+            return 0;
+        }
+
+        NodeType type = NodeArgumentType.getNode(ctx, "node");
+        Node node = type.supply(Map.getCurrentRoom().getUniqueRoom());
+        if (node == null) {
+            ChatUtils.chat("Failed to add node, invalid player information!");
+            return 0;
+        }
+
+        RSM.getModule(AutoRoutes.class).addNode(node, Map.getCurrentRoom().getUniqueRoom());
+        ChatUtils.chat("Added " + type.toString() + " node!");
+        return 1;
+    }
+
+    private static class NodeArgumentType implements ArgumentType<NodeType> {
+        private static final Collection<String> EXAMPLES = Stream.of(NodeType.ETHERWARP, NodeType.BOOM)
+                .map(NodeType::getName)
+                .collect(Collectors.toList());
+        private static final NodeType[] VALUES = NodeType.values();
+        private static final DynamicCommandExceptionType INVALID_NODE_EXCEPTION = new DynamicCommandExceptionType(
+                node -> Component.literal("Invalid node type : " + node)
+        );
+
+        public NodeType parse(StringReader stringReader) throws CommandSyntaxException {
+            String string = stringReader.readUnquotedString();
+            NodeType node = NodeType.byName(string);
+            if (node == null) {
+                throw INVALID_NODE_EXCEPTION.createWithContext(stringReader, string);
+            } else {
+                return node;
+            }
+        }
+
+        @Override
+        public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
+            return context.getSource() instanceof SharedSuggestionProvider
+                    ? SharedSuggestionProvider.suggest(Arrays.stream(VALUES).map(NodeType::getName), builder)
+                    : Suggestions.empty();
+        }
+
+        @Override
+        public Collection<String> getExamples() {
+            return EXAMPLES;
+        }
+
+        public static NodeArgumentType nodeArgument() {
+            return new NodeArgumentType();
+        }
+
+        public static NodeType getNode(CommandContext<ClientSuggestionProvider> context, String name) {
+            return context.getArgument(name, NodeType.class);
+        }
+    }
 }
