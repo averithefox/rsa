@@ -2,13 +2,10 @@ package com.ricedotwho.rsa.module.impl.movement;
 
 
 import com.ricedotwho.rsa.mixins.LocalPlayerAccessor;
-import com.ricedotwho.rsa.module.impl.dungeon.DungeonBreaker;
 import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
-import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
-import com.ricedotwho.rsm.component.impl.map.utils.ScanUtils;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.DungeonEvent;
@@ -17,13 +14,12 @@ import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
-import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.ItemUtils;
 import com.ricedotwho.rsm.utils.Utils;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.world.entity.PositionMoveRotation;
@@ -33,18 +29,20 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @Getter
 @ModuleInfo(aliases = "No Rotate", id = "NoRotate", category = Category.MOVEMENT)
 public class NoRotate extends Module {
-    private static final long TIMEOUT = 2000;
-    private long shouldNoRotateTime = -1;
 
     private final BooleanSetting teleportItem = new BooleanSetting("Teleport Items", true);
     private final BooleanSetting outbounds = new BooleanSetting("Outbounds", false);
     private final BooleanSetting alwaysNoRotate = new BooleanSetting("Always No Rotate", false);
+    private final NumberSetting timeout = new NumberSetting("Timeout", 250, 2000, 1000, 25);
+
+    private final List<Long> sent = new ArrayList<>();
 
     private static final List<Block> ignored = Arrays.asList(
             Blocks.HOPPER,
@@ -63,24 +61,24 @@ public class NoRotate extends Module {
         this.registerProperty(
                 teleportItem,
                 outbounds,
-                alwaysNoRotate
+                alwaysNoRotate,
+                timeout
         );
     }
 
-    // maybe this should have a timeout
     @SubscribeEvent
     public void onUseItem(PacketEvent.Send event) {
         if (!this.teleportItem.getValue() || (Dungeon.isInBoss() && (Location.getFloor() == Floor.F7 || Location.getFloor() == Floor.M7))) return;
         if (event.getPacket() instanceof ServerboundUseItemPacket packet) {
             ItemStack stack = mc.player.getItemBySlot(packet.getHand().asEquipmentSlot());
             if (isHoldingTpItem(stack)) {
-                shouldNoRotateTime = System.currentTimeMillis();
+                sent.add(System.currentTimeMillis());
             }
         } else if (event.getPacket() instanceof ServerboundUseItemOnPacket packet) {
             ItemStack stack = mc.player.getItemBySlot(packet.getHand().asEquipmentSlot());
             Block block =  mc.level.getBlockState(packet.getHitResult().getBlockPos()).getBlock();
             if (!ignored.contains(block) && isHoldingTpItem(stack)) {
-                shouldNoRotateTime = System.currentTimeMillis();
+                sent.add(System.currentTimeMillis());
             }
         }
     }
@@ -96,16 +94,16 @@ public class NoRotate extends Module {
     }
 
     private boolean shouldNoRotate() {
+        sent.removeIf(l -> l > timeout.getValue());
         return this.alwaysNoRotate.getValue()
-                || (this.teleportItem.getValue() && (System.currentTimeMillis() - shouldNoRotateTime < TIMEOUT)
+                || (!sent.isEmpty() && this.teleportItem.getValue() && (System.currentTimeMillis() - sent.getFirst() < timeout.getValue())
                 || this.outbounds.getValue() && !Dungeon.isStarted() && Location.getArea().is(Island.Dungeon)
         );
     }
 
-    // Is there a reason to not use PacketEvent?
     public void onHandleMovePlayer(ClientboundPlayerPositionPacket packet, Connection connection, CallbackInfo ci) {
         if (!this.isEnabled() || !shouldNoRotate()) return;
-        shouldNoRotateTime = -1;
+        sent.removeFirst();
         // Thanks noob for the code
 
         LocalPlayer player = Minecraft.getInstance().player;
@@ -133,7 +131,7 @@ public class NoRotate extends Module {
 
     @Override
     public void reset() {
-        shouldNoRotateTime = -1;
+        sent.clear();
     }
 
     private boolean isHoldingTpItem(ItemStack item) {

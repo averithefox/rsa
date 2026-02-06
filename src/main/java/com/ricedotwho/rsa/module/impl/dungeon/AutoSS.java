@@ -37,6 +37,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.lwjgl.glfw.GLFW;
 
@@ -172,10 +173,10 @@ public class AutoSS extends Module {
     }
 
     private void renderButton(ClientLevel level, BlockPos pos, Colour colorFill, Colour colorOutline) {
-        BlockState state = level.getBlockState(BlockPos.containing(START_BUTTON));
-        VoxelShape shape = state.getCollisionShape(level, pos);
+        BlockState state = level.getBlockState(pos);
+        VoxelShape shape = state.getShape(level, pos);
 
-        Renderer3D.addTask(new FilledOutlineBox(shape.bounds().inflate(0.1d), colorFill, colorOutline, false));
+        Renderer3D.addTask(new FilledOutlineBox(shape.bounds().move(pos), colorFill, colorOutline, false));
     }
 
 

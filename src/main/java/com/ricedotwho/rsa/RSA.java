@@ -42,6 +42,7 @@ public class RSA implements Addon {
                 BloodBlink.class,
                 NoRotate.class,
                 AutoSS.class,
+                SecretAura.class,
                 EffectsAndRender.class
         );
     }
