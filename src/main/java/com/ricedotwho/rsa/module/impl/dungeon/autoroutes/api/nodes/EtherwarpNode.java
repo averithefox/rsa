@@ -4,7 +4,6 @@ import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.Node;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.NodeRunState;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
@@ -14,18 +13,15 @@ import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
-import com.ricedotwho.rsm.utils.render.render3d.type.FilledOutlineBox;
-import com.ricedotwho.rsm.utils.render.render3d.type.OutlineBox;
+import com.ricedotwho.rsm.utils.render.render3d.type.Circle;
+import com.ricedotwho.rsm.utils.render.render3d.type.Line;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Pose;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import org.apache.commons.compress.archivers.zip.ScatterZipOutputStream;
 
 public class EtherwarpNode extends Node {
     private final Pos localTargetPos;
@@ -87,8 +83,10 @@ public class EtherwarpNode extends Node {
 
     @Override
     public void render() {
-        AABB aabb = new AABB(this.getRealPos().subtract(0.5d, 0d, 0.5d).asVec3(), this.getRealPos().add(0.5d, 0.25d, 0.5d).asVec3());
-        Renderer3D.addTask(new OutlineBox(aabb, Colour.GREEN, false));
+//        AABB aabb = new AABB(this.getRealPos().subtract(0.5d, 0d, 0.5d).asVec3(), this.getRealPos().add(0.5d, 0.25d, 0.5d).asVec3());
+//        Renderer3D.addTask(new OutlineBox(aabb, Colour.GREEN, false));
+        Renderer3D.addTask(new Circle(this.getRealPos(), true, this.getRadius(), Colour.CYAN, 30));
+        Renderer3D.addTask(new Line(this.getRealPos().asVec3(), this.realTargetPos.asVec3(), Colour.CYAN, Colour.CYAN, true));
     }
 
     @Override

@@ -11,7 +11,7 @@ import net.minecraft.world.phys.Vec3;
 
 public abstract class Node {
     private final Pos localPos;
-    private final double r;
+    private final float r;
     private boolean triggered;
     private int lastTickTime;
 
@@ -19,10 +19,10 @@ public abstract class Node {
     private Pos realPos;
 
     public Node(Pos localPos) {
-        this(localPos, 0.5d);
+        this(localPos, 0.5f);
     }
 
-    public Node(Pos localPos, double r) {
+    public Node(Pos localPos, float r) {
         this.localPos = localPos;
         this.r = r;
 
@@ -36,6 +36,10 @@ public abstract class Node {
 
     public abstract boolean run(Pos playerPos);
     public abstract void render();
+
+    public float getRadius() {
+        return r;
+    }
 
     public int getPriority() {
         return 8;

@@ -37,7 +37,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@CommandInfo(name = "route", aliases = "r", description = "Handles creating autoroutes")
+@CommandInfo(name = "autoroute", aliases = {"r", "ar", "route"}, description = "Handles creating autoroutes")
 public class RouteCommand extends Command {
 
     @Override
@@ -87,19 +87,25 @@ public class RouteCommand extends Command {
     }
 
     private static int addNode(CommandContext<ClientSuggestionProvider> ctx) {
-        if (!Location.getArea().is(Island.Dungeon) || Map.getCurrentRoom() == null) {
+        Room room = Map.getCurrentRoom();
+        if (!Location.getArea().is(Island.Dungeon) || room == null) {
             ChatUtils.chat("Failed to add node, please enter a dungeon!");
             return 0;
         }
 
+        if (room.getUniqueRoom() == null) {
+            ChatUtils.chat("Null unique room!");
+            return 0;
+        }
+
         NodeType type = NodeArgumentType.getNode(ctx, "node");
-        Node node = type.supply(Map.getCurrentRoom().getUniqueRoom());
+        Node node = type.supply(room.getUniqueRoom());
         if (node == null) {
             ChatUtils.chat("Failed to add node, invalid player information!");
             return 0;
         }
 
-        RSM.getModule(AutoRoutes.class).addNode(node, Map.getCurrentRoom().getUniqueRoom());
+        RSM.getModule(AutoRoutes.class).addNode(node, room.getUniqueRoom());
         ChatUtils.chat("Added " + type.toString() + " node!");
         return 1;
     }

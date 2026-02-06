@@ -22,6 +22,7 @@ import com.ricedotwho.rsm.event.impl.render.Render3DEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.utils.Accessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
@@ -42,14 +43,21 @@ public class AutoRoutes extends Module implements Accessor {
     private final HashMap<String, List<Node>> savedNodes = new HashMap<>();
     private final HashMap<RoomData, List<Node>> activeNodes = new HashMap<>();
 
+    private BooleanSetting editMode = new BooleanSetting("Edit Mode", false);
+
     private int tickTime = 0;
     private boolean forceNextSneak = false;
+
+    public AutoRoutes() {
+        this.registerProperty(editMode);
+    }
 
     @SubscribeEvent
     public void onRoomEnter(DungeonEvent.ChangeRoom event) {
         Room room = event.getRoom();
         if (activeNodes.containsKey(room.getData())) return;
         List<Node> nodes = savedNodes.get(room.getData().name());
+        if (nodes == null || nodes.isEmpty()) return;
         UniqueRoom uniqueRoom = room.getUniqueRoom();
         nodes.forEach(n -> n.calculate(uniqueRoom));
         activeNodes.put(room.getData(), nodes);
@@ -66,7 +74,7 @@ public class AutoRoutes extends Module implements Accessor {
 
     @SubscribeEvent
     public void onClientTickStart(ClientTickEvent.Start event) {
-        if (!Location.getArea().is(Island.Dungeon) || Map.getCurrentRoom() == null || Minecraft.getInstance().player == null) return;
+        if (!Location.getArea().is(Island.Dungeon) || Map.getCurrentRoom() == null || Minecraft.getInstance().player == null || this.editMode.getValue()) return;
         tickTime++;
 
         Room currentRoom = Map.getCurrentRoom();
@@ -124,8 +132,12 @@ public class AutoRoutes extends Module implements Accessor {
     public void addNode(Node node, UniqueRoom uniqueRoom) {
         this.savedNodes.putIfAbsent(uniqueRoom.getName(), new ArrayList<>());
         List<Node> nodes = savedNodes.get(uniqueRoom.getName());
-        nodes.add(node);
-        // Don't need to put into active nodes because they share the same list objects
+        node.calculate(uniqueRoom);
+        nodes.add(node); // Don't add to active nodes list because they share the same list objects
+        if (!activeNodes.containsKey(uniqueRoom.getMainRoom().getData())) {
+            // But we might need to add the list in the first place
+            activeNodes.put(uniqueRoom.getMainRoom().getData(), nodes);
+        }
     }
 
     public void setForceSneak(boolean bl) {
