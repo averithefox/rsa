@@ -1,8 +1,10 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.data.Colour;
+import com.ricedotwho.rsm.data.Phase7;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.game.ChatEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
@@ -15,8 +17,10 @@ import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.ButtonSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.DragSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.DungeonUtils;
 import com.ricedotwho.rsm.utils.render.render2d.NVGUtils;
 import lombok.Getter;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.StringUtil;
@@ -34,10 +38,10 @@ public class PadTimer extends Module {
     private boolean pPadmsg = false;
     private int stopShowing = 44;
     private int stopShowing2 = 1;
-    private boolean restartvalues = false;
+
     private int pPadTicks = 80; // 80 ticks [4 seconds]
     private int yPadTicks = 48;// 40 ticks [2 seconds]
-    private final ButtonSetting rsvalues = new ButtonSetting("Restart Values", "restartvalues", () -> restartvalues = true);
+    private final ButtonSetting rsvalues = new ButtonSetting("Restart Values", "restartvalues", this::reset);
     private final BooleanSetting debug = new BooleanSetting("Debug", false, () -> true);
     private final DragSetting PADELERT = new DragSetting("PAD ELERT", new Vector2d(0, 0), new Vector2d(0, 0));
 
@@ -63,11 +67,6 @@ public class PadTimer extends Module {
 
     @Override
     public void reset() {
-        IsEnabled = false;
-    }
-
-    @SubscribeEvent
-    public void onwrldLoad(WorldEvent.Load event) {
         seconds = 4;// 4 seconds
         second = 20;// 20 ticks
         padSeconds = 4;// 4 seconds
@@ -79,8 +78,11 @@ public class PadTimer extends Module {
         stopShowing2 = 1;
         pPadTicks = 80;// 80 ticks [4 seconds]
         yPadTicks = 48;// 40 ticks [2 seconds]
-        System.out.println("Values Restarted.");
-        restartvalues = false;
+    }
+
+    @SubscribeEvent
+    public void onWorldLoad(WorldEvent.Load event) {
+        reset();
     }
 
     @SubscribeEvent
@@ -89,7 +91,8 @@ public class PadTimer extends Module {
         if (player == null) return;
         String unformatted = StringUtil.stripColor(event.getMessage().getString());
 
-        if(unformatted.contains("I'd be happy to show you what that's like!") && (Location.getArea() == Island.Dungeon) || debug.getValue()){
+        // todo: get the exact message so people cant trigger this by typing it
+        if (unformatted.contains("I'd be happy to show you what that's like!") && Location.getArea() == Island.Dungeon && DungeonUtils.isPhase(Phase7.P2) || debug.getValue()){
             pPadcountdown = true;
             pPadmsg = true;
             IsEnabled = true;
@@ -99,57 +102,47 @@ public class PadTimer extends Module {
 
     @SubscribeEvent
     public void onTick(ClientTickEvent.Start event) {;
-        if(Location.getArea() == Island.Dungeon && IsEnabled || debug.getValue()){
-            if(pPadcountdown){countdownP = true;}
-            if(padSeconds <= 0)countdownP = false;
+        if (Location.getArea() == Island.Dungeon && DungeonUtils.isPhase(Phase7.P2) && IsEnabled || debug.getValue()) {
+            if (pPadcountdown) {
+                countdownP = true;
+            }
+            if (padSeconds <= 0) countdownP = false;
 
-            if(second > 0 && pPadTicks <= 0 && countdownP){
+            if (second > 0 && pPadTicks <= 0 && countdownP) {
                 second--;
-                if(second == 0) {ChatUtils.chat("PAD IN: " + padSeconds); padSeconds--;}
-                if(padSeconds <= 0) countdownP = false;
+                if (second == 0) {
+                    ChatUtils.chat("PAD IN: " + padSeconds);
+                    padSeconds--;
+                }
+                if (padSeconds <= 0) countdownP = false;
                 return;
             }
             seconds--;
-            if(seconds <= 0 && pPadcountdown) {second = 20;}
+            if (seconds <= 0 && pPadcountdown) {
+                second = 20;
+            }
 
-            if (stopShowing > 0 && pPadTicks <= 0)  {
+            if (stopShowing > 0 && pPadTicks <= 0) {
                 stopShowing--;
                 ChatUtils.chat(stopShowing);
                 return;
             }
 
-            if(pPadTicks > 0 && pPadcountdown && countdownP){
+            if (pPadTicks > 0 && pPadcountdown && countdownP) {
                 pPadTicks--;
                 return;
             }
 
-            if(pPadTicks == 0) {
+            if (pPadTicks == 0) {
                 pPadTicks = 1;
             }
 
             pPadcountdown = false;
-            }
+        }
     }
 
     @SubscribeEvent
     public void onRender2D(Render2DEvent event) {
-        if(restartvalues){
-            seconds = 4;// 4 seconds
-            second = 20;// 20 ticks
-            padSeconds = 4;// 4 seconds
-            IsEnabled = false;
-            pPadcountdown = false;
-            countdownP = false;
-            pPadmsg = false;
-            stopShowing = 44;
-            stopShowing2 = 1;
-            pPadTicks = 80;// 80 ticks [4 seconds]
-            yPadTicks = 48;// 40 ticks [2 seconds]
-            ChatUtils.chat("Values Restarted.");
-            restartvalues = false;
-        }
-
-
         if (padSeconds <= 0 && stopShowing > stopShowing2 && Location.getArea() == Island.Dungeon) {
             this.PADELERT.renderScaled(event.getGfx(), () -> NVGUtils.drawText("PAD NOW", 0, 0, 50f, Colour.blue, NVGUtils.JOSEFIN), 60, 30);
         }

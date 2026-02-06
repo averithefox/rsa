@@ -1,7 +1,10 @@
 package com.ricedotwho.rsa.component.impl.managers;
 
 import com.ricedotwho.rsa.IMixin.IMultiPlayerGameMode;
+import com.ricedotwho.rsa.RSA;
+import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.ItemUtils;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -115,12 +118,27 @@ public class SwapManager {
         return false;
     }
 
+    /// Swap to an item with the specified SkyBlock ID
+    public static boolean swapItem(String sbId) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null || sbId == null || sbId.isBlank()) return false;
+        if (sbId.equals(ItemUtils.getID(player.getInventory().getItem(player.getInventory().getSelectedSlot())))) return true;
+
+        if (swappedThisTick) return false;
+        for (int i = 0; i < 9; i++) {
+            String id = ItemUtils.getID(player.getInventory().getItem(i));
+            if (!sbId.equals(id)) continue;
+            return swapSlot(i);
+        }
+        return false;
+    }
+
     public static boolean swapSlot(int slot) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (slot == serverSlot) return true;
         if (player == null || swappedThisTick) return false;
         if (slot < 0 || slot > 8) {
-            System.err.println("Invalid swap slot! : " + slot);
+            RSA.getLogger().error("Invalid swap slot! : {}", slot);
             return false;
         }
 
@@ -140,12 +158,28 @@ public class SwapManager {
         return stack.getItem() == item;
     }
 
+    public static boolean checkServerItem(String sbId) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null || serverSlot < 0 || serverSlot > 8) return false;
+
+        String heldId = ItemUtils.getID(player.getInventory().getItem(serverSlot));
+        return sbId.equals(heldId);
+    }
+
     public static boolean checkClientItem(Item item) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return false;
 
         ItemStack stack = player.getInventory().getItem(player.getInventory().getSelectedSlot());
         return stack.getItem() == item;
+    }
+
+    public static boolean checkClientItem(String sbId) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null || sbId.isBlank()) return false;
+
+        String heldId = ItemUtils.getID(player.getInventory().getItem(player.getInventory().getSelectedSlot()));
+        return sbId.equals(heldId);
     }
 
     // TODO
