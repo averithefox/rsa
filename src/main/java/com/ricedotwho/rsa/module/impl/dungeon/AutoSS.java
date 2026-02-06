@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
+import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.component.impl.location.Floor;
@@ -174,8 +175,9 @@ public class AutoSS extends Module {
         BlockState state = level.getBlockState(BlockPos.containing(START_BUTTON));
         VoxelShape shape = state.getCollisionShape(level, pos);
 
-        Renderer3D.addTask(new FilledOutlineBox(shape.bounds(), colorFill, colorOutline, true));
+        Renderer3D.addTask(new FilledOutlineBox(shape.bounds().inflate(0.1d), colorFill, colorOutline, false));
     }
+
 
     private void clickButton(Vec3 vec3) {
         LocalPlayer player = Minecraft.getInstance().player;
@@ -184,10 +186,20 @@ public class AutoSS extends Module {
             ChatUtils.chat("Button too far!");
             return;
         }
+        lastClickTime = System.currentTimeMillis();
+        PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> clickButton0(vec3));
+    }
+
+    private void clickButton0(Vec3 vec3) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) return;
+        if (player.distanceToSqr(vec3) > 36) {
+            ChatUtils.chat("Button too far!");
+            return;
+        }
 
         clickedButton = vec3;
-        lastClickTime = System.currentTimeMillis();
-        SwapManager.sendBlockC08(vec3, Direction.WEST);
+        SwapManager.sendBlockC08(vec3, Direction.WEST, true);
     }
 
     @SubscribeEvent

@@ -14,7 +14,7 @@ public class PacketOrderManager {
         ITEM_USE
     }
 
-    public static void register(Runnable runnable, STATE state) {
+    public static void register(STATE state, Runnable runnable) {
         if (!packets.containsKey(state)) packets.put(state, new ArrayList<>());
         packets.get(state).add(runnable);
     }

@@ -3,9 +3,12 @@ package com.ricedotwho.rsa.module.impl.movement;
 
 import com.ricedotwho.rsa.mixins.LocalPlayerAccessor;
 import com.ricedotwho.rsa.module.impl.dungeon.DungeonBreaker;
+import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
+import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
+import com.ricedotwho.rsm.component.impl.map.utils.ScanUtils;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.DungeonEvent;
@@ -36,6 +39,8 @@ import java.util.List;
 @Getter
 @ModuleInfo(aliases = "No Rotate", id = "NoRotate", category = Category.MOVEMENT)
 public class NoRotate extends Module {
+    private static final long TIMEOUT = 2000;
+    private long shouldNoRotateTime = -1;
 
     private final BooleanSetting teleportItem = new BooleanSetting("Teleport Items", true);
     private final BooleanSetting outbounds = new BooleanSetting("Outbounds", false);
@@ -54,8 +59,6 @@ public class NoRotate extends Module {
             Blocks.LEVER
     );
 
-    private boolean shouldNoRotate = false;
-
     public NoRotate() {
         this.registerProperty(
                 teleportItem,
@@ -67,17 +70,17 @@ public class NoRotate extends Module {
     // maybe this should have a timeout
     @SubscribeEvent
     public void onUseItem(PacketEvent.Send event) {
-        if (!this.teleportItem.getValue() || Dungeon.isInBoss()) return;
+        if (!this.teleportItem.getValue() || (Dungeon.isInBoss() && (Location.getFloor() == Floor.F7 || Location.getFloor() == Floor.M7))) return;
         if (event.getPacket() instanceof ServerboundUseItemPacket packet) {
             ItemStack stack = mc.player.getItemBySlot(packet.getHand().asEquipmentSlot());
             if (isHoldingTpItem(stack)) {
-                shouldNoRotate = true;
+                shouldNoRotateTime = System.currentTimeMillis();
             }
         } else if (event.getPacket() instanceof ServerboundUseItemOnPacket packet) {
             ItemStack stack = mc.player.getItemBySlot(packet.getHand().asEquipmentSlot());
             Block block =  mc.level.getBlockState(packet.getHitResult().getBlockPos()).getBlock();
             if (!ignored.contains(block) && isHoldingTpItem(stack)) {
-                shouldNoRotate = true;
+                shouldNoRotateTime = System.currentTimeMillis();
             }
         }
     }
@@ -94,7 +97,7 @@ public class NoRotate extends Module {
 
     private boolean shouldNoRotate() {
         return this.alwaysNoRotate.getValue()
-                || (this.teleportItem.getValue() && shouldNoRotate
+                || (this.teleportItem.getValue() && (System.currentTimeMillis() - shouldNoRotateTime < TIMEOUT)
                 || this.outbounds.getValue() && !Dungeon.isStarted() && Location.getArea().is(Island.Dungeon)
         );
     }
@@ -102,7 +105,7 @@ public class NoRotate extends Module {
     // Is there a reason to not use PacketEvent?
     public void onHandleMovePlayer(ClientboundPlayerPositionPacket packet, Connection connection, CallbackInfo ci) {
         if (!this.isEnabled() || !shouldNoRotate()) return;
-        shouldNoRotate = false;
+        shouldNoRotateTime = -1;
         // Thanks noob for the code
 
         LocalPlayer player = Minecraft.getInstance().player;
@@ -130,7 +133,7 @@ public class NoRotate extends Module {
 
     @Override
     public void reset() {
-        shouldNoRotate = false;
+        shouldNoRotateTime = -1;
     }
 
     private boolean isHoldingTpItem(ItemStack item) {

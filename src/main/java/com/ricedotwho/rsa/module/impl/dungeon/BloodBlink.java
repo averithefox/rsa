@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
+import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
@@ -142,6 +143,8 @@ public class BloodBlink extends Module {
                 if (Minecraft.getInstance().player == null || Minecraft.getInstance().level == null) break;
                 forceNextSneak = true; // Must be setup for etherwarp
 
+
+
                 if (waitForGround.getValue() && !player.onGround()) break;
                 if (startRoom == null) {
                     startRoom = ScanUtils.getRoomFromPos(player.getBlockX(), player.getBlockZ());
@@ -149,24 +152,26 @@ public class BloodBlink extends Module {
                 if (startRoom == null) break;
                 if (startRoom.getUniqueRoom().getRotation() == RoomRotation.UNKNOWN) break;
 
-                if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) break;
-                if (!Minecraft.getInstance().player.getLastSentInput().shift()) break;
+                PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
+                    if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) return;
+                    if (!Minecraft.getInstance().player.getLastSentInput().shift()) return;
 
-                Pos slab = RoomUtils.getRealPosition(SLAB_BLOCK_OFFSET, startRoom);
+                    Pos slab = RoomUtils.getRealPosition(SLAB_BLOCK_OFFSET, startRoom);
 
-                // Need to add after because sign may change
-                slab.x += 0.5d;
-                slab.z += 0.5d;
+                    // Need to add after because sign may change
+                    slab.x += 0.5d;
+                    slab.z += 0.5d;
 
-                Block block = Minecraft.getInstance().level.getBlockState(slab.asBlockPos()).getBlock();
-                if (block == Blocks.AIR) {
-                    isLower = true;
-                    slab.selfAdd(0.0, -1.0, 0.0);
-                }
+                    Block block = Minecraft.getInstance().level.getBlockState(slab.asBlockPos()).getBlock();
+                    if (block == Blocks.AIR) {
+                        isLower = true;
+                        slab.selfAdd(0.0, -1.0, 0.0);
+                    }
 
-                float[] angles = EtherUtils.getYawAndPitch(slab.asVec3(), true, Minecraft.getInstance().player, true);
-                SwapManager.sendAirC08(angles[0], angles[1], true);
-                state = 2;
+                    float[] angles = EtherUtils.getYawAndPitch(slab.asVec3(), true, Minecraft.getInstance().player, true);
+                    SwapManager.sendAirC08(angles[0], angles[1], true, false);
+                    state = 2;
+                });
                 break;
             }
 
@@ -176,7 +181,7 @@ public class BloodBlink extends Module {
             }
 
             case 4: {
-                if (pearl(player.getYRot(), -90f)) state = 5;
+                pearl(player.getYRot(), -90f, () -> state = 5);
                 break;
             }
 
@@ -192,16 +197,18 @@ public class BloodBlink extends Module {
                     break;
                 }
                 if ((serverTickTimer % 40) < 10) {
-                    if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) break;
-                    float playerYaw = player.getYRot();
+                    PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
+                        if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) return;
+                        float playerYaw = player.getYRot();
 
-                    float[] angles = EtherUtils.getYawAndPitch(MIDDLE_MAP_COORDS.add(0.0d, player.getY(), 0.0d), false, player, false);
-                    float deltaX = (float) (player.getX() - MIDDLE_MAP_COORDS.x);
-                    float deltaZ = (float) (player.getZ() - MIDDLE_MAP_COORDS.z);
+                        float[] angles = EtherUtils.getYawAndPitch(MIDDLE_MAP_COORDS.add(0.0d, player.getY(), 0.0d), false, player, false);
+                        float deltaX = (float) (player.getX() - MIDDLE_MAP_COORDS.x);
+                        float deltaZ = (float) (player.getZ() - MIDDLE_MAP_COORDS.z);
 
-                    aotv0(7, playerYaw, -90f);
-                    aotv0(Math.round(Mth.sqrt(deltaX * deltaX + deltaZ * deltaZ) / 12f), angles[0], 0.0f);
-                    state = 10;
+                        aotv0(7, playerYaw, -90f);
+                        aotv0(Math.round(Mth.sqrt(deltaX * deltaX + deltaZ * deltaZ) / 12f), angles[0], 0.0f);
+                        state = 10;
+                    });
                 }
                 break;
             }
@@ -229,24 +236,27 @@ public class BloodBlink extends Module {
                 if (startRoom == null) break;
                 if (startRoom.getUniqueRoom().getRotation() == RoomRotation.UNKNOWN) break;
 
-                if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) break;
-                if (!Minecraft.getInstance().player.getLastSentInput().shift()) break;
+                PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
+                    if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) return;
+                    if (!Minecraft.getInstance().player.getLastSentInput().shift()) return;
 
-                Pos slab = RoomUtils.getRealPosition(SLAB_BLOCK_OFFSET, startRoom);
+                    Pos slab = RoomUtils.getRealPosition(SLAB_BLOCK_OFFSET, startRoom);
 
-                // Need to add after because sign may change
-                slab.x += 0.5d;
-                slab.z += 0.5d;
+                    // Need to add after because sign may change
+                    slab.x += 0.5d;
+                    slab.z += 0.5d;
 
-                Block block = Minecraft.getInstance().level.getBlockState(slab.asBlockPos()).getBlock();
-                if (block == Blocks.AIR) {
-                    isLower = true;
-                    slab.selfAdd(0.0, -1.0, 0.0);
-                }
+                    Block block = Minecraft.getInstance().level.getBlockState(slab.asBlockPos()).getBlock();
+                    if (block == Blocks.AIR) {
+                        isLower = true;
+                        slab.selfAdd(0.0, -1.0, 0.0);
+                    }
 
-                float[] angles = EtherUtils.getYawAndPitch(slab.asVec3(), true, Minecraft.getInstance().player, true);
-                SwapManager.sendAirC08(angles[0], angles[1], true);
-                state = 13;
+                    float[] angles = EtherUtils.getYawAndPitch(slab.asVec3(), true, Minecraft.getInstance().player, true);
+                    SwapManager.sendAirC08(angles[0], angles[1], true, false);
+                    state = 13;
+                });
+
                 break;
             }
 
@@ -256,7 +266,7 @@ public class BloodBlink extends Module {
             }
 
             case 15: {
-                if (pearl(player.getYRot(), -90.0f)) state = 16;
+                pearl(player.getYRot(), -90f, () -> state = 16);
                 break;
             }
 
@@ -269,35 +279,40 @@ public class BloodBlink extends Module {
                 SwapManager.swapItem(Items.DIAMOND_SHOVEL);
 
                 if (Dungeon.isStarted() && (serverTickTimer % 40) < 35) {
-                    if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) break;
+                    PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
+                        if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) return;
 
-                    float playerYaw = player.getYRot();
+                        float playerYaw = player.getYRot();
 
-                    Direction dir = getVoidRotation();
-                    aotv0(4, dir.toYRot(), 0f);
-                    aotv0(10, playerYaw, 90f);
+                        Direction dir = getVoidRotation();
+                        aotv0(4, dir.toYRot(), 0f);
+                        aotv0(10, playerYaw, 90f);
 
-                    Vec3 playerPos = Minecraft.getInstance().player.position().add(fastRotateVec(dir, 0, 0d, -48d)); // We don't care about the Y
+                        Vec3 playerPos = Minecraft.getInstance().player.position().add(fastRotateVec(dir, 0, 0d, -48d)); // We don't care about the Y
 
-                    float deltaX = (float) ((bloodRoom.getX() + 0.5d) - playerPos.x());
-                    float deltaZ = (float) ((bloodRoom.getZ() + 0.5d) - playerPos.z());
+                        float deltaX = (float) ((bloodRoom.getX() + 0.5d) - playerPos.x());
+                        float deltaZ = (float) ((bloodRoom.getZ() + 0.5d) - playerPos.z());
 
-                    float[] angles = EtherUtils.getYawAndPitch(deltaX, 0.0d, deltaZ);
-                    aotv0(Math.round(Mth.sqrt(deltaX * deltaX + deltaZ * deltaZ) / 12f), angles[0], 0f);
-                    aotv0(5, playerYaw, -90f);
+                        float[] angles = EtherUtils.getYawAndPitch(deltaX, 0.0d, deltaZ);
+                        aotv0(Math.round(Mth.sqrt(deltaX * deltaX + deltaZ * deltaZ) / 12f), angles[0], 0f);
+                        aotv0(5, playerYaw, -90f);
 
-                    if (!pearl(playerYaw, -90f)) {
-                        ChatUtils.chat("Pearl failed!");
-                        state = 29; // If we can't pearl
-                        break;
-                    }
-                    state = 30;
+                        // If we can't pearl
+                        state = 29;
+                        // Can't use pearl() because concurrentModification exception
+                        if (!SwapManager.swapItem(Items.ENDER_PEARL)) return;
+                        if (!SwapManager.sendAirC08(player.getYRot(), -90f, true, true)) {
+                            ChatUtils.chat("Pearl failed!");
+                            return;
+                        }
+                        state = 30;
+                    });
                 }
                 break;
             }
 
             case 29: {
-                if (pearl(player.getYRot(), -90.0f)) state = 30;
+                pearl(player.getYRot(), -90f, () -> state = 30);
                 break;
             }
 
@@ -344,7 +359,7 @@ public class BloodBlink extends Module {
 
     private void aotv0(int count, float yaw, float pitch) {
         for (int i = 0; i < count; i++) {
-            SwapManager.sendAirC08(yaw, pitch, true);
+            SwapManager.sendAirC08(yaw, pitch, true, false);
         }
     }
 
@@ -378,9 +393,12 @@ public class BloodBlink extends Module {
         ChatUtils.chat("Cancelling blood blink!");
     }
 
-    private boolean pearl(float yaw, float pitch) {
-        if (!SwapManager.swapItem(Items.ENDER_PEARL)) return false;
-        return SwapManager.sendAirC08(yaw, pitch, true);
+    private void pearl(float yaw, float pitch, Runnable succeed) {
+        PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
+            if (!SwapManager.swapItem(Items.ENDER_PEARL)) return;
+            if (!SwapManager.sendAirC08(yaw, pitch, true, false)) return;
+            if (succeed != null) succeed.run();
+        });
     }
 
     @SubscribeEvent
@@ -436,7 +454,8 @@ public class BloodBlink extends Module {
 
                 case 30: {
                     Vec3 pos = s08.change().position();
-                    if (ScanUtils.getRoomFromPos(Mth.floor(pos.x), Mth.floor(pos.z)) != bloodRoom || pos.y < 65d || pos.y > 73d) break; // 66 bedrock block blood, this stops aotv S08s from getting considered as pearls
+                    if (!isInRoom(Mth.floor(pos.x()), Mth.floor(pos.z()), bloodRoom) || pos.y < 65d || pos.y > 73d) break; // 66 bedrock block blood, this stops aotv S08s from getting considered as pearls
+                    //System.out.println("Found pearl S08!");
                     if (pos.y <= 67.0)
                         state = 29;
                     else
@@ -452,5 +471,9 @@ public class BloodBlink extends Module {
                 }
             }
         }
+    }
+
+    private boolean isInRoom(int posX, int posZ, Room room) {
+        return Mth.abs(room.getX() - posX) < 16 && Mth.abs(room.getZ() - posZ) < 16;
     }
 }
