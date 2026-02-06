@@ -88,17 +88,17 @@ public class SwapManager {
         return sendAirC08(yaw, pitch, syncSlots, false);
     }
 
-
-    // Haven't implement syncSlots because I haven't found the need
-    public static void sendBlockC08(Vec3 pos, Direction direction, boolean swing) {
+    public static void sendBlockC08(BlockHitResult result, boolean swing) {
         if (Minecraft.getInstance().player == null || Minecraft.getInstance().player.gameMode() == GameType.SPECTATOR) return;
         if (Minecraft.getInstance().gameMode == null || Minecraft.getInstance().level == null) return;
 
-
-        BlockHitResult result = new BlockHitResult(pos, direction, BlockPos.containing(pos), false);
-
         ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode).sendPacketSequenced(Minecraft.getInstance().level, sequence -> new ServerboundUseItemOnPacket(InteractionHand.MAIN_HAND, result, sequence));
         if (swing) Minecraft.getInstance().player.swing(InteractionHand.MAIN_HAND);
+    }
+
+    // Haven't implement syncSlots because I haven't found the need
+    public static void sendBlockC08(Vec3 pos, Direction direction, boolean swing) {
+        sendBlockC08(new BlockHitResult(pos, direction, BlockPos.containing(pos), false), swing);
     }
 
     public static boolean swapItem(Item item) {

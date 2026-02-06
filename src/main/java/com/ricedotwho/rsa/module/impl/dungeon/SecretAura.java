@@ -1,9 +1,12 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
+import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
+import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
+import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
@@ -13,6 +16,8 @@ import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.*;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.MathUtils;
+import com.ricedotwho.rsm.utils.RotationUtils;
 import it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import lombok.Getter;
@@ -26,6 +31,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
@@ -94,14 +100,14 @@ public class SecretAura extends Module {
         double bestDistance = Double.MAX_VALUE;
         BlockPos bestCandidate = null;
 
-        AABB box = new AABB(eyePos, eyePos).expandTowards(CHEST_RANGE, CHEST_RANGE, CHEST_RANGE);
+        AABB box = new AABB(eyePos, eyePos).inflate(CHEST_RANGE, CHEST_RANGE, CHEST_RANGE);
         for (BlockPos blockPos : BlockPos.betweenClosed(box)) {
             int hash = getBlockPosHash(blockPos);
             if (blocksDone.contains(hash)) continue;
 
             Block block = level.getBlockState(blockPos).getBlock();
             if (!isValidBlock(block) && (block != Blocks.PLAYER_HEAD || !isValidSkull(blockPos, level))) continue;
-
+            if (Dungeon.isInBoss() && block == Blocks.PLAYER_HEAD) continue;
 
             if (!clickedBlocks.containsKey(hash) && delay.getValue() > 0) {
                 clickedBlocks.put(hash, System.currentTimeMillis() + delay.getValue().longValue());
@@ -116,19 +122,23 @@ public class SecretAura extends Module {
 
             if (d < bestDistance) {
                 bestDistance = d;
-                bestCandidate  = blockPos;
+                bestCandidate = new BlockPos(blockPos);
             }
         }
 
-        ChatUtils.chat("Test : " + bestCandidate);
         // Don't return earlier so we can register than we have seen the clicked blocks
         if (bestCandidate == null || clickBlockCooldown > 0) return;
         clickedBlocks.put(getBlockPosHash(bestCandidate), System.currentTimeMillis() + 500L); // 500ms re-click delay
 
         AABB blockAABB = level.getBlockState(bestCandidate).getShape(level, bestCandidate).bounds();
-        if (blockAABB == null) {
-            ChatUtils.chat("Null block!");
-        }
+
+        Vec3 center = new Vec3((blockAABB.minX + blockAABB.maxX) * 0.5 + bestCandidate.getX(), (blockAABB.minY + blockAABB.maxY) * 0.5 + bestCandidate.getY(), (blockAABB.minZ + blockAABB.maxZ) * 0.5 + bestCandidate.getZ());
+        BlockHitResult result = RotationUtils.collisionRayTrace(bestCandidate, blockAABB, eyePos, center);
+        if (result == null) return;
+
+        PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
+            SwapManager.sendBlockC08(result.getLocation(), result.getDirection(), false);
+        });
     }
 
     private boolean isValidBlock(Block block) {
@@ -139,8 +149,11 @@ public class SecretAura extends Module {
     private boolean isValidSkull(BlockPos blockPos, ClientLevel level) {
         BlockEntity entity = level.getBlockEntity(blockPos);
         if (!(entity instanceof SkullBlockEntity skullBlockEntity)) return false;
-        System.out.println("UUID : " + skullBlockEntity.getOwnerProfile().partialProfile().id().toString());
-        return true;
+        String uuid = skullBlockEntity.getOwnerProfile().partialProfile().id().toString();
+        return switch (uuid) {
+            case WITHER_ESSENCE_ID, REDSTONE_KEY_ID -> true;
+            default -> false;
+        };
     }
 
 
