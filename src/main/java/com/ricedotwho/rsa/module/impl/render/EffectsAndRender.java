@@ -198,7 +198,6 @@ public class EffectsAndRender extends Module {
                             RSM.getModule(EffectsAndRender.class).SMOKE.getValue() ? null : originalFactory.createParticle(simpleParticleType, clientLevel, d, e, f, g, h, i, randomSource);
                 }
         );
-
     }
 
     @Override

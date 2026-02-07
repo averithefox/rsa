@@ -5,8 +5,9 @@ import com.ricedotwho.rsa.module.impl.dungeon.*;
 import com.ricedotwho.rsa.command.impl.RouteCommand;
 import com.ricedotwho.rsa.module.impl.movement.NoRotate;
 import com.ricedotwho.rsa.module.impl.other.AutoJax;
+import com.ricedotwho.rsa.module.impl.other.CustomKeybinds;
 import com.ricedotwho.rsa.module.impl.render.EffectsAndRender;
-import com.ricedotwho.rsa.module.impl.render.EffectsAndRender;
+import com.ricedotwho.rsa.module.impl.render.PresetWaypoints;
 import com.ricedotwho.rsm.addon.Addon;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.component.api.ModComponent;
@@ -44,7 +45,9 @@ public class RSA implements Addon {
                 NoRotate.class,
                 AutoSS.class,
                 SecretAura.class,
-                EffectsAndRender.class
+                EffectsAndRender.class,
+                PresetWaypoints.class,
+                CustomKeybinds.class
         );
     }
 
