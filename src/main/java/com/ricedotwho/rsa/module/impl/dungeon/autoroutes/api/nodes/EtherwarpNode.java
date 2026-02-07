@@ -24,6 +24,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 
 public class EtherwarpNode extends Node {
+    private static final float EPSILON = 0.01f;
     private final Pos localTargetPos;
     private Pos realTargetPos;
 
@@ -39,6 +40,7 @@ public class EtherwarpNode extends Node {
         this.realTargetPos = RoomUtils.getRealPosition(this.localTargetPos, room.getMainRoom());
     }
 
+    // Hypixel doesn't use sneak height to find etherwarp position if you started sneaking on the same tick that you sent C08
     @Override
     public boolean run(Pos playerPos) {
         LocalPlayer player = Minecraft.getInstance().player;
@@ -55,6 +57,10 @@ public class EtherwarpNode extends Node {
             return cancel();
         }
 
+        Pos playerCopy = playerPos.add(0.0d, player.getEyeHeight(Pose.STANDING), 0.0d);
+        Pos targetDirection = this.realTargetPos.subtract(playerCopy);
+        Pos targetDeltaCopy = targetDirection.copy();
+
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
         if (!SwapManager.checkClientItem(Items.DIAMOND_SHOVEL)) {
             // Swap didn't work??? It got swapped back? WTF
@@ -62,17 +68,20 @@ public class EtherwarpNode extends Node {
             return;
         }
 
-        float[] angles = EtherUtils.getYawAndPitch(this.realTargetPos.x - playerPos.x, this.realTargetPos.y - (playerPos.y + player.getEyeHeight(Pose.CROUCHING)), this.realTargetPos.z - playerPos.z);
+        float[] angles = EtherUtils.getYawAndPitch(targetDeltaCopy.x, targetDeltaCopy.y, targetDeltaCopy.z);
         SwapManager.sendAirC08(angles[0], angles[1], true, false);
         });
 
         // By this point we assume the etherwarp will work
-        BlockPos etherPos = this.realTargetPos.asBlockPos();
 
-        ChatUtils.chat("Found etherBlock : " + etherPos);
+        targetDirection.normalize();
+        BlockPos etherPos = this.realTargetPos.add(targetDirection.multiply(EPSILON)).asBlockPos();
+
+//        ChatUtils.chat("Found etherBlock : " + etherPos);
         playerPos.x = etherPos.getX() + 0.5d;
         playerPos.y = etherPos.getY() + 1d;
         playerPos.z = etherPos.getZ() + 0.5d;
+//        ChatUtils.chat("New Player Pos : " + playerPos);
         return true;
     }
 
@@ -80,7 +89,6 @@ public class EtherwarpNode extends Node {
         this.reset();
         return false;
     }
-
     @Override
     public void render() {
 //        AABB aabb = new AABB(this.getRealPos().subtract(0.5d, 0d, 0.5d).asVec3(), this.getRealPos().add(0.5d, 0.25d, 0.5d).asVec3());
