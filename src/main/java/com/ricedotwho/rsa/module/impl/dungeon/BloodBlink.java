@@ -46,7 +46,7 @@ import java.awt.*;
 @Getter
 @ModuleInfo(aliases = "BB", id = "BloodBlink", category = Category.DUNGEONS)
 public class BloodBlink extends Module {
-    private static final Pos SLAB_BLOCK_OFFSET = new Pos(-10, 82, -13); // Sometimes y = 81.5
+    private static final Pos SLAB_BLOCK_OFFSET = new Pos(-10.5, 82, -13.5); // Sometimes y = 81.5
     private static final Vec3 MIDDLE_MAP_COORDS = new Vec3(-104.5, 0, -104.5);
 
     private Room bloodRoom;
@@ -149,7 +149,7 @@ public class BloodBlink extends Module {
                 if (startRoom == null) {
                     startRoom = ScanUtils.getRoomFromPos(player.getBlockX(), player.getBlockZ());
                 }
-                if (startRoom == null) break;
+                if (startRoom == null || startRoom.getUniqueRoom() == null) break;
                 if (startRoom.getUniqueRoom().getRotation() == RoomRotation.UNKNOWN) break;
 
                 PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
@@ -157,10 +157,8 @@ public class BloodBlink extends Module {
                     if (!Minecraft.getInstance().player.getLastSentInput().shift()) return;
 
                     Pos slab = RoomUtils.getRealPosition(SLAB_BLOCK_OFFSET, startRoom);
+                    ChatUtils.chat(slab);
 
-                    // Need to add after because sign may change
-                    slab.x += 0.5d;
-                    slab.z += 0.5d;
 
                     Block block = Minecraft.getInstance().level.getBlockState(slab.asBlockPos()).getBlock();
                     if (block == Blocks.AIR) {
@@ -170,6 +168,7 @@ public class BloodBlink extends Module {
 
                     float[] angles = EtherUtils.getYawAndPitch(slab.asVec3(), true, Minecraft.getInstance().player, true);
                     SwapManager.sendAirC08(angles[0], angles[1], true, false);
+                    ChatUtils.chat(angles[0] + ", " + angles[1]);
                     state = 2;
                 });
                 break;
