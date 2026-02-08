@@ -1,17 +1,16 @@
 package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api;
 
-import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.data.Pos;
-import com.ricedotwho.rsm.data.Rotation;
 import lombok.Getter;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 
 public abstract class Node {
     private final Pos localPos;
     private final float r;
+    @Getter
+    private final AwaitManager awaits;
+
     private boolean triggered;
     private int lastTickTime;
 
@@ -19,19 +18,33 @@ public abstract class Node {
     private Pos realPos;
 
     public Node(Pos localPos) {
-        this(localPos, 0.5f);
+        this(localPos, null);
     }
 
-    public Node(Pos localPos, float r) {
+    public Node(Pos localPos, AwaitManager awaits) {
+        this(localPos, awaits, 0.5f);
+    }
+
+    public Node(Pos localPos, AwaitManager awaits, float r) {
         this.localPos = localPos;
         this.r = r;
+        this.awaits = awaits;
 
         this.triggered = false;
         this.lastTickTime = -1;
     }
 
+    public boolean hasAwaits() {
+        return this.awaits != null && this.awaits.hasAwaits();
+    }
+
+    public boolean shouldAwait() {
+        return this.awaits != null && this.awaits.shouldAwait();
+    }
+
     public void calculate(UniqueRoom room) {
         this.realPos = RoomUtils.getRealPosition(this.localPos, room.getMainRoom());
+        if (this.hasAwaits()) this.getAwaits().resetAwaits();
     }
 
     public abstract boolean run(Pos playerPos);

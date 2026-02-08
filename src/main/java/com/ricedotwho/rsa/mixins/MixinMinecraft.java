@@ -2,6 +2,8 @@ package com.ricedotwho.rsa.mixins;
 
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
+import com.ricedotwho.rsm.RSM;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Overlay;
 import net.minecraft.client.gui.screens.Screen;
@@ -14,6 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(value = Minecraft.class, priority = 600) // Low prio for SwapManager
 public abstract class MixinMinecraft {
@@ -36,6 +39,12 @@ public abstract class MixinMinecraft {
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;handleKeybinds()V"))
     public void onHandleKeyBinds(Minecraft instance) {
         // Need to cancel it
+    }
+
+    @Inject(method = "startAttack", at = @At("HEAD"))
+    public void onStartAttack(CallbackInfoReturnable<Boolean> cir) {
+        AutoRoutes autoRoutes = RSM.getModule(AutoRoutes.class);
+        autoRoutes.onAttack();
     }
 
     @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/DebugScreenOverlay;showDebugScreen()Z"))

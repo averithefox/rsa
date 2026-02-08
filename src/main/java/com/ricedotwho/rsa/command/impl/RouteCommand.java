@@ -1,9 +1,7 @@
 package com.ricedotwho.rsa.command.impl;
 
 import com.mojang.brigadier.StringReader;
-import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.arguments.DoubleArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -11,8 +9,9 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.Node;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.NodeType;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.*;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.awaits.AwaitClick;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.awaits.AwaitSecrets;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
@@ -31,8 +30,10 @@ import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -45,7 +46,13 @@ public class RouteCommand extends Command {
         return literal(name())
                 .then(literal("add")
                         .then(argument("node", NodeArgumentType.nodeArgument())
-                                .executes(RouteCommand::addNode)
+                                .executes((ctx) -> addNode(ctx, 0, false))
+                                .then(argument("await secrets", IntegerArgumentType.integer(0))
+                                        .executes((ctx) -> addNode(ctx, IntegerArgumentType.getInteger(ctx, "await secrets"), false))
+                                        .then(argument("await click", BoolArgumentType.bool())
+                                                .executes((ctx) -> addNode(ctx, IntegerArgumentType.getInteger(ctx, "await secrets"), BoolArgumentType.getBool(ctx, "await click")))
+                                        )
+                                )
                         )
                 )
                 .then(literal("clear")
@@ -86,7 +93,7 @@ public class RouteCommand extends Command {
         return 1;
     }
 
-    private static int addNode(CommandContext<ClientSuggestionProvider> ctx) {
+    private static int addNode(CommandContext<ClientSuggestionProvider> ctx, int secrets, boolean click) {
         Room room = Map.getCurrentRoom();
         if (!Location.getArea().is(Island.Dungeon) || room == null) {
             ChatUtils.chat("Failed to add node, please enter a dungeon!");
@@ -97,13 +104,22 @@ public class RouteCommand extends Command {
             ChatUtils.chat("Null unique room!");
             return 0;
         }
+        List<AwaitCondition<?>> conditions = new ArrayList<>();
+        if (secrets > 0) {
+            conditions.add(new AwaitSecrets(secrets));
+        }
+        if (click) conditions.add(new AwaitClick());
+
+        AwaitManager awaits = null;
+        if (!conditions.isEmpty()) awaits = new AwaitManager(conditions);
 
         NodeType type = NodeArgumentType.getNode(ctx, "node");
-        Node node = type.supply(room.getUniqueRoom());
+        Node node = type.supply(room.getUniqueRoom(), awaits);
         if (node == null) {
             ChatUtils.chat("Failed to add node, invalid player information!");
             return 0;
         }
+
 
         RSM.getModule(AutoRoutes.class).addNode(node, room.getUniqueRoom());
         ChatUtils.chat("Added " + type.toString() + " node!");

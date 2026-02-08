@@ -21,6 +21,8 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.function.Predicate;
+
 public class SwapManager {
     @Getter
     private static int serverSlot;
@@ -128,6 +130,19 @@ public class SwapManager {
         for (int i = 0; i < 9; i++) {
             String id = ItemUtils.getID(player.getInventory().getItem(i));
             if (!sbId.equals(id)) continue;
+            return swapSlot(i);
+        }
+        return false;
+    }
+
+    public static boolean swapItem(Predicate<ItemStack> predicate) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) return false;
+        if (predicate.test(player.getInventory().getItem(player.getInventory().getSelectedSlot()))) return true;
+
+        if (swappedThisTick) return false;
+        for (int i = 0; i < 9; i++) {
+            if (!predicate.test(player.getInventory().getItem(i))) continue;
             return swapSlot(i);
         }
         return false;

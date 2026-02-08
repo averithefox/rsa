@@ -3,6 +3,7 @@ package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.nodes;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.AwaitManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.Node;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
@@ -28,8 +29,8 @@ public class EtherwarpNode extends Node {
     private final Pos localTargetPos;
     private Pos realTargetPos;
 
-    public EtherwarpNode(Pos localPos, Pos localTargetPos) {
-        super(localPos);
+    public EtherwarpNode(Pos localPos, Pos localTargetPos, AwaitManager awaits) {
+        super(localPos, awaits);
         this.localTargetPos = localTargetPos;
         this.realTargetPos = null;
     }
@@ -102,12 +103,12 @@ public class EtherwarpNode extends Node {
         return 5; // Slightly lower
     }
 
-    public static EtherwarpNode supply(UniqueRoom fullRoom, LocalPlayer player) {
+    public static EtherwarpNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits) {
         Vec3 target = EtherUtils.rayTraceBlock(60, player.getYRot(), player.getXRot(), player.position().add(0d, player.getEyeHeight(Pose.CROUCHING), 0d));
         if (target == null) return null;
         Room mainRoom = fullRoom.getMainRoom();
         Pos playerRelative = RoomUtils.getRelativePosition(new Pos(player.position()), mainRoom);
         Pos targetRelative = RoomUtils.getRelativePosition(new Pos(target), mainRoom);
-        return new EtherwarpNode(playerRelative, targetRelative);
+        return new EtherwarpNode(playerRelative, targetRelative, awaits);
     }
 }
