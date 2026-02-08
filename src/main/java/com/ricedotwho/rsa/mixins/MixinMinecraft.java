@@ -41,12 +41,6 @@ public abstract class MixinMinecraft {
         // Need to cancel it
     }
 
-    @Inject(method = "startAttack", at = @At("HEAD"))
-    public void onStartAttack(CallbackInfoReturnable<Boolean> cir) {
-        AutoRoutes autoRoutes = RSM.getModule(AutoRoutes.class);
-        autoRoutes.onAttack();
-    }
-
     @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/DebugScreenOverlay;showDebugScreen()Z"))
     public void onGetShowDebugScreen(CallbackInfo ci) { // Right before onHandleKeyBinds
         if (this.overlay == null && (screen == null || (!(this.screen instanceof AbstractContainerScreen<?>) && Minecraft.getInstance().player != null))) {

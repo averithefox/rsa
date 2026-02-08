@@ -103,7 +103,7 @@ public class NoRotate extends Module {
 
     public void onHandleMovePlayer(ClientboundPlayerPositionPacket packet, Connection connection, CallbackInfo ci) {
         if (!this.isEnabled() || !shouldNoRotate()) return;
-        sent.removeFirst();
+        if (!sent.isEmpty()) sent.removeFirst();
         // Thanks noob for the code
 
         LocalPlayer player = Minecraft.getInstance().player;

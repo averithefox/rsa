@@ -10,6 +10,7 @@ import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.map.RoomData;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
+import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
@@ -22,6 +23,7 @@ import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
 import com.ricedotwho.rsm.utils.Accessor;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.ChatFormatting;
@@ -36,6 +38,7 @@ import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
 
@@ -45,8 +48,9 @@ public class AutoRoutes extends Module implements Accessor {
     private final HashMap<String, List<Node>> savedNodes = new HashMap<>();
     private final HashMap<RoomData, List<Node>> activeNodes = new HashMap<>();
 
-    private BooleanSetting teleportOnly = new BooleanSetting("Teleport Only", true);
-    private BooleanSetting editMode = new BooleanSetting("Edit Mode", false);
+    private final BooleanSetting teleportOnly = new BooleanSetting("Teleport Only", true);
+    private final BooleanSetting editMode = new BooleanSetting("Edit Mode", false);
+    private final KeybindSetting triggerBind = new KeybindSetting("Trigger Bind", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, this::onTrigger));
 
     private int tickTime = 0;
     private boolean forceNextSneak = false;
@@ -74,7 +78,8 @@ public class AutoRoutes extends Module implements Accessor {
     public AutoRoutes() {
         this.registerProperty(
                 editMode,
-                teleportOnly
+                teleportOnly,
+                triggerBind
         );
         this.inNode = null;
     }
@@ -189,7 +194,7 @@ public class AutoRoutes extends Module implements Accessor {
         this.forceNextSneak = bl;
     }
 
-    public void onAttack() {
+    public void onTrigger() {
         if (!this.isEnabled() || !Location.getArea().is(Island.Dungeon) || Map.getCurrentRoom() == null) return;
 
         if (this.inNode == null || !this.inNode.hasAwaits()) return;
