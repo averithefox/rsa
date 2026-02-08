@@ -83,6 +83,7 @@ public class AutoRoutes extends Module implements Accessor {
     public void onWorldLoad(WorldEvent.Load event) {
         this.inNode = null;
         this.receivedS08 = false;
+        this.activeNodes.clear();
     }
 
     @SubscribeEvent
@@ -193,6 +194,7 @@ public class AutoRoutes extends Module implements Accessor {
 
         if (this.inNode == null || !this.inNode.hasAwaits()) return;
         this.inNode.getAwaits().consume(AwaitClick.class, true);
+        this.inNode.getAwaits().consume(AwaitSecrets.class, 100); // Skip secret
     }
 
     @SubscribeEvent
@@ -209,13 +211,15 @@ public class AutoRoutes extends Module implements Accessor {
     public void onReceivePacket(PacketEvent.Receive event) {
         if (!Location.getArea().is(Island.Dungeon) || Map.getCurrentRoom() == null) return;
 
-        if (this.inNode != null && event.getPacket() instanceof ClientboundTakeItemEntityPacket packet && this.inNode.hasAwaits()) {
-            if (!this.inNode.getAwaits().hasAwait(AwaitSecrets.class)) return;
+        if (this.inNode != null && event.getPacket() instanceof ClientboundTakeItemEntityPacket packet) {
             if (Minecraft.getInstance().level == null) return;
             Entity entity = Minecraft.getInstance().level.getEntity(packet.getItemId());
             if (!(entity instanceof ItemEntity itemEntity)) return;
             String name = ChatFormatting.stripFormatting(itemEntity.getItem().getDisplayName().getString());
             if (!SECRET_NAMES.contains(name)) return;
+            //ChatUtils.chat("Picked up secret!");
+            //ChatUtils.chat(this.inNode.getRealPos());
+            if (!this.inNode.hasAwaits() || !this.inNode.getAwaits().hasAwait(AwaitSecrets.class)) return; // Move earlier
             this.inNode.getAwaits().consume(AwaitSecrets.class, 1);
         }
 

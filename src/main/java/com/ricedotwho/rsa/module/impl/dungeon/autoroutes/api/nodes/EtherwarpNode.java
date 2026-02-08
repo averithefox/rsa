@@ -25,7 +25,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 
 public class EtherwarpNode extends Node {
-    private static final float EPSILON = 0.01f;
+    private static final double EPSILON = 0.001f;
     private final Pos localTargetPos;
     private Pos realTargetPos;
 
@@ -58,7 +58,7 @@ public class EtherwarpNode extends Node {
             return cancel();
         }
 
-        Pos playerCopy = playerPos.add(0.0d, player.getEyeHeight(Pose.STANDING), 0.0d);
+        Pos playerCopy = playerPos.add(0.0d, EtherUtils.SNEAK_EYE_HEIGHT, 0.0d);
         Pos targetDirection = this.realTargetPos.subtract(playerCopy);
         Pos targetDeltaCopy = targetDirection.copy();
 
@@ -104,11 +104,13 @@ public class EtherwarpNode extends Node {
     }
 
     public static EtherwarpNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits) {
+        // Should use client side eye height so it ray traces to the correct block, this may mean some angles fail server side but atleast it will go where you are trying to
         Vec3 target = EtherUtils.rayTraceBlock(60, player.getYRot(), player.getXRot(), player.position().add(0d, player.getEyeHeight(Pose.CROUCHING), 0d));
         if (target == null) return null;
         Room mainRoom = fullRoom.getMainRoom();
         Pos playerRelative = RoomUtils.getRelativePosition(new Pos(player.position()), mainRoom);
         Pos targetRelative = RoomUtils.getRelativePosition(new Pos(target), mainRoom);
+        //ChatUtils.chat("Relative : " + playerRelative);
         return new EtherwarpNode(playerRelative, targetRelative, awaits);
     }
 }
