@@ -10,6 +10,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket;
@@ -20,6 +21,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.Arrays;
 import java.util.function.Predicate;
 
 public class SwapManager {
@@ -157,6 +159,26 @@ public class SwapManager {
         return sendBlockC08(new BlockHitResult(pos, direction, BlockPos.containing(pos), false), swing, syncSlot);
     }
 
+    ///  The only Actions passed should be START_DESTROY_BLOCK, ABORT_DESTROY_BLOCK, and STOP_DESTROY_BLOCK
+    public static boolean sendC07(BlockPos result, ServerboundPlayerActionPacket.Action action, Direction face, boolean swing, boolean syncSlot) {
+        if (Minecraft.getInstance().player == null || Minecraft.getInstance().player.gameMode() == GameType.SPECTATOR) return false;
+        if (Minecraft.getInstance().gameMode == null || Minecraft.getInstance().level == null) return false;
+
+        if (syncSlot) {
+            IMultiPlayerGameMode manager = ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode);
+            int i = Minecraft.getInstance().player.getInventory().getSelectedSlot();
+            manager.syncSlot();
+            if (!checkServerSlot(i)) {
+                ChatUtils.chat("Failed to swap to slot : " + i);
+                return false;
+            }
+        }
+
+        ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode).sendPacketSequenced(Minecraft.getInstance().level, sequence -> new ServerboundPlayerActionPacket(action, result, face, sequence));
+        if (swing) Minecraft.getInstance().player.swing(InteractionHand.MAIN_HAND);
+        return true;
+    }
+
     public static boolean reserveSwap(Item item) {
 
         LocalPlayer player = Minecraft.getInstance().player;
@@ -194,6 +216,26 @@ public class SwapManager {
         return false;
     }
 
+    public static boolean reserveSwap(String ...sbId) {
+
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null || sbId == null || sbId.length == 0) return false;
+        if (!canSwap()) {
+            // Should already be reserved or we already swapped so we can't swap off anyways
+            String next = ItemUtils.getID(player.getInventory().getItem(getNextUpdateIndex()));
+            return Arrays.stream(sbId).anyMatch(id -> !id.isBlank() && next.equals(id)); // Already on this item
+        }
+
+        for (int i = 0; i < 9; i++) {
+            String id = ItemUtils.getID(player.getInventory().getItem(i));
+            if (Arrays.stream(sbId).noneMatch(id1 -> !id1.isBlank() && id.equals(id1))) continue;
+            boolean bl = swapSlot(i);
+            if (bl) reserveSwap0(i);
+            return bl;
+        }
+        return false;
+    }
+
 
     public static boolean swapItem(Item item) {
         LocalPlayer player = Minecraft.getInstance().player;
@@ -210,16 +252,17 @@ public class SwapManager {
     }
 
     /// Swap to an item with the specified SkyBlock ID
-    public static boolean swapItem(String sbId) {
+    public static boolean swapItem(String ...sbId) {
         LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null || sbId == null || sbId.isBlank()) return false;
+        if (player == null || sbId == null || sbId.length == 0) return false;
 
-        if (sbId.equals(ItemUtils.getID(player.getInventory().getItem(getNextUpdateIndex())))) return true;
+        String heldId = ItemUtils.getID(player.getInventory().getItem(getNextUpdateIndex()));
+        if (Arrays.stream(sbId).anyMatch(id -> !id.isBlank() && heldId.equals(id))) return true;
 
         if (!canSwap()) return false;
         for (int i = 0; i < 9; i++) {
             String id = ItemUtils.getID(player.getInventory().getItem(i));
-            if (!sbId.equals(id)) continue;
+            if (Arrays.stream(sbId).noneMatch(id1 -> !id1.isBlank() && id.equals(id1))) continue;
             return swapSlot(i);
         }
         return false;
@@ -264,12 +307,12 @@ public class SwapManager {
         return stack.getItem() == item;
     }
 
-    public static boolean checkServerItem(String sbId) {
+    public static boolean checkServerItem(String ...sbId) {
         LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null || serverSlot < 0 || serverSlot > 8) return false;
+        if (player == null || serverSlot < 0 || serverSlot > 8 || sbId.length == 0) return false;
 
         String heldId = ItemUtils.getID(player.getInventory().getItem(serverSlot));
-        return sbId.equals(heldId);
+        return Arrays.stream(sbId).anyMatch(id -> !id.isBlank() && heldId.equals(id));
     }
 
     public static boolean checkClientItem(Item item) {
@@ -280,12 +323,12 @@ public class SwapManager {
         return stack.getItem() == item;
     }
 
-    public static boolean checkClientItem(String sbId) {
+    public static boolean checkClientItem(String ...sbId) {
         LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null || sbId.isBlank()) return false;
+        if (player == null || sbId.length == 0) return false;
 
         String heldId = ItemUtils.getID(player.getInventory().getItem(player.getInventory().getSelectedSlot()));
-        return sbId.equals(heldId);
+        return Arrays.stream(sbId).anyMatch(id -> !id.isBlank() && heldId.equals(id));
     }
 
     // TODO
