@@ -202,7 +202,7 @@ public class BloodBlink extends Module {
                         float deltaX = (float) (player.getX() - MIDDLE_MAP_COORDS.x);
                         float deltaZ = (float) (player.getZ() - MIDDLE_MAP_COORDS.z);
 
-                        aotv0(7, playerYaw, -90f);
+                        aotv0(8, playerYaw, -90f); // Upped by 1
                         aotv0(Math.round(Mth.sqrt(deltaX * deltaX + deltaZ * deltaZ) / 12f), angles[0], 0.0f);
                         state = 10;
                     });

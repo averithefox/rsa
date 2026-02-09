@@ -78,15 +78,21 @@ public class SwapManager {
         return false;
     }
 
-    public static boolean reserveSwap(int index) {
+    private static boolean reserveSwap0(int index) {
         if (index < 0 || index > 8) return false;
 
         if (!canSwap()) {
             // Should already be reserved or we already swapped so we can't swap off anyways
             return index == getNextUpdateIndex(); // Already on this item
         }
-
         requireSwap = index;
+        return true;
+    }
+
+
+    public static boolean reserveSwap(int index) {
+        if (!reserveSwap0(index)) return false;
+        swapSlot(index);
         return true;
     }
 
@@ -127,17 +133,28 @@ public class SwapManager {
         return sendAirC08(yaw, pitch, syncSlots, false);
     }
 
-    public static void sendBlockC08(BlockHitResult result, boolean swing) {
-        if (Minecraft.getInstance().player == null || Minecraft.getInstance().player.gameMode() == GameType.SPECTATOR) return;
-        if (Minecraft.getInstance().gameMode == null || Minecraft.getInstance().level == null) return;
+    public static boolean sendBlockC08(BlockHitResult result, boolean swing, boolean syncSlot) {
+        if (Minecraft.getInstance().player == null || Minecraft.getInstance().player.gameMode() == GameType.SPECTATOR) return false;
+        if (Minecraft.getInstance().gameMode == null || Minecraft.getInstance().level == null) return false;
+
+        if (syncSlot) {
+            IMultiPlayerGameMode manager = ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode);
+            int i = Minecraft.getInstance().player.getInventory().getSelectedSlot();
+            manager.syncSlot();
+            if (!checkServerSlot(i)) {
+                ChatUtils.chat("Failed to swap to slot : " + i);
+                return false;
+            }
+        }
 
         ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode).sendPacketSequenced(Minecraft.getInstance().level, sequence -> new ServerboundUseItemOnPacket(InteractionHand.MAIN_HAND, result, sequence));
         if (swing) Minecraft.getInstance().player.swing(InteractionHand.MAIN_HAND);
+        return true;
     }
 
     // Haven't implement syncSlots because I haven't found the need
-    public static void sendBlockC08(Vec3 pos, Direction direction, boolean swing) {
-        sendBlockC08(new BlockHitResult(pos, direction, BlockPos.containing(pos), false), swing);
+    public static boolean sendBlockC08(Vec3 pos, Direction direction, boolean swing, boolean syncSlot) {
+        return sendBlockC08(new BlockHitResult(pos, direction, BlockPos.containing(pos), false), swing, syncSlot);
     }
 
     public static boolean reserveSwap(Item item) {
@@ -153,7 +170,7 @@ public class SwapManager {
             ItemStack stack = player.getInventory().getItem(i); // Hotbar is 0 - 8
             if (stack.getItem() != item) continue;
             boolean bl = swapSlot(i);
-            if (bl) reserveSwap(i);
+            if (bl) reserveSwap0(i);
             return bl;
         }
         return false;
@@ -171,7 +188,7 @@ public class SwapManager {
         for (int i = 0; i < 9; i++) {
             if (!predicate.test(player.getInventory().getItem(i))) continue;
             boolean bl = swapSlot(i);
-            if (bl) reserveSwap(i);
+            if (bl) reserveSwap0(i);
             return bl;
         }
         return false;

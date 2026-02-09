@@ -200,7 +200,7 @@ public class AutoSS extends Module {
         }
 
         clickedButton = vec3;
-        SwapManager.sendBlockC08(vec3, Direction.WEST, true);
+        SwapManager.sendBlockC08(vec3, Direction.WEST, true, false);
     }
 
     @SubscribeEvent
