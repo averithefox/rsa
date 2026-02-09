@@ -1,4 +1,6 @@
-package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api;
+package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
+
+import com.google.gson.JsonObject;
 
 public abstract class AwaitCondition<T> {
 
@@ -11,5 +13,6 @@ public abstract class AwaitCondition<T> {
 
     public abstract void onEnter();
     public abstract void reset();
+    public abstract void serialize(JsonObject json);
 
 }

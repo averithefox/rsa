@@ -1,15 +1,21 @@
-package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api;
+package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.annotations.Expose;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.data.Pos;
 import lombok.Getter;
 
 public abstract class Node {
+    @Expose
     private final Pos localPos;
+    @Expose
     private final float r;
+    @Expose
     @Getter
-    private final AwaitManager awaits;
+    private final AwaitManager awaitManager;
 
     private boolean triggered;
     private int lastTickTime;
@@ -21,30 +27,30 @@ public abstract class Node {
         this(localPos, null);
     }
 
-    public Node(Pos localPos, AwaitManager awaits) {
-        this(localPos, awaits, 0.5f);
+    public Node(Pos localPos, AwaitManager awaitManager) {
+        this(localPos, awaitManager, 0.5f);
     }
 
-    public Node(Pos localPos, AwaitManager awaits, float r) {
+    public Node(Pos localPos, AwaitManager awaitManager, float r) {
         this.localPos = localPos;
         this.r = r;
-        this.awaits = awaits;
+        this.awaitManager = awaitManager;
 
         this.triggered = false;
         this.lastTickTime = -1;
     }
 
     public boolean hasAwaits() {
-        return this.awaits != null && this.awaits.hasAwaits();
+        return this.awaitManager != null && this.awaitManager.hasAwaits();
     }
 
     public boolean shouldAwait() {
-        return this.awaits != null && this.awaits.shouldAwait();
+        return this.awaitManager != null && this.awaitManager.shouldAwait();
     }
 
     public void calculate(UniqueRoom room) {
         this.realPos = RoomUtils.getRealPosition(this.localPos, room.getMainRoom());
-        if (this.hasAwaits()) this.getAwaits().resetAwaits();
+        if (this.hasAwaits()) this.getAwaitManager().resetAwaits();
     }
 
     public abstract boolean run(Pos playerPos);
@@ -75,6 +81,18 @@ public abstract class Node {
             reset();
         }
         return false;
+    }
+
+    public abstract String getName();
+
+    public JsonObject serialize() {
+        JsonObject json = new JsonObject();
+        json.addProperty("type", this.getName());
+        json.add("localPos", AutoroutesFileManager.gson.toJsonTree(localPos));
+        json.addProperty("radius", r);
+        if (this.awaitManager == null || !this.awaitManager.hasAwaits()) return json;
+        json.add("awaits", this.awaitManager.serialize());
+        return json;
     }
 
     public void reset() {

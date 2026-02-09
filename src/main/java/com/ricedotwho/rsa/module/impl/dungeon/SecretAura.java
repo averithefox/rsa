@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
+import com.mojang.authlib.GameProfile;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.component.impl.location.Island;
@@ -28,6 +29,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
+import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -177,7 +179,9 @@ public class SecretAura extends Module {
     private boolean isValidSkull(BlockPos blockPos, ClientLevel level) {
         BlockEntity entity = level.getBlockEntity(blockPos);
         if (!(entity instanceof SkullBlockEntity skullBlockEntity)) return false;
-        String uuid = skullBlockEntity.getOwnerProfile().partialProfile().id().toString();
+        ResolvableProfile gameProfile = skullBlockEntity.getOwnerProfile();
+        if (gameProfile == null) return false;
+        String uuid = gameProfile.partialProfile().id().toString();
         return switch (uuid) {
             case WITHER_ESSENCE_ID, REDSTONE_KEY_ID -> true;
             default -> false;

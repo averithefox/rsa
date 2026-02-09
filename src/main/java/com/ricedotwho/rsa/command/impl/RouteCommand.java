@@ -9,23 +9,17 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.*;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.awaits.AwaitClick;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.awaits.AwaitSecrets;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.*;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.Map;
-import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
-import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
-import com.ricedotwho.rsm.data.Pos;
-import com.ricedotwho.rsm.data.Rotation;
 import com.ricedotwho.rsm.utils.ChatUtils;
-import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
@@ -60,7 +54,21 @@ public class RouteCommand extends Command {
                 )
                 .then(literal("remove")
                         .executes(RouteCommand::removeNode)
+                )
+                .then(literal("load")
+                        .executes(RouteCommand::loadNodes)
                 );
+    }
+
+    private static int loadNodes(CommandContext<ClientSuggestionProvider> ctx) {
+        boolean bl = AutoroutesFileManager.load();
+        if (bl) {
+            // Should recalculate positions?
+            ChatUtils.chat("Loaded nodes!");
+            return 1;
+        }
+        ChatUtils.chat("Failed to load nodes! Check logs!");
+        return 0;
     }
 
     private static int clearNodes(CommandContext<ClientSuggestionProvider> ctx) {

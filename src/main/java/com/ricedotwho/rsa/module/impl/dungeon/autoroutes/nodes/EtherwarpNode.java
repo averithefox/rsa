@@ -1,10 +1,13 @@
-package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.nodes;
+package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes;
 
+import com.google.gson.JsonObject;
+import com.google.gson.annotations.Expose;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.AwaitManager;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.Node;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitManager;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
@@ -26,6 +29,7 @@ import net.minecraft.world.phys.Vec3;
 
 public class EtherwarpNode extends Node {
     private static final double EPSILON = 0.001f;
+    @Expose
     private final Pos localTargetPos;
     private Pos realTargetPos;
 
@@ -48,7 +52,8 @@ public class EtherwarpNode extends Node {
         if (player == null) return cancel();
 
         KeyMapping.releaseAll();
-        if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) return cancel();
+
+        if (!SwapManager.reserveSwap(Items.DIAMOND_SHOVEL)) return cancel();
 
         // Should be put in the other loop if 0 ticking works properly
         AutoRoutes autoRoutes = RSM.getModule(AutoRoutes.class);
@@ -62,15 +67,16 @@ public class EtherwarpNode extends Node {
         Pos targetDirection = this.realTargetPos.subtract(playerCopy);
         Pos targetDeltaCopy = targetDirection.copy();
 
+        boolean swap = SwapManager.isDesynced();
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
-        if (!SwapManager.checkClientItem(Items.DIAMOND_SHOVEL)) {
-            // Swap didn't work??? It got swapped back? WTF
-            ChatUtils.chat("Big fuck up!");
-            return;
-        }
+            if ((swap && !SwapManager.checkClientItem(Items.DIAMOND_SHOVEL)) || (!swap && !SwapManager.checkServerItem(Items.DIAMOND_SHOVEL))) {
+                // Swap didn't work??? It got swapped back? WTF
+                ChatUtils.chat("Big fuck up! : " + swap + ", " + Minecraft.getInstance().player.getInventory().getItem(SwapManager.getServerSlot()).getItem());
+                return;
+            }
 
-        float[] angles = EtherUtils.getYawAndPitch(targetDeltaCopy.x, targetDeltaCopy.y, targetDeltaCopy.z);
-        SwapManager.sendAirC08(angles[0], angles[1], true, false);
+            float[] angles = EtherUtils.getYawAndPitch(targetDeltaCopy.x, targetDeltaCopy.y, targetDeltaCopy.z);
+            SwapManager.sendAirC08(angles[0], angles[1], swap, false);
         });
 
         // By this point we assume the etherwarp will work
@@ -90,6 +96,7 @@ public class EtherwarpNode extends Node {
         this.reset();
         return false;
     }
+
     @Override
     public void render() {
 //        AABB aabb = new AABB(this.getRealPos().subtract(0.5d, 0d, 0.5d).asVec3(), this.getRealPos().add(0.5d, 0.25d, 0.5d).asVec3());
@@ -99,8 +106,20 @@ public class EtherwarpNode extends Node {
     }
 
     @Override
+    public JsonObject serialize() {
+        JsonObject json = super.serialize();
+        json.add("localTarget", AutoroutesFileManager.gson.toJsonTree(localTargetPos));
+        return json;
+    }
+
+    @Override
     public int getPriority() {
         return 5; // Slightly lower
+    }
+
+    @Override
+    public String getName() {
+        return "etherwarp";
     }
 
     public static EtherwarpNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits) {

@@ -1,9 +1,11 @@
-package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.awaits;
+package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits;
 
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.AwaitCondition;
-import com.ricedotwho.rsm.utils.ChatUtils;
+import com.google.gson.JsonObject;
+import com.google.gson.annotations.Expose;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitCondition;
 
 public class AwaitSecrets extends AwaitCondition<Integer> {
+    @Expose
     private final int secretCount;
     private int collectedSecretCount;
 
@@ -18,6 +20,11 @@ public class AwaitSecrets extends AwaitCondition<Integer> {
     @Override
     public void reset() {
         this.collectedSecretCount = 0;
+    }
+
+    @Override
+    public void serialize(JsonObject json) {
+        json.addProperty("awaitSecrets", this.secretCount);
     }
 
     @Override

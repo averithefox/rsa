@@ -1,7 +1,7 @@
-package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.awaits;
+package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits;
 
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.AwaitCondition;
-import com.ricedotwho.rsm.utils.ChatUtils;
+import com.google.gson.JsonObject;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitCondition;
 
 public class AwaitClick extends AwaitCondition<Boolean> {
     private boolean clicked;
@@ -22,6 +22,11 @@ public class AwaitClick extends AwaitCondition<Boolean> {
     @Override
     public void reset() {
 
+    }
+
+    @Override
+    public void serialize(JsonObject json) {
+        json.addProperty("awaitClick", true);
     }
 
     protected void consume(Boolean bl) {

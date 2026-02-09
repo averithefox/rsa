@@ -1,10 +1,14 @@
-package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api;
+package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
+
+import com.google.gson.JsonObject;
+import com.google.gson.annotations.Expose;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 
 public class AwaitManager {
+    @Expose
     private final HashMap<Class<? extends AwaitCondition<?>>, AwaitCondition<?>> awaits;
 
     public AwaitManager(Collection<AwaitCondition<?>> awaits) {
@@ -29,6 +33,12 @@ public class AwaitManager {
         for (AwaitCondition<?> await : conditions) {
             awaits.putIfAbsent((Class<? extends AwaitCondition<?>>) await.getClass(), await);
         }
+    }
+
+    public JsonObject serialize() {
+        JsonObject json = new JsonObject();
+        getAwaits().forEach(await -> await.serialize(json));
+        return json;
     }
 
     public void onEnterNode() {

@@ -1,15 +1,17 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.awaits.AwaitClick;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.Node;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.awaits.AwaitSecrets;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.nodes.BoomNode;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BoomNode;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.map.RoomData;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
+import com.ricedotwho.rsm.component.impl.map.utils.ScanUtils;
 import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
@@ -25,7 +27,8 @@ import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
 import com.ricedotwho.rsm.utils.Accessor;
-import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.DungeonUtils;
+import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -45,6 +48,7 @@ import java.util.*;
 @ModuleInfo(aliases = "Autoroutes", id = "Autoroutes", category = Category.DUNGEONS)
 public class AutoRoutes extends Module implements Accessor {
 
+    @Getter
     private final HashMap<String, List<Node>> savedNodes = new HashMap<>();
     private final HashMap<RoomData, List<Node>> activeNodes = new HashMap<>();
 
@@ -96,11 +100,7 @@ public class AutoRoutes extends Module implements Accessor {
         Room room = event.getRoom();
         this.inNode = null;
         if (activeNodes.containsKey(room.getData())) return;
-        List<Node> nodes = savedNodes.get(room.getData().name());
-        if (nodes == null || nodes.isEmpty()) return;
-        UniqueRoom uniqueRoom = room.getUniqueRoom();
-        nodes.forEach(n -> n.calculate(uniqueRoom));
-        activeNodes.put(room.getData(), nodes);
+        cacheRoomNodes(room);
     }
 
     @SubscribeEvent
@@ -146,6 +146,24 @@ public class AutoRoutes extends Module implements Accessor {
         event.getInputConsumer().accept(newInputs);
     }
 
+    private void cacheRoomNodes(Room room) {
+        List<Node> nodes = savedNodes.get(room.getData().name());
+        if (nodes == null || nodes.isEmpty()) return;
+        UniqueRoom uniqueRoom = room.getUniqueRoom();
+        nodes.forEach(n -> n.calculate(uniqueRoom));
+        activeNodes.put(room.getData(), nodes);
+    }
+
+    public void reload() {
+        this.activeNodes.clear();
+        this.inNode = null;
+        this.receivedS08 = false;
+        if (!Location.getArea().is(Island.Dungeon)) return;
+        Room room = Map.getCurrentRoom();
+        if (room == null || room.getUniqueRoom() == null) return;
+        cacheRoomNodes(room);
+    }
+
     private boolean hasGuiOpen() {
         return Minecraft.getInstance().player != null && Minecraft.getInstance().screen instanceof AbstractContainerScreen<?>;
     }
@@ -155,6 +173,7 @@ public class AutoRoutes extends Module implements Accessor {
         List<Node> nodes = activeNodes.get(uniqueRoom.getMainRoom().getData());
         if (nodes.isEmpty()) return false;
         nodes.clear();
+        AutoroutesFileManager.save();
         return true;
     }
 
@@ -176,6 +195,7 @@ public class AutoRoutes extends Module implements Accessor {
 
         if (bestIndex < 0) return false;
         nodes.remove(bestIndex);
+        AutoroutesFileManager.save();
         return true;
     }
 
@@ -188,6 +208,7 @@ public class AutoRoutes extends Module implements Accessor {
             // But we might need to add the list in the first place
             activeNodes.put(uniqueRoom.getMainRoom().getData(), nodes);
         }
+        AutoroutesFileManager.save();
     }
 
     public void setForceSneak(boolean bl) {
@@ -198,18 +219,18 @@ public class AutoRoutes extends Module implements Accessor {
         if (!this.isEnabled() || !Location.getArea().is(Island.Dungeon) || Map.getCurrentRoom() == null) return;
 
         if (this.inNode == null || !this.inNode.hasAwaits()) return;
-        this.inNode.getAwaits().consume(AwaitClick.class, true);
-        this.inNode.getAwaits().consume(AwaitSecrets.class, 100); // Skip secret
+        this.inNode.getAwaitManager().consume(AwaitClick.class, true);
+        this.inNode.getAwaitManager().consume(AwaitSecrets.class, 100); // Skip secret
     }
 
     @SubscribeEvent
     public void onSendPacket(PacketEvent.Send event) {
         if (!Location.getArea().is(Island.Dungeon) || Map.getCurrentRoom() == null || Minecraft.getInstance().level == null || this.inNode == null) return;
-        if (!this.inNode.hasAwaits() || !this.inNode.getAwaits().hasAwait(AwaitSecrets.class)) return;
+        if (!this.inNode.hasAwaits() || !this.inNode.getAwaitManager().hasAwait(AwaitSecrets.class)) return;
         if (!(event.getPacket() instanceof ServerboundUseItemOnPacket useItemOnPacket)) return;
         Block block = Minecraft.getInstance().level.getBlockState(useItemOnPacket.getHitResult().getBlockPos()).getBlock();
         if (block != Blocks.CHEST && block != Blocks.TRAPPED_CHEST && block != Blocks.PLAYER_HEAD && block != Blocks.LEVER) return;
-        this.inNode.getAwaits().consume(AwaitSecrets.class, 1);
+        this.inNode.getAwaitManager().consume(AwaitSecrets.class, 1);
     }
 
     @SubscribeEvent
@@ -224,8 +245,8 @@ public class AutoRoutes extends Module implements Accessor {
             if (!SECRET_NAMES.contains(name)) return;
             //ChatUtils.chat("Picked up secret!");
             //ChatUtils.chat(this.inNode.getRealPos());
-            if (!this.inNode.hasAwaits() || !this.inNode.getAwaits().hasAwait(AwaitSecrets.class)) return; // Move earlier
-            this.inNode.getAwaits().consume(AwaitSecrets.class, 1);
+            if (!this.inNode.hasAwaits() || !this.inNode.getAwaitManager().hasAwait(AwaitSecrets.class)) return; // Move earlier
+            this.inNode.getAwaitManager().consume(AwaitSecrets.class, 1);
         }
 
         if (teleportOnly.getValue() && event.getPacket() instanceof ClientboundPlayerPositionPacket S08) {
@@ -238,7 +259,7 @@ public class AutoRoutes extends Module implements Accessor {
         if (this.inNode == node) return;
 
         this.inNode = node;
-        if (node.hasAwaits()) node.getAwaits().onEnterNode();
+        if (node.hasAwaits()) node.getAwaitManager().onEnterNode();
     }
 
 

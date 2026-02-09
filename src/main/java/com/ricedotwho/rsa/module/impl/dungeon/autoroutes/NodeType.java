@@ -1,7 +1,7 @@
-package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api;
+package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
 
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.nodes.BatNode;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.nodes.EtherwarpNode;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BatNode;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.EtherwarpNode;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
@@ -9,7 +9,6 @@ import net.minecraft.client.player.LocalPlayer;
 import org.apache.commons.lang3.function.TriFunction;
 
 import java.util.Arrays;
-import java.util.function.BiFunction;
 
 public enum NodeType {
     ETHERWARP("ew", EtherwarpNode::supply),

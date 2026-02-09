@@ -2,7 +2,6 @@ package com.ricedotwho.rsa.component.impl.managers;
 
 import com.ricedotwho.rsa.IMixin.IMultiPlayerGameMode;
 import com.ricedotwho.rsa.RSA;
-import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
 import lombok.Getter;
@@ -30,8 +29,11 @@ public class SwapManager {
     private static int lastSentServerSlot;
     private static boolean swappedThisTick = false;
 
+    private static int requireSwap = -1;
+
     public static void onPreTickStart() {
         swappedThisTick = false;
+        requireSwap = -1;
     }
 
     public static boolean onPostSendPacket(Packet<?> packet) {
@@ -63,11 +65,40 @@ public class SwapManager {
             ChatUtils.chat("GameMode : " + managerServerSlot);
         }
         int i = Minecraft.getInstance().player.getInventory().getSelectedSlot();
+        if (!swappedThisTick && requireSwap > -1 && i != requireSwap) {
+            if (requireSwap == managerServerSlot) return false;
+            Minecraft.getInstance().player.getInventory().setSelectedSlot(requireSwap);
+            i = requireSwap;
+        }
+
         if (i != managerServerSlot && !swappedThisTick) {
             serverSlot = i;
             return true;
         }
         return false;
+    }
+
+    public static boolean reserveSwap(int index) {
+        if (index < 0 || index > 8) return false;
+
+        if (!canSwap()) {
+            // Should already be reserved or we already swapped so we can't swap off anyways
+            return index == getNextUpdateIndex(); // Already on this item
+        }
+
+        requireSwap = index;
+        return true;
+    }
+
+    public static int getNextUpdateIndex() {
+        if (swappedThisTick) return serverSlot;
+        if (requireSwap > -1) return requireSwap;
+        if (Minecraft.getInstance().player == null) return 0;
+        return Minecraft.getInstance().player.getInventory().getSelectedSlot();
+    }
+
+    public static boolean canSwap() {
+        return !swappedThisTick && requireSwap < 0;
     }
 
     public static boolean sendAirC08(float yaw, float pitch, boolean syncSlots, boolean swing) {
@@ -88,6 +119,9 @@ public class SwapManager {
         return true;
     }
 
+    public static boolean isDesynced() {
+        return getNextUpdateIndex() != serverSlot;
+    }
 
     public static boolean sendAirC08(float yaw, float pitch, boolean syncSlots) {
         return sendAirC08(yaw, pitch, syncSlots, false);
@@ -106,12 +140,50 @@ public class SwapManager {
         sendBlockC08(new BlockHitResult(pos, direction, BlockPos.containing(pos), false), swing);
     }
 
+    public static boolean reserveSwap(Item item) {
+
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null || item == null) return false;
+        if (!canSwap()) {
+            // Should already be reserved or we already swapped so we can't swap off anyways
+            return item == player.getInventory().getItem(getNextUpdateIndex()).getItem(); // Already on this item
+        }
+
+        for (int i = 0; i < 9; i++) {
+            ItemStack stack = player.getInventory().getItem(i); // Hotbar is 0 - 8
+            if (stack.getItem() != item) continue;
+            boolean bl = swapSlot(i);
+            if (bl) reserveSwap(i);
+            return bl;
+        }
+        return false;
+    }
+
+    public static boolean reserveSwap(Predicate<ItemStack> predicate) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) return false;
+
+        if (!canSwap()) {
+            // Should already be reserved or we already swapped so we can't swap off anyways
+            return predicate.test((player.getInventory().getItem(getNextUpdateIndex()))); // Already on this item
+        }
+
+        for (int i = 0; i < 9; i++) {
+            if (!predicate.test(player.getInventory().getItem(i))) continue;
+            boolean bl = swapSlot(i);
+            if (bl) reserveSwap(i);
+            return bl;
+        }
+        return false;
+    }
+
+
     public static boolean swapItem(Item item) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null || item == null) return false;
-        if (item == player.getInventory().getItem(player.getInventory().getSelectedSlot()).getItem()) return true; // Already on this item
 
-        if (swappedThisTick) return false;
+        if (item == player.getInventory().getItem(getNextUpdateIndex()).getItem()) return true; // Already on this item
+        if (!canSwap()) return false;
         for (int i = 0; i < 9; i++) {
             ItemStack stack = player.getInventory().getItem(i); // Hotbar is 0 - 8
             if (stack.getItem() != item) continue;
@@ -124,9 +196,10 @@ public class SwapManager {
     public static boolean swapItem(String sbId) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null || sbId == null || sbId.isBlank()) return false;
-        if (sbId.equals(ItemUtils.getID(player.getInventory().getItem(player.getInventory().getSelectedSlot())))) return true;
 
-        if (swappedThisTick) return false;
+        if (sbId.equals(ItemUtils.getID(player.getInventory().getItem(getNextUpdateIndex())))) return true;
+
+        if (!canSwap()) return false;
         for (int i = 0; i < 9; i++) {
             String id = ItemUtils.getID(player.getInventory().getItem(i));
             if (!sbId.equals(id)) continue;
@@ -138,9 +211,10 @@ public class SwapManager {
     public static boolean swapItem(Predicate<ItemStack> predicate) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return false;
-        if (predicate.test(player.getInventory().getItem(player.getInventory().getSelectedSlot()))) return true;
 
-        if (swappedThisTick) return false;
+        if (predicate.test(player.getInventory().getItem(getNextUpdateIndex()))) return true;
+
+        if (!canSwap()) return false;
         for (int i = 0; i < 9; i++) {
             if (!predicate.test(player.getInventory().getItem(i))) continue;
             return swapSlot(i);
@@ -150,7 +224,7 @@ public class SwapManager {
 
     public static boolean swapSlot(int slot) {
         LocalPlayer player = Minecraft.getInstance().player;
-        if (slot == serverSlot) return true;
+        if (slot == getNextUpdateIndex()) return true;
         if (player == null || swappedThisTick) return false;
         if (slot < 0 || slot > 8) {
             RSA.getLogger().error("Invalid swap slot! : {}", slot);

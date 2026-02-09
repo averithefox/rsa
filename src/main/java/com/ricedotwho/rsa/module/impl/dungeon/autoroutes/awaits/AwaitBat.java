@@ -1,6 +1,7 @@
-package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.awaits;
+package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits;
 
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.api.AwaitCondition;
+import com.google.gson.JsonObject;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitCondition;
 
 public class AwaitBat extends AwaitCondition<Boolean> {
     private boolean batKilled;
@@ -20,6 +21,11 @@ public class AwaitBat extends AwaitCondition<Boolean> {
 
     @Override
     public void reset() {
+
+    }
+
+    @Override
+    public void serialize(JsonObject json) {
 
     }
 
