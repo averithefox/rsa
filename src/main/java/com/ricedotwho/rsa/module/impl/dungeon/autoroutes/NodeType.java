@@ -1,6 +1,7 @@
 package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
 
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BatNode;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BoomNode;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.EtherwarpNode;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import lombok.Getter;
@@ -12,7 +13,7 @@ import java.util.Arrays;
 
 public enum NodeType {
     ETHERWARP("ew", EtherwarpNode::supply),
-    BOOM("boom", null),
+    BOOM("boom", BoomNode::supply),
     BAT("bat", BatNode::supply),
     AOTV("aotv", null);
 
