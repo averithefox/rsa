@@ -11,7 +11,8 @@ public class PacketOrderManager {
     }
 
     public enum STATE {
-        ITEM_USE
+        ITEM_USE,
+        ATTACK
     }
 
     public static void register(STATE state, Runnable runnable) {

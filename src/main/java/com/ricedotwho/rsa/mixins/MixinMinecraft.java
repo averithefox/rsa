@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.mixins;
 
+import com.ricedotwho.rsa.component.impl.BlockAura;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
@@ -12,6 +13,7 @@ import net.minecraft.util.profiling.Profiler;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -29,7 +31,10 @@ public abstract class MixinMinecraft {
     @Shadow
     protected abstract void handleKeybinds();
 
-    private boolean bl = false;
+    @Unique
+    private boolean bla = false;
+    @Unique
+    private boolean blu = false;
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void onTickStart(CallbackInfo ci) {
@@ -50,18 +55,30 @@ public abstract class MixinMinecraft {
         }
     }
 
+    @Inject(method = "handleKeybinds", at = @At("HEAD"))
+    public void onHandleKeybinds(CallbackInfo ci) {
+        bla = true;
+        blu = true;
 
-    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;consumeClick()Z", ordinal = 15), method = "handleKeybinds")
-        public void onHandleInputEvent(CallbackInfo ci) {
-        if (bl) {
-            PacketOrderManager.execute(PacketOrderManager.STATE.ITEM_USE);
-            bl = false;
+        // maybe this should be an event later?
+        BlockAura.onPreHandleKeybinds();
+    }
+
+    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;consumeClick()Z", ordinal = 14), method = "handleKeybinds")
+    public void onHandleInputEvent(CallbackInfo ci) {
+        if (bla) {
+            PacketOrderManager.execute(PacketOrderManager.STATE.ATTACK);
+            bla = false;
             // Need bl because called in whileLoop
         }
     }
 
-    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;consumeClick()Z", ordinal = 16), method = "handleKeybinds")
-    public void onPostInput(CallbackInfo ci) {
-        bl = true;
+    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;consumeClick()Z", ordinal = 15), method = "handleKeybinds")
+    public void onHandleInputEvent2(CallbackInfo ci) {
+        if (blu) {
+            PacketOrderManager.execute(PacketOrderManager.STATE.ITEM_USE);
+            blu = false;
+            // Need bl because called in whileLoop
+        }
     }
 }
