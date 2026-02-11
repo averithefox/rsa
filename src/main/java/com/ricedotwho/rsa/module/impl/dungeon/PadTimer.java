@@ -9,6 +9,7 @@ import com.ricedotwho.rsm.data.Phase7;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.game.ChatEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
+import com.ricedotwho.rsm.event.impl.game.ServerTickEvent;
 import com.ricedotwho.rsm.event.impl.render.Render2DEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
@@ -102,7 +103,7 @@ public class PadTimer extends Module {
     }
 
     @SubscribeEvent
-    public void onTick(ClientTickEvent.Start event) {;
+    public void onTick(ServerTickEvent event) {
         if (Location.getArea() == Island.Dungeon && DungeonUtils.isPhase(Phase7.P2) && IsEnabled || debug.getValue()) {
             if (pPadcountdown) {
                 countdownP = true;

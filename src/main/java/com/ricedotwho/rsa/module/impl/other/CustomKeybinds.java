@@ -31,34 +31,35 @@ public class CustomKeybinds extends Module {
     boolean Keypressed12 = false;
     boolean Keypressed13 = false;
     boolean Keypressed14 = false;
-    private final KeybindSetting Keybind1 = new KeybindSetting("Keybind 1", new Keybind(GLFW.GLFW_KEY_S, false, () -> Keypressed1 = true));
+    private final KeybindSetting Keybind1 = new KeybindSetting("Keybind 1", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed1 = true));
     private final StringSetting String1 = new StringSetting("Command 1 (dont need the /)", "");
-    private final KeybindSetting Keybind2 = new KeybindSetting("Keybind 2", new Keybind(GLFW.GLFW_KEY_S, false, () -> Keypressed2 = true));
+    private final KeybindSetting Keybind2 = new KeybindSetting("Keybind 2", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed2 = true));
     private final StringSetting String2 = new StringSetting("Command 2", "");
-    private final KeybindSetting Keybind3 = new KeybindSetting("Keybind 3", new Keybind(GLFW.GLFW_KEY_S, false, () -> Keypressed3 = true));
+    private final KeybindSetting Keybind3 = new KeybindSetting("Keybind 3", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed3 = true));
     private final StringSetting String3 = new StringSetting("Command 3", "");
-    private final KeybindSetting Keybind4 = new KeybindSetting("Keybind 4", new Keybind(GLFW.GLFW_KEY_S, false, () -> Keypressed4 = true));
+    private final KeybindSetting Keybind4 = new KeybindSetting("Keybind 4", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed4 = true));
     private final StringSetting String4 = new StringSetting("Command 4", "");
-    private final KeybindSetting Keybind5 = new KeybindSetting("Keybind 5", new Keybind(GLFW.GLFW_KEY_S, false, () -> Keypressed5 = true));
+    private final KeybindSetting Keybind5 = new KeybindSetting("Keybind 5", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed5 = true));
     private final StringSetting String5 = new StringSetting("Command 5", "");
-    private final KeybindSetting Keybind6 = new KeybindSetting("Keybind 6", new Keybind(GLFW.GLFW_KEY_S, false, () -> Keypressed6 = true));
+    private final KeybindSetting Keybind6 = new KeybindSetting("Keybind 6", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed6 = true));
     private final StringSetting String6 = new StringSetting("Command 6", "");
-    private final KeybindSetting Keybind7 = new KeybindSetting("Keybind 7", new Keybind(GLFW.GLFW_KEY_S, false, () -> Keypressed7 = true));
+    private final KeybindSetting Keybind7 = new KeybindSetting("Keybind 7", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed7 = true));
     private final StringSetting String7 = new StringSetting("Command 7", "");
-    private final KeybindSetting Keybind8 = new KeybindSetting("Keybind 8", new Keybind(GLFW.GLFW_KEY_S, false, () -> Keypressed8 = true));
+    private final KeybindSetting Keybind8 = new KeybindSetting("Keybind 8", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed8 = true));
     private final StringSetting String8 = new StringSetting("Command 8", "");
-    private final KeybindSetting Keybind9 = new KeybindSetting("Keybind 9", new Keybind(GLFW.GLFW_KEY_S, false, () -> Keypressed9 = true));
+    private final KeybindSetting Keybind9 = new KeybindSetting("Keybind 9", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed9 = true));
     private final StringSetting String9 = new StringSetting("Command 9", "");
-    private final KeybindSetting Keybind10 = new KeybindSetting("Keybind 10", new Keybind(GLFW.GLFW_KEY_S, false, () -> Keypressed10 = true));
+    private final KeybindSetting Keybind10 = new KeybindSetting("Keybind 10", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed10 = true));
     private final StringSetting String10 = new StringSetting("Command 10", "");
-    private final KeybindSetting Keybind11 = new KeybindSetting("Keybind 11", new Keybind(GLFW.GLFW_KEY_S, false, () -> Keypressed11 = true));
+    private final KeybindSetting Keybind11 = new KeybindSetting("Keybind 11", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed11 = true));
     private final StringSetting String11 = new StringSetting("Command 11", "");
-    private final KeybindSetting Keybind12 = new KeybindSetting("Keybind 12", new Keybind(GLFW.GLFW_KEY_S, false, () -> Keypressed12 = true));
+    private final KeybindSetting Keybind12 = new KeybindSetting("Keybind 12", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed12 = true));
     private final StringSetting String12 = new StringSetting("Command 12", "");
-    private final KeybindSetting Keybind13 = new KeybindSetting("Keybind 13", new Keybind(GLFW.GLFW_KEY_S, false, () -> Keypressed13 = true));
+    private final KeybindSetting Keybind13 = new KeybindSetting("Keybind 13", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed13 = true));
     private final StringSetting String13 = new StringSetting("Command 13", "");
-    private final KeybindSetting Keybind14 = new KeybindSetting("Keybind 14", new Keybind(GLFW.GLFW_KEY_S, false, () -> Keypressed14 = true));
+    private final KeybindSetting Keybind14 = new KeybindSetting("Keybind 14", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed14 = true));
     private final StringSetting String14 = new StringSetting("Command 14", "");
+    //these work when you run the client in inteleJ but its not working in my instance.. IM SO CONFUSED
 
 
 

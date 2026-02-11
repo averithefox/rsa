@@ -1,12 +1,11 @@
 package com.ricedotwho.rsa;
 
 import com.ricedotwho.rsa.command.impl.BloodBlinkCommand;
+import com.ricedotwho.rsa.module.impl.other.*;
 import com.ricedotwho.rsa.module.impl.dungeon.*;
 import com.ricedotwho.rsa.command.impl.RouteCommand;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
 import com.ricedotwho.rsa.module.impl.movement.NoRotate;
-import com.ricedotwho.rsa.module.impl.other.AutoJax;
-import com.ricedotwho.rsa.module.impl.other.CustomKeybinds;
 import com.ricedotwho.rsa.module.impl.render.EffectsAndRender;
 import com.ricedotwho.rsa.module.impl.render.PresetWaypoints;
 import com.ricedotwho.rsm.RSM;
@@ -52,7 +51,9 @@ public class RSA implements Addon {
                 SecretAura.class,
                 EffectsAndRender.class,
                 PresetWaypoints.class,
-                CustomKeybinds.class
+                CustomKeybinds.class,
+                AutoGfs.class,
+                ssidLogin.class
         );
     }
 
