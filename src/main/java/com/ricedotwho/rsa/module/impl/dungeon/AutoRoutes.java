@@ -4,6 +4,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BatNode;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BoomNode;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
@@ -11,7 +12,6 @@ import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.map.RoomData;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
-import com.ricedotwho.rsm.component.impl.map.utils.ScanUtils;
 import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
@@ -27,7 +27,6 @@ import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
 import com.ricedotwho.rsm.utils.Accessor;
-import com.ricedotwho.rsm.utils.DungeonUtils;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -57,9 +56,12 @@ public class AutoRoutes extends Module implements Accessor {
     private final KeybindSetting triggerBind = new KeybindSetting("Trigger Bind", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, this::onTrigger));
 
     private int tickTime = 0;
-    private boolean forceNextSneak = false;
+    private boolean forceNextNotSneak = false;
     private Node inNode;
+    private boolean isRouting = false;
     private boolean receivedS08;
+
+    // Player inputs are sent after C08s and keybinding events, in level.tickEntities
 
     private static final Set<String> SECRET_NAMES  = Set.of(
             "[Health Potion VIII Splash Potion]",
@@ -114,6 +116,7 @@ public class AutoRoutes extends Module implements Accessor {
 
     @SubscribeEvent
     public void onClientTickStart(ClientTickEvent.Start event) {
+        this.isRouting = false;
         if (!Location.getArea().is(Island.Dungeon)) return;
         tickTime++;
 
@@ -126,8 +129,6 @@ public class AutoRoutes extends Module implements Accessor {
             inNode = null;
             return;
         }
-
-
         Pos playerPos = new Pos(Minecraft.getInstance().player.position());
 
 
@@ -136,13 +137,17 @@ public class AutoRoutes extends Module implements Accessor {
         }
     }
 
+    public boolean isRouting() {
+        return this.isRouting;
+    }
+
     @SubscribeEvent
     public void onPollInputs(InputPollEvent event) {
-        if (!this.isEnabled() || !this.forceNextSneak || !Location.getArea().is(Island.Dungeon) || hasGuiOpen()) return;
+        if (!this.isRouting() || !Location.getArea().is(Island.Dungeon) || hasGuiOpen()) return;
         Input oldInputs = event.getClientInput();
 
-        Input newInputs = new Input(oldInputs.forward(), oldInputs.backward(), oldInputs.left(), oldInputs.right(), oldInputs.jump(), this.forceNextSneak, oldInputs.sprint());
-        this.forceNextSneak = false;
+        Input newInputs = new Input(oldInputs.forward(), oldInputs.backward(), oldInputs.left(), oldInputs.right(), oldInputs.jump(), !this.forceNextNotSneak, oldInputs.sprint());
+        this.forceNextNotSneak = false;
         event.getInputConsumer().accept(newInputs);
     }
 
@@ -212,7 +217,7 @@ public class AutoRoutes extends Module implements Accessor {
     }
 
     public void setForceSneak(boolean bl) {
-        this.forceNextSneak = bl;
+        this.forceNextNotSneak = bl;
     }
 
     public void onTrigger() {
@@ -221,6 +226,7 @@ public class AutoRoutes extends Module implements Accessor {
         if (this.inNode == null || !this.inNode.hasAwaits()) return;
         this.inNode.getAwaitManager().consume(AwaitClick.class, true);
         this.inNode.getAwaitManager().consume(AwaitSecrets.class, 100); // Skip secret
+        if (this.inNode instanceof BatNode) this.inNode.setTriggered(true);
     }
 
     @SubscribeEvent
@@ -270,15 +276,9 @@ public class AutoRoutes extends Module implements Accessor {
             return false;
         }
 
+        this.isRouting = true;
+
         Node node = activeNodes.getFirst();
-        if (node instanceof BoomNode) {
-            // Do boom or whatever
-            trySetInNode(node);
-
-            node = activeNodes.stream().filter(n -> !(n instanceof BoomNode)).findFirst().orElse(null);
-            if (node == null) return false;
-        }
-
         trySetInNode(node);
 
         if (node.shouldAwait()) {

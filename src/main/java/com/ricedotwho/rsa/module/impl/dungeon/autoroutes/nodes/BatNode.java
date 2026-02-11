@@ -59,14 +59,9 @@ public class BatNode extends Node {
         return Utils.equalsOneOf(sbId, "NECRON_BLADE", "SCYLLA", "HYPERION", "VALKYRIE", "ASTRAEA") && ItemUtils.getCustomData(itemStack).getListOrEmpty("ability_scroll").size() == 3;
     }
 
-    private boolean cancel() {
-        this.reset();
-        return false;
-    }
-
     @Override
     public void render() {
-        Renderer3D.addTask(new Circle(this.getRealPos(), true, this.getRadius(), Colour.BLUE, 30));
+        Renderer3D.addTask(new Circle(new Vec3(getRealPos().x, getRealPos().y + 0.3f, getRealPos().z), true, this.getRadius(), Colour.BLUE, 30));
     }
 
     @Override

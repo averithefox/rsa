@@ -3,7 +3,9 @@ package com.ricedotwho.rsa.component.impl.managers;
 import com.ricedotwho.rsa.IMixin.IMultiPlayerGameMode;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.EtherUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
+import com.ricedotwho.rsm.utils.RotationUtils;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -19,6 +21,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.Arrays;
@@ -152,6 +155,14 @@ public class SwapManager {
         ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode).sendPacketSequenced(Minecraft.getInstance().level, sequence -> new ServerboundUseItemOnPacket(InteractionHand.MAIN_HAND, result, sequence));
         if (swing) Minecraft.getInstance().player.swing(InteractionHand.MAIN_HAND);
         return true;
+    }
+
+    public static boolean sendBlockC08(float yaw, float pitch, boolean swing, boolean syncSlot) {
+        HitResult result = RotationUtils.getBlockHitResult(Minecraft.getInstance().player.getContainerInteractionRange(), yaw, pitch, Minecraft.getInstance().player.position().add(0d, EtherUtils.SNEAK_EYE_HEIGHT, 0d));
+        if (result.getType() != HitResult.Type.BLOCK) {
+            ChatUtils.chat("Failed to send block C08!");
+        }
+        return sendBlockC08((BlockHitResult) result, swing, syncSlot);
     }
 
     // Haven't implement syncSlots because I haven't found the need

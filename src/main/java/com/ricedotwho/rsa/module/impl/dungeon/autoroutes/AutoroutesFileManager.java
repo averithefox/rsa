@@ -123,7 +123,7 @@ public class AutoroutesFileManager {
             }
 
             case "boom" -> {
-                return new BoomNode(localPos, awaits);
+                return new BoomNode(localPos, jsonObject.get("yaw").getAsFloat(), jsonObject.get("pitch").getAsFloat(), awaits);
             }
         }
         throw new IllegalStateException("Invalid node type!");

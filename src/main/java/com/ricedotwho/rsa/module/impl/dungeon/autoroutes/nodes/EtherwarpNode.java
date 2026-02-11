@@ -55,11 +55,7 @@ public class EtherwarpNode extends Node {
 
         if (!SwapManager.reserveSwap(Items.DIAMOND_SHOVEL)) return cancel();
 
-        // Should be put in the other loop if 0 ticking works properly
-        AutoRoutes autoRoutes = RSM.getModule(AutoRoutes.class);
-        autoRoutes.setForceSneak(true);
-
-        if (!player.getLastSentInput().shift()) {
+        if (!Minecraft.getInstance().player.getLastSentInput().shift()) {
             return cancel();
         }
 
@@ -80,27 +76,17 @@ public class EtherwarpNode extends Node {
         });
 
         // By this point we assume the etherwarp will work
-
         targetDirection.normalize();
         BlockPos etherPos = this.realTargetPos.add(targetDirection.multiply(EPSILON)).asBlockPos();
 
-//        ChatUtils.chat("Found etherBlock : " + etherPos);
         playerPos.x = etherPos.getX() + 0.5d;
         playerPos.y = etherPos.getY() + 1d;
         playerPos.z = etherPos.getZ() + 0.5d;
-//        ChatUtils.chat("New Player Pos : " + playerPos);
         return true;
-    }
-
-    private boolean cancel() {
-        this.reset();
-        return false;
     }
 
     @Override
     public void render() {
-//        AABB aabb = new AABB(this.getRealPos().subtract(0.5d, 0d, 0.5d).asVec3(), this.getRealPos().add(0.5d, 0.25d, 0.5d).asVec3());
-//        Renderer3D.addTask(new OutlineBox(aabb, Colour.GREEN, false));
         Renderer3D.addTask(new Circle(this.getRealPos(), true, this.getRadius(), Colour.CYAN, 30));
         Renderer3D.addTask(new Line(this.getRealPos().asVec3(), this.realTargetPos.asVec3(), Colour.CYAN, Colour.CYAN, true));
     }

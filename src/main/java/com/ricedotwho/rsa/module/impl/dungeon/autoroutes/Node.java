@@ -7,6 +7,7 @@ import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.data.Pos;
 import lombok.Getter;
+import lombok.Setter;
 
 public abstract class Node {
     @Expose
@@ -17,6 +18,7 @@ public abstract class Node {
     @Getter
     private final AwaitManager awaitManager;
 
+    @Setter
     private boolean triggered;
     private int lastTickTime;
 
@@ -55,6 +57,11 @@ public abstract class Node {
 
     public abstract boolean run(Pos playerPos);
     public abstract void render();
+
+    protected boolean cancel() {
+        this.reset();
+        return false;
+    }
 
     public float getRadius() {
         return r;
