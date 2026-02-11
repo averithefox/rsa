@@ -28,7 +28,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 
 public class EtherwarpNode extends Node {
-    private static final double EPSILON = 0.001f;
     @Expose
     private final Pos localTargetPos;
     private Pos realTargetPos;
@@ -45,7 +44,6 @@ public class EtherwarpNode extends Node {
         this.realTargetPos = RoomUtils.getRealPosition(this.localTargetPos, room.getMainRoom());
     }
 
-    // Hypixel doesn't use sneak height to find etherwarp position if you started sneaking on the same tick that you sent C08
     @Override
     public boolean run(Pos playerPos) {
         LocalPlayer player = Minecraft.getInstance().player;
@@ -59,7 +57,9 @@ public class EtherwarpNode extends Node {
             return cancel();
         }
 
+        // Hypixel uses old sneak height to find etherwarp position (2 packets ago)
         Pos playerCopy = playerPos.add(0.0d, EtherUtils.SNEAK_EYE_HEIGHT, 0.0d);
+        //ChatUtils.chat(playerCopy);
         Pos targetDirection = this.realTargetPos.subtract(playerCopy);
         Pos targetDeltaCopy = targetDirection.copy();
 
@@ -72,23 +72,38 @@ public class EtherwarpNode extends Node {
             }
 
             float[] angles = EtherUtils.getYawAndPitch(targetDeltaCopy.x, targetDeltaCopy.y, targetDeltaCopy.z);
-            SwapManager.sendAirC08(angles[0], angles[1], swap, false);
+            if (!SwapManager.sendAirC08(angles[0], angles[1], swap, false)) {
+                ChatUtils.chat("Failed to send ether C08!");
+                return;
+            }
+            //ChatUtils.chat("Sent ether C08! + " + angles[0] + ", " + angles[1]);
+            //ChatUtils.chat(angles[0] + ", " + angles[1]);
         });
 
         // By this point we assume the etherwarp will work
         targetDirection.normalize();
-        BlockPos etherPos = this.realTargetPos.add(targetDirection.multiply(EPSILON)).asBlockPos();
+        BlockPos etherPos = this.realTargetPos.add(targetDirection.multiply(EtherUtils.EPSILON)).asBlockPos();
 
         playerPos.x = etherPos.getX() + 0.5d;
-        playerPos.y = etherPos.getY() + 1d;
+        playerPos.y = etherPos.getY() + 1.05d; // Fuck you hypixel for the 0.05d
         playerPos.z = etherPos.getZ() + 0.5d;
         return true;
     }
 
+    private void trySendFNC08() {
+        // Hypixel voids C08s sometimes, so we need to send a sacrificial c08 to void
+        AutoRoutes autoRoutes = RSM.getModule(AutoRoutes.class);
+        if (autoRoutes.lastBlockC08 < 1) return;
+        SwapManager.sendAirC08(0.0f, 0.0f, false);
+        autoRoutes.lastBlockC08 = 0;
+        ChatUtils.chat("Sent FN c08!");
+    }
+
     @Override
     public void render() {
-        Renderer3D.addTask(new Circle(this.getRealPos(), true, this.getRadius(), Colour.CYAN, 30));
-        Renderer3D.addTask(new Line(this.getRealPos().asVec3(), this.realTargetPos.asVec3(), Colour.CYAN, Colour.CYAN, true));
+        Vec3 playerRealPos = this.getRealPos().asVec3();
+        Renderer3D.addTask(new Circle(playerRealPos, true, this.getRadius(), Colour.CYAN, 30));
+        Renderer3D.addTask(new Line(playerRealPos, this.realTargetPos.asVec3(), Colour.CYAN, Colour.CYAN, true));
     }
 
     @Override

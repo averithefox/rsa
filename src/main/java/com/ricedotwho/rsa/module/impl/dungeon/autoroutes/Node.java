@@ -18,8 +18,10 @@ public abstract class Node {
     @Getter
     private final AwaitManager awaitManager;
 
+    @Getter
     @Setter
     private boolean triggered;
+    @Getter
     private int lastTickTime;
 
     @Getter
@@ -75,12 +77,24 @@ public abstract class Node {
         return playerPos.squaredDistanceTo(this.realPos) <= r * r;
     }
 
+    public void updateLastTickTime(int lastTickTime) {
+        this.lastTickTime = lastTickTime;
+    }
+
+    public boolean hasRanThisTick(int tickTime) {
+        return (tickTime <= lastTickTime);
+    }
+
+    public void preTrigger(int tickTime) {
+        this.lastTickTime = tickTime;
+        this.triggered = true;
+    }
+
     public boolean updateNodeState(Pos playerPos, int tickTime) {
         if (tickTime <= lastTickTime) return false; // Don't go do the same node twice in 1 tick, also blocks from setting it to untriggered
         boolean bl = isInNode(playerPos);
         if (bl && !this.triggered) {
-            this.triggered = true;
-            this.lastTickTime = tickTime;
+            // Trigger will be set later
             return true;
         }
 

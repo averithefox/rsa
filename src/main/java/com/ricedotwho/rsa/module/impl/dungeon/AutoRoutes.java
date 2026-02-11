@@ -5,7 +5,6 @@ import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BatNode;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BoomNode;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.Map;
@@ -27,12 +26,14 @@ import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
 import com.ricedotwho.rsm.utils.Accessor;
+import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
 import net.minecraft.network.protocol.game.ClientboundTakeItemEntityPacket;
+import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -60,6 +61,8 @@ public class AutoRoutes extends Module implements Accessor {
     private Node inNode;
     private boolean isRouting = false;
     private boolean receivedS08;
+    private byte crouchDataShiftRegister = 0;
+    public int lastBlockC08 = 0;
 
     // Player inputs are sent after C08s and keybinding events, in level.tickEntities
 
@@ -95,6 +98,8 @@ public class AutoRoutes extends Module implements Accessor {
         this.inNode = null;
         this.receivedS08 = false;
         this.activeNodes.clear();
+        this.crouchDataShiftRegister = 0;
+        this.lastBlockC08 = 0;
     }
 
     @SubscribeEvent
@@ -116,6 +121,7 @@ public class AutoRoutes extends Module implements Accessor {
 
     @SubscribeEvent
     public void onClientTickStart(ClientTickEvent.Start event) {
+        lastBlockC08--;
         this.isRouting = false;
         if (!Location.getArea().is(Island.Dungeon)) return;
         tickTime++;
@@ -132,6 +138,8 @@ public class AutoRoutes extends Module implements Accessor {
         Pos playerPos = new Pos(Minecraft.getInstance().player.position());
 
 
+        nodes.forEach(n -> n.updateNodeState(playerPos, tickTime));
+
         while (true) {
             if (!handleQueue(playerPos, nodes)) break;
         }
@@ -139,6 +147,10 @@ public class AutoRoutes extends Module implements Accessor {
 
     public boolean isRouting() {
         return this.isRouting;
+    }
+
+    public boolean willBeCrouchingForEtherwarpEvaluation() {
+        return ((this.crouchDataShiftRegister >> 1) & 1) == 1;
     }
 
     @SubscribeEvent
@@ -231,12 +243,21 @@ public class AutoRoutes extends Module implements Accessor {
 
     @SubscribeEvent
     public void onSendPacket(PacketEvent.Send event) {
-        if (!Location.getArea().is(Island.Dungeon) || Map.getCurrentRoom() == null || Minecraft.getInstance().level == null || this.inNode == null) return;
+        if (!Location.getArea().is(Island.Dungeon)  || Minecraft.getInstance().level == null) return;
+        if (event.getPacket() instanceof ServerboundPlayerInputPacket(Input input)) {
+            this.crouchDataShiftRegister <<= 1;
+            this.crouchDataShiftRegister |= (byte) (input.shift() ? 1 : 0);
+            return;
+        }
+
+
+        if (this.inNode == null || Map.getCurrentRoom() == null) return;
         if (!this.inNode.hasAwaits() || !this.inNode.getAwaitManager().hasAwait(AwaitSecrets.class)) return;
         if (!(event.getPacket() instanceof ServerboundUseItemOnPacket useItemOnPacket)) return;
         Block block = Minecraft.getInstance().level.getBlockState(useItemOnPacket.getHitResult().getBlockPos()).getBlock();
         if (block != Blocks.CHEST && block != Blocks.TRAPPED_CHEST && block != Blocks.PLAYER_HEAD && block != Blocks.LEVER) return;
         this.inNode.getAwaitManager().consume(AwaitSecrets.class, 1);
+        this.lastBlockC08 = 2; // Hypixel voids C08s sometimes after secret auraing
     }
 
     @SubscribeEvent
@@ -256,8 +277,10 @@ public class AutoRoutes extends Module implements Accessor {
         }
 
         if (teleportOnly.getValue() && event.getPacket() instanceof ClientboundPlayerPositionPacket S08) {
+            //ChatUtils.chat("S08 : " + S08.change().position());
             this.receivedS08 = true; // Maybe should check if the S08 is in a node in the first place but it shouldn't really matter
         }
+
 
     }
 
@@ -270,7 +293,7 @@ public class AutoRoutes extends Module implements Accessor {
 
 
     public boolean handleQueue(Pos playerPos, List<Node> nodes) {
-        List<Node> activeNodes = nodes.stream().filter(n -> n.updateNodeState(playerPos, tickTime)).sorted(Comparator.comparingInt(n -> ((Node) n).getPriority()).reversed()).toList();
+        List<Node> activeNodes = nodes.stream().filter(n -> !n.isTriggered() && !n.hasRanThisTick(tickTime) && n.isInNode(playerPos)).sorted(Comparator.comparingInt(n -> ((Node) n).getPriority()).reversed()).toList();
         if (activeNodes.isEmpty()) {
             this.inNode = null;
             return false;
@@ -281,10 +304,9 @@ public class AutoRoutes extends Module implements Accessor {
         Node node = activeNodes.getFirst();
         trySetInNode(node);
 
-        if (node.shouldAwait()) {
-            node.reset();
-            return false;
-        }
+        if (node.shouldAwait() || lastBlockC08 > 0) return false;
+
+        node.preTrigger(tickTime);
         return node.run(playerPos);
     }
 

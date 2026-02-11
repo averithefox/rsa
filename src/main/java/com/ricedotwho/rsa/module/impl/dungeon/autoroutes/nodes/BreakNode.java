@@ -61,7 +61,7 @@ public class BreakNode extends Node implements Accessor {
         return false;
     }
 
-    private boolean cancel() {
+    public boolean cancel() {
         this.reset();
         return false;
     }
@@ -81,7 +81,7 @@ public class BreakNode extends Node implements Accessor {
 
     @Override
     public int getPriority() {
-        return 20;
+        return 18;
     }
 
     @Override

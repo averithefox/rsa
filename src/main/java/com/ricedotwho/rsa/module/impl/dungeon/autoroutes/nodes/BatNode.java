@@ -1,5 +1,7 @@
 package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes;
 
+import com.google.gson.JsonObject;
+import com.google.gson.annotations.Expose;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitManager;
@@ -25,8 +27,15 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public class BatNode extends Node {
-    public BatNode(Pos localPos, AwaitManager awaits) {
+    @Expose
+    private final float yaw;
+    @Expose
+    private final float pitch;
+
+    public BatNode(Pos localPos, float yaw, float pitch, AwaitManager awaits) {
         super(localPos, awaits);
+        this.yaw = yaw;
+        this.pitch = pitch;
     }
 
     @Override
@@ -40,7 +49,7 @@ public class BatNode extends Node {
 
         boolean swap = SwapManager.isDesynced();
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
-            SwapManager.sendAirC08(player.getYRot(), 90.0f, swap, false);
+            SwapManager.sendAirC08(yaw, pitch, swap, false);
         });
 
         return false;
@@ -57,6 +66,14 @@ public class BatNode extends Node {
         String sbId = ItemUtils.getID(itemStack);
         if (sbId.isEmpty()) return false;
         return Utils.equalsOneOf(sbId, "NECRON_BLADE", "SCYLLA", "HYPERION", "VALKYRIE", "ASTRAEA") && ItemUtils.getCustomData(itemStack).getListOrEmpty("ability_scroll").size() == 3;
+    }
+
+    @Override
+    public JsonObject serialize() {
+        JsonObject json = super.serialize();
+        json.addProperty("yaw", yaw);
+        json.addProperty("pitch", pitch);
+        return json;
     }
 
     @Override
@@ -77,6 +94,6 @@ public class BatNode extends Node {
     public static BatNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits) {
         Room mainRoom = fullRoom.getMainRoom();
         Pos playerRelative = RoomUtils.getRelativePosition(new Pos(player.position()), mainRoom);
-        return new BatNode(playerRelative, awaits);
+        return new BatNode(playerRelative, 0.0f, 90.0f, awaits);
     }
 }

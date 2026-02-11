@@ -119,11 +119,11 @@ public class AutoroutesFileManager {
             }
 
             case "bat" -> {
-                return new BatNode(localPos, awaits);
+                return new BatNode(localPos, jsonObject.get("yaw").getAsFloat(), jsonObject.get("pitch").getAsFloat(), awaits);
             }
 
             case "boom" -> {
-                return new BoomNode(localPos, jsonObject.get("yaw").getAsFloat(), jsonObject.get("pitch").getAsFloat(), awaits);
+                return new BoomNode(localPos, deserializePosition(jsonObject.getAsJsonObject("target")), awaits);
             }
         }
         throw new IllegalStateException("Invalid node type!");

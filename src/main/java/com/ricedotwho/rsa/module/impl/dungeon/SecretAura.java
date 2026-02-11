@@ -17,6 +17,7 @@ import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.*;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.EtherUtils;
 import com.ricedotwho.rsm.utils.MathUtils;
 import com.ricedotwho.rsm.utils.RotationUtils;
 import it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap;
@@ -121,7 +122,7 @@ public class SecretAura extends Module {
         if (!forceSkyblock.getValue() && Dungeon.isInBoss() && !inBoss.getValue()) return;
         ClientLevel level = Minecraft.getInstance().level;
 
-        Vec3 eyePos = Minecraft.getInstance().player.getEyePosition();
+        Vec3 eyePos = Minecraft.getInstance().player.position().add(0.0d, EtherUtils.SNEAK_EYE_HEIGHT, 0.0d);
         Vec3 flooredEyePos = eyePos.subtract(0.5d, 0.5d, 0.5d);
 
         double bestDistance = Double.MAX_VALUE;
@@ -157,7 +158,7 @@ public class SecretAura extends Module {
         if (bestCandidate == null || clickBlockCooldown > 0) return;
 
         BlockState blockState = level.getBlockState(bestCandidate);
-        if (blockState.getBlock() == Blocks.PLAYER_HEAD && !SwapManager.swapSlot(swapSlot.getValue().intValue())) return;
+        if ((blockState.getBlock() == Blocks.PLAYER_HEAD || Minecraft.getInstance().player.getInventory().getSelectedSlot() == 8) && !SwapManager.swapSlot(swapSlot.getValue().intValue())) return;
 
         clickedBlocks.put(getBlockPosHash(bestCandidate), System.currentTimeMillis() + 500L); // 500ms re-click delay
 
@@ -169,6 +170,7 @@ public class SecretAura extends Module {
 
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
             SwapManager.sendBlockC08(result.getLocation(), result.getDirection(), false, true);
+            //ChatUtils.chat("Sent aura C08!");
         });
     }
 
