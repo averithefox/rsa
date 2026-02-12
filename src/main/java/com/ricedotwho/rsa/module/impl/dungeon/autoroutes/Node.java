@@ -49,7 +49,7 @@ public abstract class Node {
     }
 
     public boolean shouldAwait() {
-        return this.awaitManager != null && this.awaitManager.shouldAwait();
+        return this.awaitManager != null && this.awaitManager.shouldAwait(this);
     }
 
     public void calculate(UniqueRoom room) {

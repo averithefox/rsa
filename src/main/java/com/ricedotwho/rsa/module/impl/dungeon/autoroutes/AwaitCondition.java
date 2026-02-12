@@ -8,7 +8,7 @@ public abstract class AwaitCondition<T> {
 
     }
 
-    public abstract boolean test();
+    public abstract boolean test(Node node);
     protected abstract void consume(T event);
 
     public abstract void onEnter();

@@ -19,6 +19,7 @@ import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
 import com.ricedotwho.rsm.utils.render.render3d.type.Circle;
 import com.ricedotwho.rsm.utils.render.render3d.type.Line;
+import lombok.Getter;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -30,6 +31,7 @@ import net.minecraft.world.phys.Vec3;
 public class EtherwarpNode extends Node {
     @Expose
     private final Pos localTargetPos;
+    @Getter
     private Pos realTargetPos;
 
     public EtherwarpNode(Pos localPos, Pos localTargetPos, AwaitManager awaits) {

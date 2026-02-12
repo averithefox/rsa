@@ -49,8 +49,8 @@ public class AwaitManager {
         this.getAwaits().forEach(AwaitCondition::reset);
     }
 
-    public boolean shouldAwait() {
-        return this.hasAwaits() && this.awaits.values().stream().anyMatch(await -> !await.test());
+    public boolean shouldAwait(Node node) {
+        return this.hasAwaits() && this.awaits.values().stream().anyMatch(await -> !await.test(node));
     }
 
     public Collection<AwaitCondition<?>> getAwaits() {

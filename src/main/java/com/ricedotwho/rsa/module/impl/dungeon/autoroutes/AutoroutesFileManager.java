@@ -2,8 +2,8 @@ package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
 
 import com.google.gson.*;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitBat;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitEWRaytrace;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.AotvNode;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BatNode;
@@ -11,12 +11,10 @@ import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BoomNode;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.EtherwarpNode;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.FileUtils;
-import org.spongepowered.asm.mixin.transformer.throwables.ReEntrantTransformerError;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -146,11 +144,15 @@ public class AutoroutesFileManager {
             switch (name) {
                 case "awaitClick" -> {
                     conditions.add(new AwaitClick());
-                    continue;
+                    break;
                 }
                 case "awaitSecrets" -> {
                     conditions.add(new AwaitSecrets(map.getValue().getAsInt()));
-                    continue;
+                    break;
+                }
+                case "awaitEWRaytrace" -> {
+                    conditions.add(new AwaitEWRaytrace());
+                    break;
                 }
             }
         }

@@ -2,6 +2,7 @@ package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits;
 
 import com.google.gson.JsonObject;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitCondition;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
 
 public class AwaitClick extends AwaitCondition<Boolean> {
     private boolean clicked;
@@ -10,7 +11,7 @@ public class AwaitClick extends AwaitCondition<Boolean> {
         this.clicked = false;
     }
 
-    public boolean test() {
+    public boolean test(Node node) {
         return this.clicked;
     }
 

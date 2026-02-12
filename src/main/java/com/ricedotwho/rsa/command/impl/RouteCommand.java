@@ -40,11 +40,14 @@ public class RouteCommand extends Command {
         return literal(name())
                 .then(literal("add")
                         .then(argument("node", NodeArgumentType.nodeArgument())
-                                .executes((ctx) -> addNode(ctx, 0, false))
+                                .executes((ctx) -> addNode(ctx, 0, false, false))
                                 .then(argument("await secrets", IntegerArgumentType.integer(0))
-                                        .executes((ctx) -> addNode(ctx, IntegerArgumentType.getInteger(ctx, "await secrets"), false))
+                                        .executes((ctx) -> addNode(ctx, IntegerArgumentType.getInteger(ctx, "await secrets"), false, false))
                                         .then(argument("await click", BoolArgumentType.bool())
-                                                .executes((ctx) -> addNode(ctx, IntegerArgumentType.getInteger(ctx, "await secrets"), BoolArgumentType.getBool(ctx, "await click")))
+                                                .executes((ctx) -> addNode(ctx, IntegerArgumentType.getInteger(ctx, "await secrets"), BoolArgumentType.getBool(ctx, "await click"), false))
+                                                .then(argument("await ew raytrace", BoolArgumentType.bool())
+                                                        .executes((ctx) -> addNode(ctx, IntegerArgumentType.getInteger(ctx, "await secrets"), BoolArgumentType.getBool(ctx, "await click"), BoolArgumentType.getBool(ctx, "await ew raytrace")))
+                                                )
                                         )
                                 )
                         )
@@ -101,7 +104,7 @@ public class RouteCommand extends Command {
         return 1;
     }
 
-    private static int addNode(CommandContext<ClientSuggestionProvider> ctx, int secrets, boolean click) {
+    private static int addNode(CommandContext<ClientSuggestionProvider> ctx, int secrets, boolean click, boolean raytrace) {
         Room room = Map.getCurrentRoom();
         if (!Location.getArea().is(Island.Dungeon) || room == null) {
             ChatUtils.chat("Failed to add node, please enter a dungeon!");
