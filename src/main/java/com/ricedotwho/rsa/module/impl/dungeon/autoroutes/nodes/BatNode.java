@@ -7,6 +7,7 @@ import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
+import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
@@ -41,7 +42,7 @@ public class BatNode extends Node {
     @Override
     public boolean run(Pos playerPos) {
         LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null || Minecraft.getInstance().level == null) return cancel();
+        if (player == null || Minecraft.getInstance().level == null || Map.getCurrentRoom() == null || Map.getCurrentRoom().getUniqueRoom() == null) return cancel();
 
         KeyMapping.releaseAll();
         if (!SwapManager.reserveSwap(BatNode::isWitherBlade) && !SwapManager.reserveSwap(Items.ALLIUM)) return cancel();
@@ -51,6 +52,7 @@ public class BatNode extends Node {
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
             SwapManager.sendAirC08(yaw, pitch, swap, false);
         });
+
 
         return false;
     }

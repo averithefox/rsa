@@ -5,6 +5,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitBat;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.AotvNode;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BatNode;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BoomNode;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.EtherwarpNode;
@@ -124,6 +125,10 @@ public class AutoroutesFileManager {
 
             case "boom" -> {
                 return new BoomNode(localPos, deserializePosition(jsonObject.getAsJsonObject("target")), awaits);
+            }
+
+            case "aotv" -> {
+                return new AotvNode(localPos, deserializePosition(jsonObject.getAsJsonObject("rotationVec")), awaits);
             }
         }
         throw new IllegalStateException("Invalid node type!");

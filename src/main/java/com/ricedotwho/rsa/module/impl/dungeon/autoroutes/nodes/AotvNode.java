@@ -27,21 +27,21 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 
-public class EtherwarpNode extends Node {
+public class AotvNode extends Node {
     @Expose
-    private final Pos localTargetPos;
-    private Pos realTargetPos;
+    private final Pos localRotationVector;
+    private Pos realRotationVector;
 
-    public EtherwarpNode(Pos localPos, Pos localTargetPos, AwaitManager awaits) {
+    public AotvNode(Pos localPos, Pos localRotationVector, AwaitManager awaits) {
         super(localPos, awaits);
-        this.localTargetPos = localTargetPos;
-        this.realTargetPos = null;
+        this.localRotationVector = localRotationVector;
+        this.realRotationVector = null;
     }
 
     @Override
     public void calculate(UniqueRoom room) {
         super.calculate(room);
-        this.realTargetPos = RoomUtils.getRealPosition(this.localTargetPos, room.getMainRoom());
+        this.realRotationVector = RoomUtils.getRealPosition(this.localRotationVector, room.getMainRoom());
     }
 
     @Override
@@ -51,17 +51,13 @@ public class EtherwarpNode extends Node {
 
         KeyMapping.releaseAll();
 
+        AutoRoutes autoRoutes = RSM.getModule(AutoRoutes.class);
+        autoRoutes.setForceSneak(false);
         if (!SwapManager.reserveSwap(Items.DIAMOND_SHOVEL)) return cancel();
 
-        if (!Minecraft.getInstance().player.getLastSentInput().shift()) {
+        if (Minecraft.getInstance().player.getLastSentInput().shift()) {
             return cancel();
         }
-
-        // Hypixel uses old sneak height to find etherwarp position (2 packets ago)
-        Pos playerCopy = playerPos.add(0.0d, EtherUtils.SNEAK_EYE_HEIGHT, 0.0d);
-        //ChatUtils.chat(playerCopy);
-        Pos targetDirection = this.realTargetPos.subtract(playerCopy);
-        Pos targetDeltaCopy = targetDirection.copy();
 
         boolean swap = SwapManager.isDesynced();
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
@@ -71,57 +67,46 @@ public class EtherwarpNode extends Node {
                 return;
             }
 
-            float[] angles = EtherUtils.getYawAndPitch(targetDeltaCopy.x, targetDeltaCopy.y, targetDeltaCopy.z);
+            float[] angles = EtherUtils.getYawAndPitch(realRotationVector.x, realRotationVector.y, realRotationVector.z);
             if (!SwapManager.sendAirC08(angles[0], angles[1], swap, false)) {
                 ChatUtils.chat("Failed to send ether C08!");
                 return;
             }
-            //ChatUtils.chat("Sent ether C08! + " + angles[0] + ", " + angles[1]);
-            //ChatUtils.chat(angles[0] + ", " + angles[1]);
         });
 
-        // By this point we assume the etherwarp will work
-        targetDirection.normalize();
-        BlockPos etherPos = this.realTargetPos.add(targetDirection.multiply(EtherUtils.EPSILON)).asBlockPos();
-
-        playerPos.x = etherPos.getX() + 0.5d;
-        playerPos.y = etherPos.getY() + 1.05d; // Fuck you hypixel for the 0.05d
-        playerPos.z = etherPos.getZ() + 0.5d;
+        playerPos.selfAdd(0.0d, player.getEyeHeight(Pose.STANDING), 0.0d).selfAdd(realRotationVector.multiply(12));
+        autoRoutes.setForceSneak(true);
         return true;
     }
 
     @Override
     public void render() {
         Vec3 playerRealPos = this.getRealPos().asVec3();
-        Renderer3D.addTask(new Circle(playerRealPos, true, this.getRadius(), Colour.CYAN, 30));
-        Renderer3D.addTask(new Line(playerRealPos, this.realTargetPos.asVec3(), Colour.CYAN, Colour.CYAN, true));
+        Renderer3D.addTask(new Circle(playerRealPos.add(0.0d, 0.1d, 0.0d), true, this.getRadius(), Colour.GREEN, 30));
+        //Renderer3D.addTask(new Line(playerRealPos, this.realRotationVector.asVec3(), Colour.CYAN, Colour.CYAN, true));
     }
 
     @Override
     public JsonObject serialize() {
         JsonObject json = super.serialize();
-        json.add("localTarget", AutoroutesFileManager.gson.toJsonTree(localTargetPos));
+        json.add("rotationVec", AutoroutesFileManager.gson.toJsonTree(localRotationVector));
         return json;
     }
 
     @Override
     public int getPriority() {
-        return 5; // Slightly lower
+        return 8; // Slightly lower
     }
 
     @Override
     public String getName() {
-        return "etherwarp";
+        return "aotv";
     }
 
-    public static EtherwarpNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits) {
-        // Should use client side eye height so it ray traces to the correct block, this may mean some angles fail server side but atleast it will go where you are trying to
-        Vec3 target = EtherUtils.rayTraceBlock(61, player.getYRot(), player.getXRot(), player.position().add(0d, player.getEyeHeight(Pose.CROUCHING), 0d));
-        if (target == null) return null;
+    public static AotvNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits) {
         Room mainRoom = fullRoom.getMainRoom();
         Pos playerRelative = RoomUtils.getRelativePosition(new Pos(player.position()), mainRoom);
-        Pos targetRelative = RoomUtils.getRelativePosition(new Pos(target), mainRoom);
-        //ChatUtils.chat("Relative : " + playerRelative);
-        return new EtherwarpNode(playerRelative, targetRelative, awaits);
+        Pos targetRelative = RoomUtils.getRelativePosition(new Pos(player.getViewVector(1f)), mainRoom);
+        return new AotvNode(playerRelative, targetRelative, awaits);
     }
 }

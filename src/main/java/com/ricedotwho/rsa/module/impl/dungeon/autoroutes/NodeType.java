@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
 
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.AotvNode;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BatNode;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BoomNode;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.EtherwarpNode;
@@ -15,7 +16,7 @@ public enum NodeType {
     ETHERWARP("ew", EtherwarpNode::supply),
     BOOM("boom", BoomNode::supply),
     BAT("bat", BatNode::supply),
-    AOTV("aotv", null);
+    AOTV("aotv", AotvNode::supply);
 
     @Getter
     private final String name;

@@ -30,6 +30,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -46,7 +47,7 @@ import java.util.List;
 @Getter
 @ModuleInfo(aliases = "Secrets", id = "Secrets", category = Category.DUNGEONS)
 public class SecretAura extends Module {
-    private static final double CHEST_RANGE = 6.2d;
+    private static final double CHEST_RANGE = 5.745d; // 6.2 // Default block interaction for legit is 4.5
     private static final double SKULL_RANGE = 4.5d;
     private static final double CHEST_RANGE_SQ = CHEST_RANGE * CHEST_RANGE;
     private static final double SKULL_RANGE_SQ = SKULL_RANGE * SKULL_RANGE;
@@ -122,7 +123,9 @@ public class SecretAura extends Module {
         if (!forceSkyblock.getValue() && Dungeon.isInBoss() && !inBoss.getValue()) return;
         ClientLevel level = Minecraft.getInstance().level;
 
-        Vec3 eyePos = Minecraft.getInstance().player.position().add(0.0d, EtherUtils.SNEAK_EYE_HEIGHT, 0.0d);
+        boolean sneaking = Minecraft.getInstance().player.getLastSentInput().shift();
+
+        Vec3 eyePos = Minecraft.getInstance().player.position().add(0.0d, sneaking ? EtherUtils.SNEAK_EYE_HEIGHT : Minecraft.getInstance().player.getEyeHeight(Pose.STANDING), 0.0d);
         Vec3 flooredEyePos = eyePos.subtract(0.5d, 0.5d, 0.5d);
 
         double bestDistance = Double.MAX_VALUE;
@@ -167,6 +170,7 @@ public class SecretAura extends Module {
         Vec3 center = new Vec3((blockAABB.minX + blockAABB.maxX) * 0.5 + bestCandidate.getX(), (blockAABB.minY + blockAABB.maxY) * 0.5 + bestCandidate.getY(), (blockAABB.minZ + blockAABB.maxZ) * 0.5 + bestCandidate.getZ());
         BlockHitResult result = RotationUtils.collisionRayTrace(bestCandidate, blockAABB, eyePos, center);
         if (result == null) return;
+        //ChatUtils.chat(Math.sqrt(bestDistance));
 
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
             SwapManager.sendBlockC08(result.getLocation(), result.getDirection(), false, true);
