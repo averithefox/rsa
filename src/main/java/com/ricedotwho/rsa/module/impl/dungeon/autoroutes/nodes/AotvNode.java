@@ -52,7 +52,7 @@ public class AotvNode extends Node {
         KeyMapping.releaseAll();
 
         AutoRoutes autoRoutes = RSM.getModule(AutoRoutes.class);
-        autoRoutes.setForceSneak(false);
+        autoRoutes.setForceSneak(true);
         if (!SwapManager.reserveSwap(Items.DIAMOND_SHOVEL)) return cancel();
 
         if (Minecraft.getInstance().player.getLastSentInput().shift()) {
@@ -80,10 +80,10 @@ public class AotvNode extends Node {
     }
 
     @Override
-    public void render() {
+    public void render(boolean depth) {
         Vec3 playerRealPos = this.getRealPos().asVec3();
-        Renderer3D.addTask(new Circle(playerRealPos.add(0.0d, 0.1d, 0.0d), true, this.getRadius(), Colour.GREEN, 30));
-        //Renderer3D.addTask(new Line(playerRealPos, this.realRotationVector.asVec3(), Colour.CYAN, Colour.CYAN, true));
+        Renderer3D.addTask(new Circle(playerRealPos.add(0.0d, 0.1d, 0.0d), depth, this.getRadius(), this.getColour(), 30));
+        //Renderer3D.addTask(new Line(playerRealPos, this.realRotationVector.asVec3(), AutoRoutes.getAotvColour().getValue(), AutoRoutes.getAotvColour().getValue(), true));
     }
 
     @Override
@@ -101,6 +101,11 @@ public class AotvNode extends Node {
     @Override
     public String getName() {
         return "aotv";
+    }
+
+    @Override
+    public Colour getColour() {
+        return this.isStart() ? AutoRoutes.getStartColour().getValue() : AutoRoutes.getAotvColour().getValue();
     }
 
     public static AotvNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits) {

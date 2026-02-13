@@ -1,9 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
 
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.AotvNode;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BatNode;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BoomNode;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.EtherwarpNode;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.*;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
@@ -16,7 +13,8 @@ public enum NodeType {
     ETHERWARP("ew", EtherwarpNode::supply),
     BOOM("boom", BoomNode::supply),
     BAT("bat", BatNode::supply),
-    AOTV("aotv", AotvNode::supply);
+    AOTV("aotv", AotvNode::supply),
+    BREAK("break", BreakNode::supply);
 
     @Getter
     private final String name;

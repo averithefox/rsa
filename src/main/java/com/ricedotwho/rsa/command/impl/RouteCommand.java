@@ -11,6 +11,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.*;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitEWRaytrace;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
@@ -60,6 +61,12 @@ public class RouteCommand extends Command {
                 )
                 .then(literal("load")
                         .executes(RouteCommand::loadNodes)
+                )
+                .then(literal("redo")
+                        .executes(RouteCommand::redoNode)
+                )
+                .then(literal("undo")
+                        .executes(RouteCommand::undoNode)
                 );
     }
 
@@ -104,6 +111,34 @@ public class RouteCommand extends Command {
         return 1;
     }
 
+    private static int undoNode(CommandContext<ClientSuggestionProvider> ctx) {
+        Room room = Map.getCurrentRoom();
+        if (room == null || room.getUniqueRoom() == null) {
+            ChatUtils.chat("Failed to find room!");
+            return 0;
+        }
+
+        if (!RSM.getModule(AutoRoutes.class).undoNode(room.getUniqueRoom())) {
+            ChatUtils.chat("No nodes found in this room!");
+            return 0;
+        }
+        return 1;
+    }
+
+    private static int redoNode(CommandContext<ClientSuggestionProvider> ctx) {
+        Room room = Map.getCurrentRoom();
+        if (room == null || room.getUniqueRoom() == null) {
+            ChatUtils.chat("Failed to find room!");
+            return 0;
+        }
+
+        if (!RSM.getModule(AutoRoutes.class).redoNode(room.getUniqueRoom())) {
+            ChatUtils.chat("No nodes found in this room!");
+            return 0;
+        }
+        return 1;
+    }
+
     private static int addNode(CommandContext<ClientSuggestionProvider> ctx, int secrets, boolean click, boolean raytrace) {
         Room room = Map.getCurrentRoom();
         if (!Location.getArea().is(Island.Dungeon) || room == null) {
@@ -120,6 +155,7 @@ public class RouteCommand extends Command {
             conditions.add(new AwaitSecrets(secrets));
         }
         if (click) conditions.add(new AwaitClick());
+        if (raytrace) conditions.add(new AwaitEWRaytrace());
 
         AwaitManager awaits = null;
         if (!conditions.isEmpty()) awaits = new AwaitManager(conditions);

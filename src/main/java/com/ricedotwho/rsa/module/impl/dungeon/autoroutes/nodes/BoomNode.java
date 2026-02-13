@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
@@ -99,9 +100,10 @@ public class BoomNode extends Node {
     }
 
     @Override
-    public void render() {
-        Renderer3D.addTask(new Circle(new Vec3(getRealPos().x, getRealPos().y + 0.2f, getRealPos().z), true, this.getRadius(), Colour.RED, 30));
-        Renderer3D.addTask(new FilledOutlineBox(this.renderAABB, Colour.RED.brighter(), Colour.RED.darker(), true));
+    public void render(boolean depth) {
+        Colour c = AutoRoutes.getBoomColour().getValue();
+        Renderer3D.addTask(new Circle(new Vec3(getRealPos().x, getRealPos().y + 0.2f, getRealPos().z), depth, this.getRadius(), this.getColour(), 30));
+        Renderer3D.addTask(new FilledOutlineBox(this.renderAABB, c.brighter(), c.darker(), true));
     }
 
     @Override
@@ -112,6 +114,11 @@ public class BoomNode extends Node {
     @Override
     public String getName() {
         return "boom";
+    }
+
+    @Override
+    public Colour getColour() {
+        return this.isStart() ? AutoRoutes.getStartColour().getValue() : AutoRoutes.getBoomColour().getValue();
     }
 
     public static BoomNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits) {

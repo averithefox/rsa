@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
+import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Pos;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,6 +18,9 @@ public abstract class Node {
     @Expose
     @Getter
     private final AwaitManager awaitManager;
+    @Expose
+    @Getter
+    private final boolean start;
 
     @Getter
     @Setter
@@ -32,13 +36,18 @@ public abstract class Node {
     }
 
     public Node(Pos localPos, AwaitManager awaitManager) {
-        this(localPos, awaitManager, 0.5f);
+        this(localPos, awaitManager, 0.5f, false);
     }
 
-    public Node(Pos localPos, AwaitManager awaitManager, float r) {
+    public Node(Pos localPos, AwaitManager awaitManager, boolean start) {
+        this(localPos, awaitManager, 0.5f, start);
+    }
+
+    public Node(Pos localPos, AwaitManager awaitManager, float r, boolean start) {
         this.localPos = localPos;
         this.r = r;
         this.awaitManager = awaitManager;
+        this.start = start;
 
         this.triggered = false;
         this.lastTickTime = -1;
@@ -58,7 +67,7 @@ public abstract class Node {
     }
 
     public abstract boolean run(Pos playerPos);
-    public abstract void render();
+    public abstract void render(boolean depth);
 
     protected boolean cancel() {
         this.reset();
@@ -106,6 +115,8 @@ public abstract class Node {
 
     public abstract String getName();
 
+    public abstract Colour getColour();
+
     public JsonObject serialize() {
         JsonObject json = new JsonObject();
         json.addProperty("type", this.getName());
@@ -119,6 +130,4 @@ public abstract class Node {
     public void reset() {
         this.triggered = false;
     }
-
-
 }

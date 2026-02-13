@@ -5,12 +5,15 @@ import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BatNode;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BreakNode;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.map.RoomData;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
+import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
+import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
@@ -24,9 +27,13 @@ import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.ColourSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.GroupSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
 import com.ricedotwho.rsm.utils.Accessor;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.EtherUtils;
+import com.ricedotwho.rsm.utils.Utils;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -40,9 +47,12 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
 
+import javax.swing.text.html.Option;
 import java.util.*;
 
 @ModuleInfo(aliases = "Autoroutes", id = "Autoroutes", category = Category.DUNGEONS)
@@ -51,14 +61,28 @@ public class AutoRoutes extends Module implements Accessor {
     @Getter
     private final HashMap<String, List<Node>> savedNodes = new HashMap<>();
     private final HashMap<RoomData, List<Node>> activeNodes = new HashMap<>();
+    private final HashMap<String, List<Node>> redoMap = new HashMap<>();
 
     private final BooleanSetting teleportOnly = new BooleanSetting("Teleport Only", true);
     private final BooleanSetting editMode = new BooleanSetting("Edit Mode", false);
     private final KeybindSetting triggerBind = new KeybindSetting("Trigger Bind", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, this::onTrigger));
+    private final KeybindSetting addBlockBind = new KeybindSetting("Add Block Bind", new Keybind(GLFW.GLFW_KEY_SEMICOLON, true, this::addBlockToInNode));
+
+    // uhh surely this won't cause issues...
+    private final GroupSetting render = new GroupSetting("Render");
+    @Getter private static final BooleanSetting startDepth = new BooleanSetting("Start Depth", false);
+    @Getter private static final BooleanSetting nodeDepth = new BooleanSetting("Node Depth", true);
+    @Getter private static final ColourSetting startColour = new ColourSetting("Start", Colour.GREEN);
+    @Getter private static final ColourSetting etherwarpColour = new ColourSetting("Etherwarp", Colour.CYAN);
+    @Getter private static final ColourSetting breakColour = new ColourSetting("Break", Colour.YELLOW);
+    @Getter private static final ColourSetting boomColour = new ColourSetting("Boom", Colour.RED);
+    @Getter private static final ColourSetting batColour = new ColourSetting("Bat", Colour.BLUE);
+    @Getter private static final ColourSetting aotvColour = new ColourSetting("Aotv", Colour.GREEN);
 
     private int tickTime = 0;
     private boolean forceNextNotSneak = false;
     private Node inNode;
+    @Getter
     private boolean isRouting = false;
     private boolean receivedS08;
     private byte crouchDataShiftRegister = 0;
@@ -88,8 +112,11 @@ public class AutoRoutes extends Module implements Accessor {
         this.registerProperty(
                 editMode,
                 teleportOnly,
-                triggerBind
+                triggerBind,
+                addBlockBind,
+                render
         );
+        render.add(startDepth, nodeDepth, startColour, etherwarpColour, breakColour, boomColour, batColour, aotvColour);
         this.inNode = null;
     }
 
@@ -116,7 +143,8 @@ public class AutoRoutes extends Module implements Accessor {
         Room currentRoom = Map.getCurrentRoom();
         List<Node> nodes = this.activeNodes.get(currentRoom.getData());
         if (nodes == null || nodes.isEmpty()) return;
-        nodes.forEach(Node::render);
+        //todo: some way to mark nodes as a route start, so they can render thru walls
+        nodes.forEach(n -> n.render(nodeDepth.getValue() || n.isStart() && startDepth.getValue()));
     }
 
     @SubscribeEvent
@@ -145,10 +173,6 @@ public class AutoRoutes extends Module implements Accessor {
         }
     }
 
-    public boolean isRouting() {
-        return this.isRouting;
-    }
-
     public boolean willBeCrouchingForEtherwarpEvaluation() {
         return ((this.crouchDataShiftRegister >> 1) & 1) == 1;
     }
@@ -157,6 +181,8 @@ public class AutoRoutes extends Module implements Accessor {
     public void onPollInputs(InputPollEvent event) {
         if (!this.isRouting() || !Location.getArea().is(Island.Dungeon) || hasGuiOpen()) return;
         Input oldInputs = event.getClientInput();
+
+        ChatUtils.chat("Poll Input: " + this.forceNextNotSneak);
 
         Input newInputs = new Input(oldInputs.forward(), oldInputs.backward(), oldInputs.left(), oldInputs.right(), oldInputs.jump(), !this.forceNextNotSneak, oldInputs.sprint());
         this.forceNextNotSneak = false;
@@ -213,6 +239,38 @@ public class AutoRoutes extends Module implements Accessor {
         if (bestIndex < 0) return false;
         nodes.remove(bestIndex);
         AutoroutesFileManager.save();
+        return true;
+    }
+
+    public boolean undoNode(UniqueRoom uniqueRoom) {
+        if (Minecraft.getInstance().player == null || !this.activeNodes.containsKey(uniqueRoom.getMainRoom().getData())) return false;
+        List<Node> nodes = activeNodes.get(uniqueRoom.getMainRoom().getData());
+        if (nodes.isEmpty()) return false;
+
+        if (!redoMap.containsKey(uniqueRoom.getName())) {
+            redoMap.put(uniqueRoom.getName(), new ArrayList<>());
+        }
+
+        Node node = nodes.removeLast();
+
+        redoMap.get(uniqueRoom.getName()).add(node);
+        AutoroutesFileManager.save();
+
+        ChatUtils.chat("Undid %s at %s", node.getName(), node.getRealPos().toChatString());
+        return true;
+    }
+
+    public boolean redoNode(UniqueRoom uniqueRoom) {
+        if (Minecraft.getInstance().player == null || !this.activeNodes.containsKey(uniqueRoom.getMainRoom().getData())) return false;
+        List<Node> nodes = activeNodes.get(uniqueRoom.getMainRoom().getData());
+        if (!redoMap.containsKey(uniqueRoom.getName())) return false;
+        List<Node> redo = redoMap.get(uniqueRoom.getName());
+        if (redo.isEmpty()) return false;
+        Node node = redo.removeLast();
+        nodes.add(node);
+        AutoroutesFileManager.save();
+
+        ChatUtils.chat("Redid %s at %s", node.getName(), node.getRealPos().toChatString());
         return true;
     }
 
@@ -277,7 +335,7 @@ public class AutoRoutes extends Module implements Accessor {
         }
 
         if (teleportOnly.getValue() && event.getPacket() instanceof ClientboundPlayerPositionPacket S08) {
-            //ChatUtils.chat("S08 : " + S08.change().position());
+//            ChatUtils.chat("S08 : " + S08.change().position());
             this.receivedS08 = true; // Maybe should check if the S08 is in a node in the first place but it shouldn't really matter
         }
 
@@ -310,5 +368,16 @@ public class AutoRoutes extends Module implements Accessor {
         return node.run(playerPos);
     }
 
+    private void addBlockToInNode() {
+        Room currentRoom = Map.getCurrentRoom();
+        Pos playerPos = new Pos(Minecraft.getInstance().player.position());
+        Optional<BreakNode> opt = this.activeNodes.get(currentRoom.getData())
+                .stream().filter(n -> n.isInNode(playerPos) && n instanceof BreakNode).map(n -> (BreakNode) n).findFirst();
+        if (opt.isEmpty()) {
+            ChatUtils.chat("Not in break node");
+            return;
+        }
+        opt.get().addOrRemoveBlock();
+    }
 
 }

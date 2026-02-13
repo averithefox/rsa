@@ -1,14 +1,12 @@
 package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
 
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitEWRaytrace;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.AotvNode;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BatNode;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BoomNode;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.EtherwarpNode;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.*;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.FileUtils;
 
@@ -127,6 +125,10 @@ public class AutoroutesFileManager {
 
             case "aotv" -> {
                 return new AotvNode(localPos, deserializePosition(jsonObject.getAsJsonObject("rotationVec")), awaits);
+            }
+
+            case "break" -> {
+                return new BreakNode(localPos, gson.fromJson(jsonObject.getAsJsonObject("blocks"), new TypeToken<ArrayList<Pos>>() {}.getType()));
             }
         }
         throw new IllegalStateException("Invalid node type!");

@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
@@ -79,8 +80,8 @@ public class BatNode extends Node {
     }
 
     @Override
-    public void render() {
-        Renderer3D.addTask(new Circle(new Vec3(getRealPos().x, getRealPos().y + 0.3f, getRealPos().z), true, this.getRadius(), Colour.BLUE, 30));
+    public void render(boolean depth) {
+        Renderer3D.addTask(new Circle(new Vec3(getRealPos().x, getRealPos().y + 0.3f, getRealPos().z), depth, this.getRadius(), this.getColour(), 30));
     }
 
     @Override
@@ -91,6 +92,11 @@ public class BatNode extends Node {
     @Override
     public String getName() {
         return "bat";
+    }
+
+    @Override
+    public Colour getColour() {
+        return this.isStart() ? AutoRoutes.getStartColour().getValue() : AutoRoutes.getBatColour().getValue();
     }
 
     public static BatNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits) {
