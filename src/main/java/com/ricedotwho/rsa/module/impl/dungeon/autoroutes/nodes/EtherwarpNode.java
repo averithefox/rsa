@@ -58,7 +58,7 @@ public class EtherwarpNode extends Node {
         }
 
         // Hypixel uses old sneak height to find etherwarp position (2 packets ago)
-        Pos playerCopy = playerPos.add(0.0d, EtherUtils.SNEAK_EYE_HEIGHT, 0.0d);
+        Pos playerCopy = playerPos.add(0.0d, RSM.getModule(AutoRoutes.class).willBeCrouchingForEtherwarpEvaluation() ? EtherUtils.SNEAK_EYE_HEIGHT : EtherUtils.STAND_EYE_HEIGHT, 0.0d);
         //ChatUtils.chat(playerCopy);
         Pos targetDirection = this.realTargetPos.subtract(playerCopy);
         Pos targetDeltaCopy = targetDirection.copy();
@@ -91,10 +91,11 @@ public class EtherwarpNode extends Node {
     }
 
     @Override
-    public void render() {
+    public void render(boolean depth) {
         Vec3 playerRealPos = this.getRealPos().asVec3();
-        Renderer3D.addTask(new Circle(playerRealPos, true, this.getRadius(), Colour.CYAN, 30));
-        Renderer3D.addTask(new Line(playerRealPos, this.realTargetPos.asVec3(), Colour.CYAN, Colour.CYAN, true));
+        Colour colour = this.getColour();
+        Renderer3D.addTask(new Circle(playerRealPos, depth, this.getRadius(), colour, 30));
+        Renderer3D.addTask(new Line(playerRealPos, this.realTargetPos.asVec3(), colour, colour, true));
     }
 
     @Override
@@ -112,6 +113,11 @@ public class EtherwarpNode extends Node {
     @Override
     public String getName() {
         return "etherwarp";
+    }
+
+    @Override
+    public Colour getColour() {
+        return this.isStart() ? AutoRoutes.getStartColour().getValue() : AutoRoutes.getEtherwarpColour().getValue();
     }
 
     public static EtherwarpNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits) {

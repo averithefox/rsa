@@ -94,9 +94,10 @@ public class NoRotate extends Module {
     }
 
     private boolean shouldNoRotate() {
-        sent.removeIf(l -> l > timeout.getValue());
+        long now = System.currentTimeMillis();
+        sent.removeIf(t -> now - t >= timeout.getValue());
         return this.alwaysNoRotate.getValue()
-                || (!sent.isEmpty() && this.teleportItem.getValue() && (System.currentTimeMillis() - sent.getFirst() < timeout.getValue())
+                || (!sent.isEmpty() && this.teleportItem.getValue()
                 || this.outbounds.getValue() && !Dungeon.isStarted() && Location.getArea().is(Island.Dungeon)
         );
     }

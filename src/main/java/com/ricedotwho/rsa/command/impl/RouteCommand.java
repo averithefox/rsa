@@ -8,10 +8,12 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.*;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BreakNode;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
@@ -19,10 +21,17 @@ import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
+import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.EtherUtils;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,6 +66,12 @@ public class RouteCommand extends Command {
                 )
                 .then(literal("load")
                         .executes(RouteCommand::loadNodes)
+                )
+                .then(literal("redo")
+                        .executes(RouteCommand::redoNode)
+                )
+                .then(literal("undo")
+                        .executes(RouteCommand::undoNode)
                 );
     }
 
@@ -98,6 +113,34 @@ public class RouteCommand extends Command {
             return 0;
         }
         ChatUtils.chat("Removed node!");
+        return 1;
+    }
+
+    private static int undoNode(CommandContext<ClientSuggestionProvider> ctx) {
+        Room room = Map.getCurrentRoom();
+        if (room == null || room.getUniqueRoom() == null) {
+            ChatUtils.chat("Failed to find room!");
+            return 0;
+        }
+
+        if (!RSM.getModule(AutoRoutes.class).undoNode(room.getUniqueRoom())) {
+            ChatUtils.chat("No nodes found in this room!");
+            return 0;
+        }
+        return 1;
+    }
+
+    private static int redoNode(CommandContext<ClientSuggestionProvider> ctx) {
+        Room room = Map.getCurrentRoom();
+        if (room == null || room.getUniqueRoom() == null) {
+            ChatUtils.chat("Failed to find room!");
+            return 0;
+        }
+
+        if (!RSM.getModule(AutoRoutes.class).redoNode(room.getUniqueRoom())) {
+            ChatUtils.chat("No nodes found in this room!");
+            return 0;
+        }
         return 1;
     }
 
