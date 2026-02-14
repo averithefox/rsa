@@ -2,15 +2,19 @@ package com.ricedotwho.rsa.module.impl.dungeon.terminals;
 
 import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import java.util.List;
 
-public class Terminal {
+
+public abstract class Terminal {
     @Getter
     private final TerminalType type;
 
@@ -49,6 +53,24 @@ public class Terminal {
         }
     }
 
+    public abstract TerminalState getNextState();
+    public abstract TerminalState getCurrentState();
+
+    protected static TerminalState getTerminalState(TerminalType type, List<HashInfo> stacks) {
+        int hash = 1;
+//        ChatUtils.chat("Items Start!");
+        for (int i = 0; i < stacks.size(); i++) {
+            HashInfo stack = stacks.get(i);
+
+            hash = 31 * hash + stack.getItem();
+            hash = 31 * hash + stack.getSize();
+            hash = 31 * hash + (stack.isEnchanted() ? 1 : 0);
+//            ChatUtils.chat(i + " : " + hash);
+        }
+
+        return new TerminalState(type, hash);
+    }
+
     public boolean shouldSolve() {
         return this.solveState != SolveState.NOT_LOADED;
     }
@@ -73,5 +95,32 @@ public class Terminal {
         TerminalType terminalType = TerminalType.getType(packet.getTitle().getString());
         if (terminalType == null) return null;
         return terminalType.supply(packet, menu);
+    }
+
+    protected static class HashInfo {
+        @Getter
+        private boolean enchanted;
+        @Getter
+        private int item;
+        @Getter
+        private int size;
+
+        protected HashInfo(ItemStack stack) {
+            this.enchanted = stack.isEnchantable() || Boolean.TRUE.equals(stack.get(DataComponents.ENCHANTMENT_GLINT_OVERRIDE));
+            this.item = stack.getItem().hashCode();
+            this.size = stack.getCount();
+        }
+
+        protected void setEnchanted(boolean bl) {
+            this.enchanted = bl;
+        }
+
+        protected void setItem(Item item) {
+            this.item = item.hashCode(); // This is a hash code of the object pointer in memory, items all share the same base objects
+        }
+
+        protected void setSize(int size) {
+            this.size = size;
+        }
     }
 }

@@ -15,7 +15,6 @@ public enum TerminalType {
     RUBIX(3, "Change all to same color!", 44, Rubix::supply),
     REDGREEN(4, "Correct all the panes!", 44, RedGreen::supply),
     MELODY(5, "Click the button on time!", 44, null);
-
     @Getter
     private final int id;
 

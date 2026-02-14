@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.terminals;
 
+import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
@@ -19,6 +20,50 @@ public class Rubix extends Terminal {
         super(TerminalType.RUBIX, packet, menu);
     }
     private static final Item[] COLOR_ORDER = {Items.BLUE_STAINED_GLASS_PANE, Items.RED_STAINED_GLASS_PANE, Items.ORANGE_STAINED_GLASS_PANE, Items.YELLOW_STAINED_GLASS_PANE, Items.GREEN_STAINED_GLASS_PANE};
+
+    @Override
+    public TerminalState getNextState() {
+        if (this.solution == null) throw new IllegalStateException("Tried to get next state without solving!");
+
+        List<HashInfo> infos = new ArrayList<>(this.getType().getSlotCount());
+        SolutionClick solutionClick = solution.getNext();
+        for (int i = 0; i < this.getType().getSlotCount(); i++) {
+            Slot slot = this.terminalContainer.getSlot(i);
+            HashInfo hashInfo = new HashInfo(slot.getItem());
+            if (slot.index == solutionClick.index()) {
+                int colorIndex = ((RubixSolutionClick) solutionClick).colorIndex();
+                if (solutionClick.button() == 0) {
+                    // Need to override these because we pick the item up
+                    // Meaning it gets set to air, so we can't actually set them from the itemStack
+                    hashInfo.setItem(COLOR_ORDER[(colorIndex + 1) % COLOR_ORDER.length]);
+                    hashInfo.setEnchanted(false);
+                    hashInfo.setSize(1);
+                } else {
+                    // Need to override these because we pick the item up
+                    // Meaning it gets set to air, so we can't actually set them from the itemStack
+                    hashInfo.setItem(COLOR_ORDER[(colorIndex - 1 + COLOR_ORDER.length) % COLOR_ORDER.length]);
+                    hashInfo.setEnchanted(false);
+                    hashInfo.setSize(1);
+                }
+//                ChatUtils.chat("Predicting in slot : " + slot.index + " : " + hashInfo.getItem());
+//                ChatUtils.chat("old color : " + COLOR_ORDER[colorIndex]);
+            }
+            infos.add(hashInfo);
+        }
+
+        return Terminal.getTerminalState(TerminalType.RUBIX, infos);
+    }
+
+    @Override
+    public TerminalState getCurrentState() {
+        List<HashInfo> infos = new ArrayList<>(this.getType().getSlotCount());
+        for (int i = 0; i < this.getType().getSlotCount(); i++) {
+            Slot slot = this.terminalContainer.getSlot(i);
+            infos.add(new HashInfo(slot.getItem()));
+        }
+
+        return Terminal.getTerminalState(TerminalType.RUBIX, infos);
+    }
 
     @Override
     public void solve() {
@@ -71,11 +116,11 @@ public class Rubix extends Terminal {
 
             if (clockwise <= counterClockwise) {
                 for (int j = 0; j < clockwise; j++) {
-                    solutionClicks.add(new SolutionClick(ClickType.PICKUP, slot, 0)); // left click
+                    solutionClicks.add(new RubixSolutionClick(ClickType.PICKUP, slot, 0, currentIndex)); // left click
                 }
             } else {
                 for (int j = 0; j < counterClockwise; j++) {
-                    solutionClicks.add(new SolutionClick(ClickType.PICKUP, slot, 1)); // right click
+                    solutionClicks.add(new RubixSolutionClick(ClickType.PICKUP, slot, 1, currentIndex)); // right click
                 }
             }
         }
@@ -88,7 +133,7 @@ public class Rubix extends Terminal {
         for (int i = 0; i < array.length; i++) {
             if (array[i] == val) return i;
         }
-        return -1;
+        throw new IndexOutOfBoundsException("Could not find color : " + ((Item) val).getName().getString());
     }
 
     private boolean isRubixPane(Item item) {
