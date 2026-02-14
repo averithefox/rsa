@@ -22,7 +22,6 @@ import com.ricedotwho.rsm.utils.Accessor;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
 import com.ricedotwho.rsm.utils.render.render3d.type.FilledBox;
-import com.ricedotwho.rsm.utils.render.render3d.type.FilledOutlineBox;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -65,8 +64,10 @@ public class BreakNode extends Node implements Accessor {
         if (running) return cancel();
 
         List<Pos> f = rotated.stream().filter(p -> {
-            BlockState state = mc.level.getBlockState(p.asBlockPos());
-            return !state.isAir() && DungeonBreaker.canInstantMine(state) && p.squaredDistanceTo(mc.player.getEyePosition()) < 26;
+            BlockPos bp = p.asBlockPos();
+            BlockState state = mc.level.getBlockState(bp);
+            VoxelShape shape = state.getShape(mc.level, bp);
+            return !shape.isEmpty() && DungeonBreaker.canInstantMine(state) && p.squaredDistanceTo(mc.player.getEyePosition()) < 26;
         }).toList();
 
         if (f.isEmpty()) return true;
@@ -102,7 +103,7 @@ public class BreakNode extends Node implements Accessor {
             BlockPos bp = pos.asBlockPos();
             BlockState state = mc.level.getBlockState(bp);
             VoxelShape shape = state.getShape(mc.level, bp);
-            if (shape.isEmpty()) continue; // air
+            if (shape.isEmpty()) continue;
             AABB aabb = shape.bounds().move(bp);
             Renderer3D.addTask(new FilledBox(aabb, colour, true));
         }
