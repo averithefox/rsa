@@ -8,6 +8,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
+import com.ricedotwho.rsa.utils.render3d.type.Ring;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
@@ -17,7 +18,6 @@ import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
-import com.ricedotwho.rsm.utils.render.render3d.type.Circle;
 import com.ricedotwho.rsm.utils.render.render3d.type.Line;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -32,8 +32,8 @@ public class EtherwarpNode extends Node {
     private final Pos localTargetPos;
     private Pos realTargetPos;
 
-    public EtherwarpNode(Pos localPos, Pos localTargetPos, AwaitManager awaits) {
-        super(localPos, awaits);
+    public EtherwarpNode(Pos localPos, Pos localTargetPos, AwaitManager awaits, boolean start) {
+        super(localPos, awaits, start);
         this.localTargetPos = localTargetPos;
         this.realTargetPos = null;
     }
@@ -94,7 +94,7 @@ public class EtherwarpNode extends Node {
     public void render(boolean depth) {
         Vec3 playerRealPos = this.getRealPos().asVec3();
         Colour colour = this.getColour();
-        Renderer3D.addTask(new Circle(playerRealPos, depth, this.getRadius(), colour, 30));
+        Renderer3D.addTask(new Ring(playerRealPos, depth, this.getRadius(), colour));
         Renderer3D.addTask(new Line(playerRealPos, this.realTargetPos.asVec3(), colour, colour, true));
     }
 
@@ -120,7 +120,7 @@ public class EtherwarpNode extends Node {
         return this.isStart() ? AutoRoutes.getStartColour().getValue() : AutoRoutes.getEtherwarpColour().getValue();
     }
 
-    public static EtherwarpNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits) {
+    public static EtherwarpNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits, boolean start) {
         // Should use client side eye height so it ray traces to the correct block, this may mean some angles fail server side but atleast it will go where you are trying to
         Vec3 target = EtherUtils.rayTraceBlock(61, player.getYRot(), player.getXRot(), player.position().add(0d, player.getEyeHeight(Pose.CROUCHING), 0d));
         if (target == null) return null;
@@ -128,6 +128,6 @@ public class EtherwarpNode extends Node {
         Pos playerRelative = RoomUtils.getRelativePosition(new Pos(player.position()), mainRoom);
         Pos targetRelative = RoomUtils.getRelativePosition(new Pos(target), mainRoom);
         //ChatUtils.chat("Relative : " + playerRelative);
-        return new EtherwarpNode(playerRelative, targetRelative, awaits);
+        return new EtherwarpNode(playerRelative, targetRelative, awaits, start);
     }
 }

@@ -1,6 +1,7 @@
 package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.annotations.Expose;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
@@ -18,21 +19,30 @@ import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
+import com.ricedotwho.rsm.utils.ItemUtils;
+import lombok.Setter;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.Pose;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 
-public class AotvNode extends Node {
+public class UseNode extends Node {
     @Expose
     private final Pos localRotationVector;
+    @Expose
+    private final String itemID;
+    @Expose
+    @Setter
+    private boolean sneak;
+
     private Pos realRotationVector;
 
-    public AotvNode(Pos localPos, Pos localRotationVector, AwaitManager awaits, boolean start) {
+    public UseNode(Pos localPos, Pos localRotationVector, String itemID, boolean sneak, AwaitManager awaits, boolean start) {
         super(localPos, awaits, start);
         this.localRotationVector = localRotationVector;
+        this.itemID = itemID;
+        this.sneak = sneak;
         this.realRotationVector = null;
     }
 
@@ -50,16 +60,16 @@ public class AotvNode extends Node {
         KeyMapping.releaseAll();
 
         AutoRoutes autoRoutes = RSM.getModule(AutoRoutes.class);
-        autoRoutes.setForceSneak(true);
-        if (!SwapManager.reserveSwap(Items.DIAMOND_SHOVEL)) return cancel();
+        autoRoutes.setForceSneak(!sneak);
+        if (!SwapManager.reserveSwap(this.itemID)) return cancel();
 
-        if (Minecraft.getInstance().player.getLastSentInput().shift()) {
+        if (Minecraft.getInstance().player.getLastSentInput().shift() != sneak) {
             return cancel();
         }
 
         boolean swap = SwapManager.isDesynced();
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
-            if ((swap && !SwapManager.checkClientItem(Items.DIAMOND_SHOVEL)) || (!swap && !SwapManager.checkServerItem(Items.DIAMOND_SHOVEL))) {
+            if ((swap && !SwapManager.checkClientItem(this.itemID)) || (!swap && !SwapManager.checkServerItem(this.itemID))) {
                 // Swap didn't work??? It got swapped back? WTF
                 ChatUtils.chat("Big fuck up! : " + swap + ", " + Minecraft.getInstance().player.getInventory().getItem(SwapManager.getServerSlot()).getItem());
                 return;
@@ -67,13 +77,13 @@ public class AotvNode extends Node {
 
             float[] angles = EtherUtils.getYawAndPitch(realRotationVector.x, realRotationVector.y, realRotationVector.z);
             if (!SwapManager.sendAirC08(angles[0], angles[1], swap, false)) {
-                ChatUtils.chat("Failed to send ether C08!");
+                ChatUtils.chat("Failed to send use C08!");
                 return;
             }
         });
 
         playerPos.selfAdd(0.0d, player.getEyeHeight(Pose.STANDING), 0.0d).selfAdd(realRotationVector.multiply(12));
-        autoRoutes.setForceSneak(true);
+        autoRoutes.setForceSneak(!sneak);
         return true;
     }
 
@@ -81,13 +91,14 @@ public class AotvNode extends Node {
     public void render(boolean depth) {
         Vec3 playerRealPos = this.getRealPos().asVec3();
         Renderer3D.addTask(new Ring(playerRealPos.add(0.0d, 0.1d, 0.0d), depth, this.getRadius(), this.getColour()));
-        //Renderer3D.addTask(new Line(playerRealPos, this.realRotationVector.asVec3(), AutoRoutes.getAotvColour().getValue(), AutoRoutes.getAotvColour().getValue(), true));
     }
 
     @Override
     public JsonObject serialize() {
         JsonObject json = super.serialize();
         json.add("rotationVec", AutoroutesFileManager.gson.toJsonTree(localRotationVector));
+        json.add("itemID", new JsonPrimitive(this.itemID));
+        json.add("sneak", new JsonPrimitive(this.sneak));
         return json;
     }
 
@@ -98,18 +109,20 @@ public class AotvNode extends Node {
 
     @Override
     public String getName() {
-        return "aotv";
+        return "use";
     }
 
     @Override
     public Colour getColour() {
-        return this.isStart() ? AutoRoutes.getStartColour().getValue() : AutoRoutes.getAotvColour().getValue();
+        return this.isStart() ? AutoRoutes.getStartColour().getValue() : AutoRoutes.getUseColour().getValue();
     }
 
-    public static AotvNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits, boolean start) {
+    public static UseNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits, boolean start) {
         Room mainRoom = fullRoom.getMainRoom();
         Pos playerRelative = RoomUtils.getRelativePosition(new Pos(player.position()), mainRoom);
         Pos targetRelative = RoomUtils.getRelativePosition(new Pos(player.getViewVector(1f)), mainRoom);
-        return new AotvNode(playerRelative, targetRelative, awaits, start);
+        String itemID = ItemUtils.getID(Minecraft.getInstance().player.getInventory().getSelectedItem());
+        if (itemID.isBlank()) return null;
+        return new UseNode(playerRelative, targetRelative, itemID, false, awaits, start);
     }
 }

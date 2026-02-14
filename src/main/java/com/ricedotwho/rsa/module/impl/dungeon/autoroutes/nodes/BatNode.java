@@ -7,6 +7,7 @@ import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
+import com.ricedotwho.rsa.utils.render3d.type.Ring;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
@@ -14,10 +15,8 @@ import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Pos;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
 import com.ricedotwho.rsm.utils.Utils;
-import com.ricedotwho.rsm.utils.render.render3d.type.Circle;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -34,8 +33,8 @@ public class BatNode extends Node {
     @Expose
     private final float pitch;
 
-    public BatNode(Pos localPos, float yaw, float pitch, AwaitManager awaits) {
-        super(localPos, awaits);
+    public BatNode(Pos localPos, float yaw, float pitch, AwaitManager awaits, boolean start) {
+        super(localPos, awaits, start);
         this.yaw = yaw;
         this.pitch = pitch;
     }
@@ -81,7 +80,7 @@ public class BatNode extends Node {
 
     @Override
     public void render(boolean depth) {
-        Renderer3D.addTask(new Circle(new Vec3(getRealPos().x, getRealPos().y + 0.3f, getRealPos().z), depth, this.getRadius(), this.getColour(), 30));
+        Renderer3D.addTask(new Ring(new Vec3(getRealPos().x, getRealPos().y + 0.3f, getRealPos().z), depth, this.getRadius(), this.getColour()));
     }
 
     @Override
@@ -99,9 +98,9 @@ public class BatNode extends Node {
         return this.isStart() ? AutoRoutes.getStartColour().getValue() : AutoRoutes.getBatColour().getValue();
     }
 
-    public static BatNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits) {
+    public static BatNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits, boolean start) {
         Room mainRoom = fullRoom.getMainRoom();
         Pos playerRelative = RoomUtils.getRelativePosition(new Pos(player.position()), mainRoom);
-        return new BatNode(playerRelative, 0.0f, 90.0f, awaits);
+        return new BatNode(playerRelative, 0.0f, 90.0f, awaits, start);
     }
 }

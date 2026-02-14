@@ -14,6 +14,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.*;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BreakNode;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.UseNode;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
@@ -49,12 +50,21 @@ public class RouteCommand extends Command {
         return literal(name())
                 .then(literal("add")
                         .then(argument("node", NodeArgumentType.nodeArgument())
-                                .executes((ctx) -> addNode(ctx, 0, false))
+                                .executes((ctx) -> addNode(ctx, 0, false, false))
                                 .then(argument("await secrets", IntegerArgumentType.integer(0))
-                                        .executes((ctx) -> addNode(ctx, IntegerArgumentType.getInteger(ctx, "await secrets"), false))
+                                        .executes((ctx) -> addNode(ctx, IntegerArgumentType.getInteger(ctx, "await secrets"), false, false))
                                         .then(argument("await click", BoolArgumentType.bool())
-                                                .executes((ctx) -> addNode(ctx, IntegerArgumentType.getInteger(ctx, "await secrets"), BoolArgumentType.getBool(ctx, "await click")))
+                                                .executes((ctx) -> addNode(ctx, IntegerArgumentType.getInteger(ctx, "await secrets"), BoolArgumentType.getBool(ctx, "await click"), false))
+                                                .then(argument("start",  BoolArgumentType.bool())
+                                                        .executes(ctx -> addNode(ctx, IntegerArgumentType.getInteger(ctx, "await secrets"), BoolArgumentType.getBool(ctx, "await click"), BoolArgumentType.getBool(ctx, "start")))
+                                                        .then(argument("extra", StringArgumentType.string())
+                                                                .executes(ctx -> addNode(ctx, IntegerArgumentType.getInteger(ctx, "await secrets"), BoolArgumentType.getBool(ctx, "await click"), BoolArgumentType.getBool(ctx, "start")))
+                                                        )
+                                                )
                                         )
+                                )
+                                .then(argument("start",  BoolArgumentType.bool())
+                                        .executes(ctx -> addNode(ctx, 0, false, BoolArgumentType.getBool(ctx, "start")))
                                 )
                         )
                 )
@@ -144,7 +154,7 @@ public class RouteCommand extends Command {
         return 1;
     }
 
-    private static int addNode(CommandContext<ClientSuggestionProvider> ctx, int secrets, boolean click) {
+    private static int addNode(CommandContext<ClientSuggestionProvider> ctx, int secrets, boolean click, boolean start) {
         Room room = Map.getCurrentRoom();
         if (!Location.getArea().is(Island.Dungeon) || room == null) {
             ChatUtils.chat("Failed to add node, please enter a dungeon!");
@@ -165,15 +175,22 @@ public class RouteCommand extends Command {
         if (!conditions.isEmpty()) awaits = new AwaitManager(conditions);
 
         NodeType type = NodeArgumentType.getNode(ctx, "node");
-        Node node = type.supply(room.getUniqueRoom(), awaits);
+        Node node = type.supply(room.getUniqueRoom(), awaits, start);
         if (node == null) {
             ChatUtils.chat("Failed to add node, invalid player information!");
             return 0;
         }
 
+        // ???
+        if (node instanceof UseNode n) {
+            if (ctx.getInput().toLowerCase().contains(" sneak")) {
+                n.setSneak(true);
+            }
+        }
+
 
         RSM.getModule(AutoRoutes.class).addNode(node, room.getUniqueRoom());
-        ChatUtils.chat("Added " + type.toString() + " node!");
+        ChatUtils.chat("Added " + type + " node!");
         return 1;
     }
 

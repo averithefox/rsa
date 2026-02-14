@@ -110,27 +110,32 @@ public class AutoroutesFileManager {
         AwaitManager awaits = deserializeAwaits(jsonObject);
         Pos localPos = deserializePosition(jsonObject.getAsJsonObject("localPos"));
         float radius = jsonObject.get("radius").getAsFloat();
+        boolean start = jsonObject.get("start").getAsBoolean();
 
         String type = jsonObject.get("type").getAsString();
         switch (type) {
             case "etherwarp" -> {
-                return new EtherwarpNode(localPos, deserializePosition(jsonObject.getAsJsonObject("localTarget")), awaits);
+                return new EtherwarpNode(localPos, deserializePosition(jsonObject.getAsJsonObject("localTarget")), awaits, start);
             }
 
             case "bat" -> {
-                return new BatNode(localPos, jsonObject.get("yaw").getAsFloat(), jsonObject.get("pitch").getAsFloat(), awaits);
+                return new BatNode(localPos, jsonObject.get("yaw").getAsFloat(), jsonObject.get("pitch").getAsFloat(), awaits, start);
             }
 
             case "boom" -> {
-                return new BoomNode(localPos, deserializePosition(jsonObject.getAsJsonObject("target")), awaits);
+                return new BoomNode(localPos, deserializePosition(jsonObject.getAsJsonObject("target")), awaits, start);
             }
 
             case "aotv" -> {
-                return new AotvNode(localPos, deserializePosition(jsonObject.getAsJsonObject("rotationVec")), awaits);
+                return new AotvNode(localPos, deserializePosition(jsonObject.getAsJsonObject("rotationVec")), awaits, start);
             }
 
             case "break" -> {
-                return new BreakNode(localPos, gson.fromJson(jsonObject.getAsJsonObject("blocks"), new TypeToken<ArrayList<Pos>>() {}.getType()));
+                return new BreakNode(localPos, gson.fromJson(jsonObject.getAsJsonObject("blocks"), new TypeToken<ArrayList<Pos>>() {}.getType()), start);
+            }
+
+            case "use" -> {
+                return new UseNode(localPos, deserializePosition(jsonObject.getAsJsonObject("rotationVec")), jsonObject.get("itemID").getAsString(), jsonObject.get("sneak").getAsBoolean(), awaits, start);
             }
         }
         throw new IllegalStateException("Invalid node type!");

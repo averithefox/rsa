@@ -77,7 +77,8 @@ public class AutoRoutes extends Module implements Accessor {
     @Getter private static final ColourSetting breakColour = new ColourSetting("Break", Colour.YELLOW);
     @Getter private static final ColourSetting boomColour = new ColourSetting("Boom", Colour.RED);
     @Getter private static final ColourSetting batColour = new ColourSetting("Bat", Colour.BLUE);
-    @Getter private static final ColourSetting aotvColour = new ColourSetting("Aotv", Colour.GREEN);
+    @Getter private static final ColourSetting aotvColour = new ColourSetting("Aotv", Colour.MAGENTA);
+    @Getter private static final ColourSetting useColour = new ColourSetting("Use", Colour.WHITE); // idk
 
     private int tickTime = 0;
     private boolean forceNextNotSneak = false;
@@ -143,8 +144,7 @@ public class AutoRoutes extends Module implements Accessor {
         Room currentRoom = Map.getCurrentRoom();
         List<Node> nodes = this.activeNodes.get(currentRoom.getData());
         if (nodes == null || nodes.isEmpty()) return;
-        //todo: some way to mark nodes as a route start, so they can render thru walls
-        nodes.forEach(n -> n.render(nodeDepth.getValue() || n.isStart() && startDepth.getValue()));
+        nodes.forEach(n -> n.render(nodeDepth.getValue() && (!n.isStart() || startDepth.getValue())));
     }
 
     @SubscribeEvent
@@ -182,7 +182,7 @@ public class AutoRoutes extends Module implements Accessor {
         if (!this.isRouting() || !Location.getArea().is(Island.Dungeon) || hasGuiOpen()) return;
         Input oldInputs = event.getClientInput();
 
-        ChatUtils.chat("Poll Input: " + this.forceNextNotSneak);
+//        ChatUtils.chat("Poll Input: " + this.forceNextNotSneak);
 
         Input newInputs = new Input(oldInputs.forward(), oldInputs.backward(), oldInputs.left(), oldInputs.right(), oldInputs.jump(), !this.forceNextNotSneak, oldInputs.sprint());
         this.forceNextNotSneak = false;
