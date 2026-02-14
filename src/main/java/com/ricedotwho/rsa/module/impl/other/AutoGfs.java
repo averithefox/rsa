@@ -60,7 +60,8 @@ public class AutoGfs extends Module {
             checkTime--;
             //ChatUtils.chat("Checking: " + checkTime);
             return;
-        }Checked = true;
+        }
+        Checked = true;
 
         int enderPearlStackSize;
         try {enderPearlStackSize = findItemStackMatching(Items.ENDER_PEARL).getCount();}

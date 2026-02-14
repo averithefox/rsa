@@ -1,21 +1,11 @@
 package com.ricedotwho.rsa.mixins;
 
-import com.ricedotwho.rsa.IMixin.IMultiPlayerGameMode;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.movement.NoRotate;
 import com.ricedotwho.rsm.RSM;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.client.multiplayer.MultiPlayerGameMode;
-import net.minecraft.client.multiplayer.prediction.PredictiveAction;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
-import net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket;
-import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
-import net.minecraft.world.entity.PositionMoveRotation;
-import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;

@@ -183,7 +183,7 @@ public class SecretAura extends Module {
         return block == Blocks.LEVER || block == Blocks.CHEST || block == Blocks.TRAPPED_CHEST || (block == Blocks.REDSTONE_BLOCK && hasRedstoneKey);
     }
 
-    private boolean isValidSkull(BlockPos blockPos, ClientLevel level) {
+    public static boolean isValidSkull(BlockPos blockPos, ClientLevel level) {
         BlockEntity entity = level.getBlockEntity(blockPos);
         if (!(entity instanceof SkullBlockEntity skullBlockEntity)) return false;
         ResolvableProfile gameProfile = skullBlockEntity.getOwnerProfile();

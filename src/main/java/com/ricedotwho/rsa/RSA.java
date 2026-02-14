@@ -6,6 +6,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.*;
 import com.ricedotwho.rsa.command.impl.RouteCommand;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
 import com.ricedotwho.rsa.module.impl.movement.NoRotate;
+import com.ricedotwho.rsa.module.impl.player.CancelInteract;
 import com.ricedotwho.rsa.module.impl.render.EffectsAndRender;
 import com.ricedotwho.rsa.module.impl.render.PresetWaypoints;
 import com.ricedotwho.rsa.utils.render3d.type.Ring;
@@ -58,7 +59,10 @@ public class RSA implements Addon {
                 CustomKeybinds.class,
                 AutoGfs.class,
                 ssidLogin.class,
-                AutoTerms.class
+                AutoTerms.class,
+                InstaMid.class,
+                SecretHitboxes.class,
+                CancelInteract.class
         );
     }
 

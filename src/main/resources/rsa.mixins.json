@@ -7,12 +7,14 @@
   },
   "mixins": [
     "MixinClientConnection",
+    "MixinClipContext",
     "MixinMinecraft",
     "MixinMultiPlayerGameMode",
     "MixinPlayer"
   ],
   "client": [
     "LocalPlayerAccessor",
-    "MixinClientPacketListener"
+    "MixinClientPacketListener",
+    "MixinLevelRenderer"
   ]
 }
