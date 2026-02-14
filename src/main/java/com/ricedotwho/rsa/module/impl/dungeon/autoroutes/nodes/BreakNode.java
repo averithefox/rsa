@@ -9,6 +9,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.DungeonBreaker;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
+import com.ricedotwho.rsa.utils.render3d.type.Ring;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
@@ -20,7 +21,6 @@ import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.Accessor;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
-import com.ricedotwho.rsm.utils.render.render3d.type.Circle;
 import com.ricedotwho.rsm.utils.render.render3d.type.FilledBox;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
@@ -31,6 +31,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -40,8 +41,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BreakNode extends Node implements Accessor {
-    public BreakNode(Pos localPos, AwaitManager awaits) {
-        super(localPos, awaits);
+    public BreakNode(Pos localPos, AwaitManager awaits, boolean start) {
+        super(localPos, awaits, start);
         this.blocks = new ArrayList<>();
     }
 
@@ -63,8 +64,10 @@ public class BreakNode extends Node implements Accessor {
         if (running) return cancel();
 
         List<Pos> f = rotated.stream().filter(p -> {
-            BlockState state = mc.level.getBlockState(p.asBlockPos());
-            return !state.isAir() && DungeonBreaker.canInstantMine(state) && p.squaredDistanceTo(mc.player.getEyePosition()) < 26;
+            BlockPos bp = p.asBlockPos();
+            BlockState state = mc.level.getBlockState(bp);
+            VoxelShape shape = state.getShape(mc.level, bp);
+            return !shape.isEmpty() && DungeonBreaker.canInstantMine(state) && p.squaredDistanceTo(mc.player.getEyePosition()) < 26;
         }).toList();
 
         if (f.isEmpty()) return true;
@@ -93,15 +96,16 @@ public class BreakNode extends Node implements Accessor {
 
     @Override
     public void render(boolean depth) {
-        Renderer3D.addTask(new Circle(this.getRealPos().asVec3(), depth, this.getRadius(), this.getColour(), 30));
-        if (this.rotated == null) return;
+        Renderer3D.addTask(new Ring(this.getRealPos().asVec3(), depth, this.getRadius(), this.getColour()));
+        if (this.rotated == null || this.rotated.isEmpty()) return;
         Colour colour = AutoRoutes.getBreakColour().getValue().alpha(90);
         for (Pos pos : rotated) {
             BlockPos bp = pos.asBlockPos();
             BlockState state = mc.level.getBlockState(bp);
             VoxelShape shape = state.getShape(mc.level, bp);
-            if (shape.isEmpty()) continue; // air
-            Renderer3D.addTask(new FilledBox(shape.bounds(), colour, true));
+            if (shape.isEmpty()) continue;
+            AABB aabb = shape.bounds().move(bp);
+            Renderer3D.addTask(new FilledBox(aabb, colour, true));
         }
     }
 
@@ -120,10 +124,10 @@ public class BreakNode extends Node implements Accessor {
         return this.isStart() ? AutoRoutes.getStartColour().getValue() : AutoRoutes.getBreakColour().getValue();
     }
 
-    public static BreakNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits) {
+    public static BreakNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits, boolean start) {
         Room mainRoom = fullRoom.getMainRoom();
         Pos playerRelative = RoomUtils.getRelativePosition(new Pos(player.position()), mainRoom);
-        return new BreakNode(playerRelative, awaits);
+        return new BreakNode(playerRelative, awaits, start);
     }
 
     public void addOrRemoveBlock() {
@@ -141,7 +145,7 @@ public class BreakNode extends Node implements Accessor {
         Pos pos = new Pos(blockHitResult.getLocation());
         pos.selfAdd(dir.x, dir.y, dir.z);
 
-        Pos relPos = RoomUtils.getRelativePosition(pos, Map.getCurrentRoom().getUniqueRoom().getMainRoom()).floor();
+        Pos relPos = RoomUtils.getRelativePosition(pos.floor(), Map.getCurrentRoom().getUniqueRoom().getMainRoom());
 
         if (blocks.contains(relPos)) {
             blocks.remove(relPos);

@@ -8,6 +8,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
+import com.ricedotwho.rsa.utils.render3d.type.Ring;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
@@ -17,7 +18,6 @@ import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
 import com.ricedotwho.rsm.utils.RotationUtils;
-import com.ricedotwho.rsm.utils.render.render3d.type.Circle;
 import com.ricedotwho.rsm.utils.render.render3d.type.FilledOutlineBox;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -37,8 +37,8 @@ public class BoomNode extends Node {
     private Pos realTargetPosition;
     private AABB renderAABB;
 
-    public BoomNode(Pos localPos, Pos target, AwaitManager awaits) {
-        super(localPos, awaits);
+    public BoomNode(Pos localPos, Pos target, AwaitManager awaits, boolean start) {
+        super(localPos, awaits, start);
         this.target = target;
         this.realTargetPosition = null;
         this.renderAABB = null;
@@ -102,7 +102,7 @@ public class BoomNode extends Node {
     @Override
     public void render(boolean depth) {
         Colour c = AutoRoutes.getBoomColour().getValue();
-        Renderer3D.addTask(new Circle(new Vec3(getRealPos().x, getRealPos().y + 0.2f, getRealPos().z), depth, this.getRadius(), this.getColour(), 30));
+        Renderer3D.addTask(new Ring(new Vec3(getRealPos().x, getRealPos().y + 0.2f, getRealPos().z), depth, this.getRadius(), this.getColour()));
         Renderer3D.addTask(new FilledOutlineBox(this.renderAABB, c.brighter(), c.darker(), true));
     }
 
@@ -121,7 +121,7 @@ public class BoomNode extends Node {
         return this.isStart() ? AutoRoutes.getStartColour().getValue() : AutoRoutes.getBoomColour().getValue();
     }
 
-    public static BoomNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits) {
+    public static BoomNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits, boolean start) {
         Room mainRoom = fullRoom.getMainRoom();
         Pos playerRelative = RoomUtils.getRelativePosition(new Pos(player.position()), mainRoom);
         if (!(Minecraft.getInstance().hitResult instanceof BlockHitResult blockHitResult) || blockHitResult.getType() == HitResult.Type.MISS) {
@@ -141,7 +141,7 @@ public class BoomNode extends Node {
         Vec3 dir = blockHitResult.getLocation().subtract(eyePos).normalize().scale(EtherUtils.EPSILON);
         Pos pos = new Pos(blockHitResult.getLocation());
         pos.selfAdd(dir.x, dir.y, dir.z);
-        return new BoomNode(playerRelative, RoomUtils.getRelativePosition(pos, mainRoom), awaits);
+        return new BoomNode(playerRelative, RoomUtils.getRelativePosition(pos, mainRoom), awaits, start);
     }
 }
 
