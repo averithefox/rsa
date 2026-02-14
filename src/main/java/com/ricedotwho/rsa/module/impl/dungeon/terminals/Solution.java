@@ -17,4 +17,8 @@ public class Solution {
         return clicks.getFirst();
     }
 
+    public boolean containsIndex(int index) {
+        return this.clicks.stream().anyMatch(c -> c.index() == index);
+    }
+
 }

@@ -101,13 +101,17 @@ public class AutoTerms extends Module {
     @SubscribeEvent
     public void onRenderGui(Render2DEvent event) {
         if (isInTerm() && this.doInvwalk.getValue())
-            terminalRenderer.render(event.getGfx(), xPos.getValue().floatValue(), yPos.getValue().floatValue());
+            terminalRenderer.render(event.getGfx(), xPos.getValue().floatValue(), yPos.getValue().floatValue(), this.terminal);
     }
 
     @SubscribeEvent
     public void render(Render3DEvent.Last event) {
         // issues with race conditions
         if (!isInTerm()) return;
+
+        if (terminal.shouldSolve() && !terminal.isSolved()) {
+            terminal.solve();
+        }
 
         if (firstClick && (System.currentTimeMillis() - lastClickTime < firstClickDelay.getValue())) return;
 
@@ -118,9 +122,8 @@ public class AutoTerms extends Module {
         }
 
         // Why is there another check here?
-        if (!isInTerm() || clickedWindow || !terminal.shouldSolve()) return;
+        if (!isInTerm() || clickedWindow) return;
 
-        terminal.solve();
         if (!terminal.isSolved()) return;
 
         Solution solution = terminal.getSolution();
