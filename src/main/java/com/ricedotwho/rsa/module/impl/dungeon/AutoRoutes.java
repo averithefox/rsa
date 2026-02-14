@@ -67,6 +67,7 @@ public class AutoRoutes extends Module implements Accessor {
     private final BooleanSetting editMode = new BooleanSetting("Edit Mode", false);
     private final KeybindSetting triggerBind = new KeybindSetting("Trigger Bind", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, this::onTrigger));
     private final KeybindSetting addBlockBind = new KeybindSetting("Add Block Bind", new Keybind(GLFW.GLFW_KEY_SEMICOLON, true, this::addBlockToInNode));
+    private final BooleanSetting forceSneakingState = new BooleanSetting("Force Sneaking State", false);
 
     // uhh surely this won't cause issues...
     private final GroupSetting render = new GroupSetting("Render");
@@ -115,6 +116,7 @@ public class AutoRoutes extends Module implements Accessor {
                 teleportOnly,
                 triggerBind,
                 addBlockBind,
+                //forceSneakingState,
                 render
         );
         render.add(startDepth, nodeDepth, startColour, etherwarpColour, breakColour, boomColour, batColour, aotvColour);
@@ -174,6 +176,7 @@ public class AutoRoutes extends Module implements Accessor {
     }
 
     public boolean willBeCrouchingForEtherwarpEvaluation() {
+        if (forceSneakingState.getValue()) return true;
         return ((this.crouchDataShiftRegister >> 1) & 1) == 1;
     }
 
