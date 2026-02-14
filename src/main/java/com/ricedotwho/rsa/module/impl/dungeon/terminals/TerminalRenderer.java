@@ -19,7 +19,7 @@ public class TerminalRenderer {
 
     }
 
-    public void render(GuiGraphics guiGraphics, int x, int y) {
+    public void render(GuiGraphics guiGraphics, float x, float y) {
         if (terminalContainer == null || terminalContainer.slots.isEmpty()) return;
 
         guiGraphics.pose().pushMatrix();
