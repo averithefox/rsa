@@ -4,16 +4,20 @@ import com.google.common.collect.Lists;
 import com.google.common.primitives.Shorts;
 import com.google.common.primitives.SignedBytes;
 import com.ricedotwho.rsa.module.impl.dungeon.terminals.*;
+import com.ricedotwho.rsm.data.Colour;
+import com.ricedotwho.rsm.data.TerminalType;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
+import com.ricedotwho.rsm.event.impl.client.TerminalEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.event.impl.render.Render3DEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
-import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.*;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.Utils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
@@ -24,9 +28,12 @@ import net.minecraft.network.HashedStack;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import org.joml.Vector2d;
 
+import java.util.Arrays;
 import java.util.List;
 
 @ModuleInfo(aliases = "AutoTerms", id = "AutoTerms", category = Category.DUNGEONS)
@@ -42,11 +49,45 @@ public class AutoTerms extends Module {
     private final NumberSetting breakThreshold = new NumberSetting("Break Threshold", 200d, 800d, 500d, 10d);
 
 
+    private final GroupSetting invwalk = new GroupSetting("Invwalk");
+    private final BooleanSetting doInvwalk = new BooleanSetting("Enabled", false);
+    private final ModeSetting style = new ModeSetting("Style", "Solver", Arrays.asList("Solver", "Items"));
+    private final BooleanSetting renderTitles = new BooleanSetting("Render title thing", true);
+    private final BooleanSetting renderClicksLeft = new BooleanSetting("Render clicks left", true);
+    private final ColourSetting titleColour = new ColourSetting("Title Colour", new Colour(96,31,158));
+    private final ColourSetting remainingColour = new ColourSetting("Remaining Colour", new Colour(96,31,158));
+    private final ColourSetting clicksColour = new ColourSetting("Clicks Colour", new Colour(0, 191, 0));
+    private final BooleanSetting textShadow = new BooleanSetting("Text Shadow", false);
+
+    private final BooleanSetting doMoveDelay = new BooleanSetting("Do move delay", true);
+    private final NumberSetting melodyMoveDelay = new NumberSetting("Move delay", 0, 10, 6, 1);
+
+    private final DragSetting termTitle = new DragSetting("Term Title", new Vector2d(10, 10), new Vector2d(15, 150));
+    private final DragSetting clicksText = new DragSetting("Clicks Text", new Vector2d(10, 10), new Vector2d(15, 150));
+    private final DragSetting gui = new DragSetting("Visualiser Gui", new Vector2d(10, 10), new Vector2d(100, 66));
+
+
     public AutoTerms() {
         registerProperty(
                 firstClickDelay,
                 delay,
                 breakThreshold
+//                invwalk,
+//                termTitle,
+//                clicksText,
+//                gui
+        );
+        invwalk.add(
+                doInvwalk,
+                style,
+                renderTitles,
+                renderClicksLeft,
+                titleColour,
+                remainingColour,
+                clicksColour,
+                textShadow,
+                doMoveDelay,
+                melodyMoveDelay
         );
         this.cursorContentsState = false;
     }
@@ -195,4 +236,7 @@ public class AutoTerms extends Module {
     private boolean isInTerm() {
         return this.terminal != null;
     }
+
+
+    // invwalk
 }

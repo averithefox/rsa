@@ -1,12 +1,20 @@
 package com.ricedotwho.rsa.mixins;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsa.module.impl.player.CancelInteract;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Overlay;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.profiling.Profiler;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -62,7 +70,6 @@ public abstract class MixinMinecraft {
         if (bla) {
             PacketOrderManager.execute(PacketOrderManager.STATE.ATTACK);
             bla = false;
-            // Need bl because called in whileLoop
         }
     }
 
@@ -73,5 +80,25 @@ public abstract class MixinMinecraft {
             blu = false;
             // Need bl because called in whileLoop
         }
+    }
+
+    @Redirect(
+            method = "startUseItem",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;useItemOn(Lnet/minecraft/client/player/LocalPlayer;Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/phys/BlockHitResult;)Lnet/minecraft/world/InteractionResult;"
+            )
+    )
+    private InteractionResult skipBlockUse(
+            MultiPlayerGameMode gameMode,
+            LocalPlayer player,
+            InteractionHand hand,
+            BlockHitResult hit
+    ) {
+        if (CancelInteract.shouldCancelInteract(hit, player, player.getItemBySlot(hand.asEquipmentSlot()))) {
+            return InteractionResult.PASS;
+        }
+
+        return gameMode.useItemOn(player, hand, hit);
     }
 }
