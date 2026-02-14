@@ -4,7 +4,9 @@ import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -17,8 +19,8 @@ import java.util.regex.Pattern;
 
 public class StartsWith extends Terminal {
 
-    protected StartsWith(ClientboundOpenScreenPacket packet) {
-        super(TerminalType.STARTSWITH, packet);
+    protected StartsWith(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
+        super(TerminalType.STARTSWITH, packet, menu);
     }
 
     @Override
@@ -35,17 +37,16 @@ public class StartsWith extends Terminal {
 
         List<SolutionClick> solutionClicks  = new ArrayList<>();
 
-        for (int slot = 0; slot < items.length; slot++) {
-            ItemStack stack = items[slot];
+        for (Slot slot : this.terminalContainer.slots) {
+            ItemStack stack = slot.getItem();
 
-            if (stack == null || stack.isEmpty()) continue;
+            if (stack.isEmpty()) continue;
             if (Boolean.TRUE.equals(stack.get(DataComponents.ENCHANTMENT_GLINT_OVERRIDE)) || stack.isEnchanted()) continue; // Fuck you, isEnchanted check doesn;t work
 
             String name = ChatFormatting.stripFormatting(stack.getHoverName().getString()).toLowerCase();
 
             if (name.startsWith(matchLetter)) {
-                if (solutionClicks.isEmpty()) ChatUtils.chat(stack);
-                solutionClicks.add(new SolutionClick(ClickType.PICKUP_ALL, slot));
+                solutionClicks.add(new SolutionClick(ClickType.CLONE, slot.index, 0));
             }
         }
 
@@ -54,7 +55,7 @@ public class StartsWith extends Terminal {
     }
 
 
-    protected static StartsWith supply(ClientboundOpenScreenPacket packet) {
-        return new StartsWith(packet);
+    protected static StartsWith supply(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
+        return new StartsWith(packet, menu);
     }
 }

@@ -3,7 +3,9 @@ package com.ricedotwho.rsa.module.impl.dungeon.terminals;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -13,8 +15,8 @@ import java.util.regex.Pattern;
 
 public class Colors extends Terminal {
 
-    protected Colors(ClientboundOpenScreenPacket packet) {
-        super(TerminalType.COLORS, packet);
+    protected Colors(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
+        super(TerminalType.COLORS, packet, menu);
     }
 
     private static final Map<String, String> COLOR_REPLACEMENTS = Map.of(
@@ -43,16 +45,16 @@ public class Colors extends Terminal {
 
         List<SolutionClick> solutionClicks = new ArrayList<>();
 
-        for (int slot = 0; slot < this.items.length; slot++) {
-            ItemStack stack = this.items[slot];
+        for (Slot slot : this.terminalContainer.slots) {
+            ItemStack stack = slot.getItem();
 
-            if (stack == null || stack.isEmpty()) continue;
+            if (stack.isEmpty()) continue;
             if (Boolean.TRUE.equals(stack.get(DataComponents.ENCHANTMENT_GLINT_OVERRIDE)) || stack.isEnchanted()) continue;
 
             String fixedName = fixColorItemName(ChatFormatting.stripFormatting(stack.getHoverName().getString()).toLowerCase());
 
             if (fixedName.startsWith(color)) {
-                solutionClicks.add(new SolutionClick(ClickType.PICKUP_ALL, slot));
+                solutionClicks.add(new SolutionClick(ClickType.CLONE, slot.index, 0));
             }
         }
 
@@ -74,7 +76,7 @@ public class Colors extends Terminal {
 
 
 
-    protected static Colors supply(ClientboundOpenScreenPacket packet) {
-        return new Colors(packet);
+    protected static Colors supply(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
+        return new Colors(packet, menu);
     }
 }

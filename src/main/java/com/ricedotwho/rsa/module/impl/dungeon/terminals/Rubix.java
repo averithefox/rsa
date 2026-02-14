@@ -1,7 +1,9 @@
 package com.ricedotwho.rsa.module.impl.dungeon.terminals;
 
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -13,8 +15,8 @@ import java.util.List;
 
 public class Rubix extends Terminal {
 
-    protected Rubix(ClientboundOpenScreenPacket packet) {
-        super(TerminalType.RUBIX, packet);
+    protected Rubix(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
+        super(TerminalType.RUBIX, packet, menu);
     }
     private static final Item[] COLOR_ORDER = {Items.BLUE_STAINED_GLASS_PANE, Items.RED_STAINED_GLASS_PANE, Items.ORANGE_STAINED_GLASS_PANE, Items.YELLOW_STAINED_GLASS_PANE, Items.GREEN_STAINED_GLASS_PANE};
 
@@ -24,14 +26,14 @@ public class Rubix extends Terminal {
 
         List<Integer> rubixSlots = new ArrayList<>();
 
-        for (int i = 0; i < this.items.length; i++) {
-            ItemStack stack = this.items[i];
+        for (Slot slot : this.terminalContainer.slots) {
+            ItemStack stack = slot.getItem();
 
-            if (stack == null || stack.isEmpty()) continue;
+            if (stack.isEmpty()) continue;
             if (stack.getItem() == Items.BLACK_STAINED_GLASS_PANE) continue;
 
             if (!isRubixPane(stack.getItem())) continue;
-            rubixSlots.add(i);
+            rubixSlots.add(slot.index);
         }
 
         int minIndex = -1;
@@ -42,7 +44,7 @@ public class Rubix extends Terminal {
             int totalClicks = 0;
 
             for (Integer slot : rubixSlots) {
-                ItemStack stack = this.items[slot];
+                ItemStack stack = this.terminalContainer.getSlot(slot).getItem();
 
                 int currentIndex = indexOf(COLOR_ORDER, stack.getItem());
 
@@ -61,8 +63,7 @@ public class Rubix extends Terminal {
         List<SolutionClick> solutionClicks = new ArrayList<>();
 
         for (Integer slot : rubixSlots) {
-
-            ItemStack stack = this.items[slot];
+            ItemStack stack = this.terminalContainer.getSlot(slot).getItem();
             int currentIndex = indexOf(COLOR_ORDER, stack.getItem());
 
             int clockwise = (minIndex - currentIndex + COLOR_ORDER.length) % COLOR_ORDER.length;
@@ -70,11 +71,11 @@ public class Rubix extends Terminal {
 
             if (clockwise <= counterClockwise) {
                 for (int j = 0; j < clockwise; j++) {
-                    solutionClicks.add(new SolutionClick(ClickType.PICKUP_ALL, slot)); // left click
+                    solutionClicks.add(new SolutionClick(ClickType.PICKUP, slot, 0)); // left click
                 }
             } else {
                 for (int j = 0; j < counterClockwise; j++) {
-                    solutionClicks.add(new SolutionClick(ClickType.PICKUP, slot)); // right click
+                    solutionClicks.add(new SolutionClick(ClickType.PICKUP, slot, 1)); // right click
                 }
             }
         }
@@ -98,7 +99,7 @@ public class Rubix extends Terminal {
                 || item == Items.GREEN_STAINED_GLASS_PANE;
     }
 
-    protected static Rubix supply(ClientboundOpenScreenPacket packet) {
-        return new Rubix(packet);
+    protected static Rubix supply(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
+        return new Rubix(packet, menu);
     }
 }

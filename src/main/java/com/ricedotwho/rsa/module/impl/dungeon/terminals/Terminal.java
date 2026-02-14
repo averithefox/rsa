@@ -4,6 +4,7 @@ import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -21,23 +22,23 @@ public class Terminal {
     @Getter
     private final int windowID;
 
-    protected final ItemStack[] items;
+    protected final AbstractContainerMenu terminalContainer;
 
     @Getter
     Solution solution;
 
 
-    protected Terminal(TerminalType type, ClientboundOpenScreenPacket packet) {
+    protected Terminal(TerminalType type, ClientboundOpenScreenPacket packet, AbstractContainerMenu terminalContainer) {
         this.type = type;
         this.windowID = packet.getContainerId();
         this.title = packet.getTitle().getString();
         this.solveState = SolveState.NOT_LOADED;
-        this.items = new ItemStack[type.getSlotCount() + 1];
+        this.terminalContainer = terminalContainer;
     }
 
     public void loadSlot(ClientboundContainerSetSlotPacket packet) {
         if (packet.getContainerId() != this.getWindowID()) {
-            ChatUtils.chat("Window ID slot load mismatch!");
+            ChatUtils.chat("Window ID slot load mismatch! -> term : " + this.getWindowID() + " packet : " + packet.getContainerId());
             return;
         }
 
@@ -46,8 +47,6 @@ public class Terminal {
                 this.solveState = SolveState.LOADED;
             return;
         }
-
-        items[packet.getSlot()] = packet.getItem();
     }
 
     public boolean shouldSolve() {
@@ -63,16 +62,16 @@ public class Terminal {
     }
 
 
-    public static Terminal fromPacket(ClientboundOpenScreenPacket packet) {
+    public static Terminal fromPacket(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
         MenuType<?> menuType = packet.getType();
         if (menuType != MenuType.GENERIC_9x4 && menuType != MenuType.GENERIC_9x5 && menuType != MenuType.GENERIC_9x6) return null;
-        return findTerminalClass(packet);
+        return findTerminalClass(packet, menu);
     }
 
 
-    private static Terminal findTerminalClass(ClientboundOpenScreenPacket packet) {
+    private static Terminal findTerminalClass(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
         TerminalType terminalType = TerminalType.getType(packet.getTitle().getString());
         if (terminalType == null) return null;
-        return terminalType.supply(packet);
+        return terminalType.supply(packet, menu);
     }
 }

@@ -2,7 +2,9 @@ package com.ricedotwho.rsa.module.impl.dungeon.terminals;
 
 import lombok.Getter;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -24,9 +26,9 @@ public enum TerminalType {
     private final String title;
 
     @Getter
-    private final Function<ClientboundOpenScreenPacket, Terminal> supplier;
+    private final BiFunction<ClientboundOpenScreenPacket, AbstractContainerMenu, Terminal> supplier;
 
-    TerminalType(int id, String title, int slotCount, Function<ClientboundOpenScreenPacket, Terminal> supplier) {
+    TerminalType(int id, String title, int slotCount, BiFunction<ClientboundOpenScreenPacket, AbstractContainerMenu, Terminal> supplier) {
         this.id = id;
         this.title = title;
         this.slotCount = slotCount;
@@ -40,8 +42,8 @@ public enum TerminalType {
         return null;
     }
 
-    public Terminal supply(ClientboundOpenScreenPacket packet) {
+    public Terminal supply(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
         if (this.getSupplier() == null) return null;
-        return this.getSupplier().apply(packet);
+        return this.getSupplier().apply(packet, menu);
     }
 }
