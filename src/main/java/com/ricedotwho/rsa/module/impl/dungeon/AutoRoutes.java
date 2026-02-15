@@ -343,7 +343,7 @@ public class AutoRoutes extends Module implements Accessor {
         }
 
         if (teleportOnly.getValue() && event.getPacket() instanceof ClientboundPlayerPositionPacket S08) {
-//            ChatUtils.chat("S08 : " + S08.change().position());
+            //ChatUtils.chat("S08 : " + S08.change().position());
             this.receivedS08 = true; // Maybe should check if the S08 is in a node in the first place but it shouldn't really matter
         }
 

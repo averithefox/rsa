@@ -16,8 +16,11 @@ import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Pos;
+import com.ricedotwho.rsm.utils.Accessor;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
+import com.ricedotwho.rsm.utils.ItemUtils;
+import com.ricedotwho.rsm.utils.render.render3d.type.Line;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -25,7 +28,7 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 
-public class AotvNode extends Node {
+public class AotvNode extends Node implements Accessor {
     @Expose
     private final Pos localRotationVector;
     private Pos realRotationVector;
@@ -57,6 +60,7 @@ public class AotvNode extends Node {
             return cancel();
         }
 
+        float[] angles = EtherUtils.getYawAndPitch(realRotationVector.x, realRotationVector.y, realRotationVector.z);
         boolean swap = SwapManager.isDesynced();
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
             if ((swap && !SwapManager.checkClientItem(Items.DIAMOND_SHOVEL)) || (!swap && !SwapManager.checkServerItem(Items.DIAMOND_SHOVEL))) {
@@ -65,7 +69,6 @@ public class AotvNode extends Node {
                 return;
             }
 
-            float[] angles = EtherUtils.getYawAndPitch(realRotationVector.x, realRotationVector.y, realRotationVector.z);
             if (!SwapManager.sendAirC08(angles[0], angles[1], swap, false)) {
                 ChatUtils.chat("Failed to send ether C08!");
                 return;
@@ -73,15 +76,19 @@ public class AotvNode extends Node {
             autoRoutes.setForceSneak(false);
         });
 
-        //playerPos.selfAdd(0.0d, player.getEyeHeight(Pose.STANDING), 0.0d).selfAdd(realRotationVector.multiply(12));
-        return false;
+        int slot = SwapManager.getItemSlot(Items.DIAMOND_SHOVEL);
+        if (slot == -1) return false;
+        Pos prediction = EtherUtils.predictTeleport(8 + ItemUtils.getTunerDistance(mc.player.getInventory().getItem(slot)), playerPos, angles[0], angles[1]);
+        if (prediction == null) return false;
+        playerPos.set(prediction);
+        return true;
     }
 
     @Override
     public void render(boolean depth) {
         Vec3 playerRealPos = this.getRealPos().asVec3();
         Renderer3D.addTask(new Ring(playerRealPos.add(0.0d, 0.1d, 0.0d), depth, this.getRadius(), this.getColour()));
-        //Renderer3D.addTask(new Line(playerRealPos, this.realRotationVector.asVec3(), AutoRoutes.getAotvColour().getValue(), AutoRoutes.getAotvColour().getValue(), true));
+        //Renderer3D.addTask(new Line(playerRealPos, this.realRotationVector.normalize().multiply(12).asVec3(), AutoRoutes.getAotvColour().getValue(), AutoRoutes.getAotvColour().getValue(), true));
     }
 
     @Override

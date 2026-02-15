@@ -353,9 +353,9 @@ public class SwapManager {
         return -1;
     }
 
-    public static int getItemSlot(String id) {
+    public static int getItemSlot(String ...id) {
         LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null || id == null || id.isBlank()) return -1;
+        if (player == null || id == null || id.length == 0) return -1;
         for (int i = 0; i < 9; i++) {
             ItemStack stack = player.getInventory().getItem(i); // Hotbar is 0 - 8
             if (id.equals(ItemUtils.getID(stack))) return i;
