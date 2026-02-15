@@ -64,7 +64,8 @@ public class RSA implements Addon {
                 SecretHitboxes.class,
                 CancelInteract.class,
                 DevUtils.class,
-                CancelInteract.class
+                CancelInteract.class,
+                TermAura.class
         );
     }
 
