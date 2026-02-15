@@ -22,15 +22,17 @@ public class InteractUtils implements Accessor {
             if (!itemStack.isItemEnabled(mc.level.enabledFeatures())) {
                 return false;
             }
-
-            // Vanilla
+            
             InteractionResult interactionResult = mc.gameMode.interactAt(mc.player, entity, new EntityHitResult(entity, location), interactionHand);
             if (!interactionResult.consumesAction()) {
                 interactionResult = mc.gameMode.interact(mc.player, entity, interactionHand);
             }
 
-            if (interactionResult instanceof InteractionResult.Success success && success.swingSource() == InteractionResult.SwingSource.CLIENT) {
-                mc.player.swing(interactionHand);
+            if (interactionResult instanceof InteractionResult.Success success) {
+                if (success.swingSource() == InteractionResult.SwingSource.CLIENT) {
+                    mc.player.swing(interactionHand);
+                }
+                return true;
             }
         }
         return true;
