@@ -342,6 +342,27 @@ public class SwapManager {
         return Arrays.stream(sbId).anyMatch(id -> !id.isBlank() && heldId.equals(id));
     }
 
+    public static int getItemSlot(Item item) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null || item == null) return -1;
+        for (int i = 0; i < 9; i++) {
+            ItemStack stack = player.getInventory().getItem(i); // Hotbar is 0 - 8
+            if (stack.getItem() != item) continue;
+            return i;
+        }
+        return -1;
+    }
+
+    public static int getItemSlot(String id) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null || id == null || id.isBlank()) return -1;
+        for (int i = 0; i < 9; i++) {
+            ItemStack stack = player.getInventory().getItem(i); // Hotbar is 0 - 8
+            if (id.equals(ItemUtils.getID(stack))) return i;
+        }
+        return -1;
+    }
+
     // TODO
     // Hook these functions at a lower level
 }

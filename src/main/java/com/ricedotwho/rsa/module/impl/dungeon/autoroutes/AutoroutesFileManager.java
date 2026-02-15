@@ -11,6 +11,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.*;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.FileUtils;
+import net.minecraft.core.BlockPos;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -136,7 +137,7 @@ public class AutoroutesFileManager {
             }
 
             case "break" -> {
-                return new BreakNode(localPos, gson.fromJson(jsonObject.getAsJsonObject("blocks"), new TypeToken<ArrayList<Pos>>() {}.getType()), awaits, start);
+                return new BreakNode(localPos, gson.fromJson(jsonObject.getAsJsonArray("blocks"), new TypeToken<ArrayList<Pos>>() {}.getType()), awaits, start);
             }
 
             case "use" -> {

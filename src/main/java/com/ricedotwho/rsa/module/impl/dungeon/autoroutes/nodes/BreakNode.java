@@ -61,6 +61,8 @@ public class BreakNode extends Node implements Accessor {
     public void calculate(UniqueRoom room) {
         super.calculate(room);
         rotated = blocks.stream().map(pos -> RoomUtils.getRealPosition(pos, room.getMainRoom())).toList();
+        ChatUtils.chat("Blocks: %s", blocks);
+        ChatUtils.chat("Rotated: %s", rotated);
     }
 
     @Override
@@ -147,19 +149,21 @@ public class BreakNode extends Node implements Accessor {
 
         Vec3 eyePos = mc.player.position().add(0d, EtherUtils.SNEAK_EYE_HEIGHT, 0d);
         Vec3 dir = blockHitResult.getLocation().subtract(eyePos).normalize().scale(EtherUtils.EPSILON);
-        Pos pos = new Pos(blockHitResult.getLocation());
+        Pos pos = new Pos(blockHitResult.getLocation()).floor();
         pos.selfAdd(dir.x, dir.y, dir.z);
 
-        Pos relPos = RoomUtils.getRelativePosition(pos.floor(), Map.getCurrentRoom().getUniqueRoom().getMainRoom());
+        Pos relPos = RoomUtils.getRelativePosition(pos, Map.getCurrentRoom().getUniqueRoom().getMainRoom());
 
         if (blocks.contains(relPos)) {
             blocks.remove(relPos);
-            ChatUtils.chat(ChatFormatting.RED + "Removed " + relPos.toChatString() + " from break node");
+            ChatUtils.chat(ChatFormatting.RED + "Removed " + relPos.floor().toChatString() + " from break node");
         } else {
             this.blocks.add(relPos);
             ChatUtils.chat(ChatFormatting.GREEN + "Added " + relPos.toChatString() + " to break node!");
         }
         this.calculate(Map.getCurrentRoom().getUniqueRoom());
+
+        AutoroutesFileManager.save();
     }
 
     //todo: move to another class

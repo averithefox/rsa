@@ -40,12 +40,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@ModuleInfo(aliases = "Secrets", id = "Secrets", category = Category.DUNGEONS)
+@ModuleInfo(aliases = "Secrets", id = "Secrets", category = Category.DUNGEONS, hasKeybind = true, defaultKey = GLFW.GLFW_KEY_UNKNOWN)
 public class SecretAura extends Module {
     private static final double CHEST_RANGE = 5.745d; // 6.2 // Default block interaction for legit is 4.5
     private static final double SKULL_RANGE = 4.5d;
