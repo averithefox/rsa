@@ -1,9 +1,8 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.NodeType;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BatNode;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BreakNode;
@@ -13,7 +12,6 @@ import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.map.RoomData;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
-import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.Pos;
@@ -33,8 +31,6 @@ import com.ricedotwho.rsm.ui.clickgui.settings.impl.GroupSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
 import com.ricedotwho.rsm.utils.Accessor;
 import com.ricedotwho.rsm.utils.ChatUtils;
-import com.ricedotwho.rsm.utils.EtherUtils;
-import com.ricedotwho.rsm.utils.Utils;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -48,12 +44,9 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
 
-import javax.swing.text.html.Option;
 import java.util.*;
 
 @ModuleInfo(aliases = "Autoroutes", id = "Autoroutes", category = Category.DUNGEONS)
@@ -380,6 +373,7 @@ public class AutoRoutes extends Module implements Accessor {
 
     private void addBlockToInNode() {
         Room currentRoom = Map.getCurrentRoom();
+        if (!Location.getArea().is(Island.Dungeon) || currentRoom == null || this.activeNodes.isEmpty()) return;
         Pos playerPos = new Pos(Minecraft.getInstance().player.position());
         Optional<BreakNode> opt = this.activeNodes.get(currentRoom.getData())
                 .stream().filter(n -> n.isInNode(playerPos) && n instanceof BreakNode).map(n -> (BreakNode) n).findFirst();

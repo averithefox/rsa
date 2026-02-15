@@ -14,10 +14,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Getter
-@ModuleInfo(aliases = "ssidLogin", id = "ssidLogin", category = Category.OTHER)
-public class ssidLogin extends Module {
+@ModuleInfo(aliases = "SessionLogin", id = "SessionLogin", category = Category.OTHER)
+public class SessionLogin extends Module {
 
-    public ssidLogin() {
+    public SessionLogin() {
     }
 
     @Override
