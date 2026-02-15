@@ -22,7 +22,7 @@ public class InteractUtils implements Accessor {
             if (!itemStack.isItemEnabled(mc.level.enabledFeatures())) {
                 return false;
             }
-            
+
             InteractionResult interactionResult = mc.gameMode.interactAt(mc.player, entity, new EntityHitResult(entity, location), interactionHand);
             if (!interactionResult.consumesAction()) {
                 interactionResult = mc.gameMode.interact(mc.player, entity, interactionHand);

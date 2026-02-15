@@ -1,6 +1,7 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.blaze3d.platform.InputConstants;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.component.impl.location.Island;
@@ -46,7 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@ModuleInfo(aliases = "Secrets", id = "Secrets", category = Category.DUNGEONS, hasKeybind = true, defaultKey = GLFW.GLFW_KEY_UNKNOWN)
+@ModuleInfo(aliases = "Secrets", id = "Secrets", category = Category.DUNGEONS, hasKeybind = true)
 public class SecretAura extends Module {
     private static final double CHEST_RANGE = 5.745d; // 6.2 // Default block interaction for legit is 4.5
     private static final double SKULL_RANGE = 4.5d;
