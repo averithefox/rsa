@@ -11,6 +11,8 @@ import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.StringSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
@@ -24,7 +26,6 @@ import net.minecraft.world.item.Items;
 public class AutoGfs extends Module {
     private boolean worldLoaded = false;
     private boolean countDownstarted = false;
-    private int worldLoadTicks = 80;
     private int globalDelay = 0;
 
     private final BooleanSetting
@@ -32,11 +33,17 @@ public class AutoGfs extends Module {
             spiritLeap = new BooleanSetting("SpiritLeap", false, () -> true),
             superBoom = new BooleanSetting("SuperBoom", false, () -> true);
 
+    private final NumberSetting worldLoadTicks = new NumberSetting("World Load Delay", 20, 80, 40, 1);
+    private final NumberSetting getItemDelay = new NumberSetting("Get Item Delay", 20, 80, 40, 1);
+    private int worldLoaddelay = worldLoadTicks.getValue().intValue();
+    private int setDelay = getItemDelay.getValue().intValue();
     public AutoGfs() {
         this.registerProperty(
                 enderPearl,
                 spiritLeap,
-                superBoom
+                superBoom,
+                getItemDelay,
+                worldLoadTicks
         );
     }
 
@@ -71,21 +78,21 @@ public class AutoGfs extends Module {
         boolean sentCommand = false;
         if (!sentCommand && enderPearl.getValue()) {
             if (tryGetEnderPearls(player)) {
-                globalDelay = 40;
+                globalDelay = 20;
                 sentCommand = true;
             }
         }
 
         if (!sentCommand && spiritLeap.getValue()) {
             if (tryGetSpiritLeaps(player)) {
-                globalDelay = 40;
+                globalDelay = 20;
                 sentCommand = true;
             }
         }
 
         if (!sentCommand && superBoom.getValue()) {
             if (tryGetSuperBooms(player)) {
-                globalDelay = 40;
+                globalDelay = 20;
             }
         }
     }
@@ -165,8 +172,7 @@ public class AutoGfs extends Module {
     @SubscribeEvent
     public void worldLoad(WorldEvent.Load event){
         countDownstarted = true;
-        worldLoadTicks = 80;
-        globalDelay = 80;
+        globalDelay = worldLoadTicks.getValue().intValue();
     }
 
     @SubscribeEvent
@@ -174,8 +180,8 @@ public class AutoGfs extends Module {
         if(Location.getArea() == Island.Unknown) return;
         if (countDownstarted) {
             worldLoaded = false;
-            if (worldLoadTicks > 0) {
-                worldLoadTicks--;
+            if (worldLoaddelay > 0) {
+                worldLoaddelay--;
                 return;
             }
             countDownstarted = false;
