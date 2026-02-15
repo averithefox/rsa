@@ -2,13 +2,19 @@ package com.ricedotwho.rsa.mixins;
 
 import com.ricedotwho.rsa.IMixin.IMultiPlayerGameMode;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.multiplayer.prediction.PredictiveAction;
+import net.minecraft.network.protocol.game.ServerboundInteractPacket;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(MultiPlayerGameMode.class)
@@ -37,4 +43,10 @@ public abstract class MixinMultiPlayerGameMode implements IMultiPlayerGameMode {
     public void onSyncSlot(CallbackInfo ci) {
         if (!SwapManager.onEnsureHasSentCarriedItem(this.carriedIndex)) ci.cancel();
     }
+
+//    @Redirect(method = "interactAt", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/protocol/game/ServerboundInteractPacket;createInteractionPacket(Lnet/minecraft/world/entity/Entity;ZLnet/minecraft/world/InteractionHand;Lnet/minecraft/world/phys/Vec3;)Lnet/minecraft/network/protocol/game/ServerboundInteractPacket;"))
+//    public ServerboundInteractPacket onCreateInteractionWhatver(Entity entity, boolean bl, InteractionHand interactionHand, Vec3 vec3) {
+//        ChatUtils.chat(entity.position() + " : " + vec3);
+//        return ServerboundInteractPacket.createInteractionPacket(entity, bl, interactionHand, vec3);
+//    }
 }

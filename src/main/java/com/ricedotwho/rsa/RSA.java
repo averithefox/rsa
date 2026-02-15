@@ -62,7 +62,8 @@ public class RSA implements Addon {
                 AutoTerms.class,
                 InstaMid.class,
                 SecretHitboxes.class,
-                CancelInteract.class
+                CancelInteract.class,
+                TermAura.class
         );
     }
 

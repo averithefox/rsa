@@ -175,6 +175,7 @@ public class AutoSS extends Module {
     private void renderButton(ClientLevel level, BlockPos pos, Colour colorFill, Colour colorOutline) {
         BlockState state = level.getBlockState(pos);
         VoxelShape shape = state.getShape(level, pos);
+        if (shape.isEmpty()) return;
 
         Renderer3D.addTask(new FilledOutlineBox(shape.bounds().move(pos), colorFill, colorOutline, false));
     }

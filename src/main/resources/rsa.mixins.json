@@ -13,6 +13,7 @@
     "MixinPlayer"
   ],
   "client": [
+    "EntityRendererMixin",
     "LocalPlayerAccessor",
     "MixinClientPacketListener",
     "MixinLevelRenderer"
