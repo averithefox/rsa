@@ -107,17 +107,17 @@ public class AutoGfs extends Module {
         if (countDownstarted) {
             worldLoaded = false;
             if (worldLoadTicks > 0) {
-                if (worldLoadTicks == 80) ChatUtils.chat("World loading");
-                if (worldLoadTicks == 80) ChatUtils.chat("4");
-                if (worldLoadTicks == 60) ChatUtils.chat("3");
-                if (worldLoadTicks == 40) ChatUtils.chat("2");
-                if (worldLoadTicks == 20) ChatUtils.chat("1");
+//                if (worldLoadTicks == 80) ChatUtils.chat("World loading");
+//                if (worldLoadTicks == 80) ChatUtils.chat("4");
+//                if (worldLoadTicks == 60) ChatUtils.chat("3");
+//                if (worldLoadTicks == 40) ChatUtils.chat("2");
+//                if (worldLoadTicks == 20) ChatUtils.chat("1");
                 worldLoadTicks--;
                 //ChatUtils.chat("World loading: " + worldLoadTicks);
                 return;
             }
             countDownstarted = false;
-            ChatUtils.chat("World loaded");
+//            ChatUtils.chat("World loaded");
             worldLoaded = true;
             //ChatUtils.chat(worldLoaded);
         }
