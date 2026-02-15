@@ -67,7 +67,8 @@ public class RSA implements Addon {
                 DevUtils.class,
                 CancelInteract.class,
                 TermAura.class,
-                Esp.class
+                Esp.class,
+                AlignAura.class
         );
     }
 

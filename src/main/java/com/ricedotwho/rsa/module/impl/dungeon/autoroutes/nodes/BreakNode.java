@@ -51,6 +51,8 @@ public class BreakNode extends Node implements Accessor {
         this.blocks = blocks;
     }
 
+    private static final double MAX_REACH = 5 * 5;
+
     @Getter
     @Expose
     private final List<Pos> blocks;
@@ -72,7 +74,7 @@ public class BreakNode extends Node implements Accessor {
             BlockPos bp = p.asBlockPos();
             BlockState state = mc.level.getBlockState(bp);
             VoxelShape shape = state.getShape(mc.level, bp);
-            return !shape.isEmpty() && DungeonBreaker.canInstantMine(state) && faceDistance(p.asVec3(), mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0)) < 26;
+            return !shape.isEmpty() && DungeonBreaker.canInstantMine(state) && faceDistance(p.asVec3(), mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0)) <= MAX_REACH;
         }).toList();
 
         if (f.isEmpty()) return true;
@@ -145,8 +147,7 @@ public class BreakNode extends Node implements Accessor {
             return;
         }
 
-        // why the fuck does this fix it
-        Pos pos = new Pos(blockHitResult.getLocation()).floor().add(0.5, 0, 0.5);
+        Pos pos = new Pos(blockHitResult.getBlockPos());
 
         Pos relPos = RoomUtils.getRelativePosition(pos, Map.getCurrentRoom().getUniqueRoom().getMainRoom());
 
@@ -164,7 +165,7 @@ public class BreakNode extends Node implements Accessor {
 
     //todo: move to another class
     public static void breakBlock(Pos pos, boolean remove, boolean sync) {
-        if (faceDistance(pos.asVec3(), mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0)) > 25) return;
+        if (faceDistance(pos.asVec3(), mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0)) > MAX_REACH) return;
         Direction dir = closestFace(pos.asVec3(), mc.player.getEyePosition());
         PacketOrderManager.register(PacketOrderManager.STATE.ATTACK, () -> {
             BlockPos bp = pos.asBlockPos();

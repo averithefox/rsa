@@ -1,6 +1,7 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
+import com.ricedotwho.rsa.utils.InteractUtils;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
@@ -27,6 +28,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
@@ -81,7 +83,11 @@ public class TermAura extends Module {
 
 
         Vec3 vec3 = clamp(bestCandidate.getBoundingBox(), eyePos).subtract(bestCandidate.getX(), bestCandidate.getY(), bestCandidate.getZ());
-        Minecraft.getInstance().getConnection().send(ServerboundInteractPacket.createInteractionPacket(bestCandidate, Minecraft.getInstance().player.isShiftKeyDown(), InteractionHand.MAIN_HAND, vec3));
+//        Minecraft.getInstance().getConnection().send(ServerboundInteractPacket.createInteractionPacket(bestCandidate, Minecraft.getInstance().player.isShiftKeyDown(), InteractionHand.MAIN_HAND, vec3));
+
+        // so this should be how vailla does it, can't check if there's flags bcs of reach flagging hitboxes, and grim ignores armourstands for PacketOrderC
+        InteractUtils.interactOnEntity(bestCandidate, vec3);
+
         lastClick = System.currentTimeMillis();
     }
 
