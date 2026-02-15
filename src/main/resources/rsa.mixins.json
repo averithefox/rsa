@@ -13,6 +13,7 @@
     "MixinPlayer"
   ],
   "client": [
+    "CameraMixin",
     "EntityRendererMixin",
     "LocalPlayerAccessor",
     "MixinClientPacketListener",

@@ -6,6 +6,7 @@ import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
+import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.DungeonEvent;
@@ -14,16 +15,21 @@ import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.GroupSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
+import com.ricedotwho.rsm.utils.EtherUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
 import com.ricedotwho.rsm.utils.Utils;
 import lombok.Getter;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
@@ -41,6 +47,12 @@ public class NoRotate extends Module {
     private final BooleanSetting outbounds = new BooleanSetting("Outbounds", false);
     private final BooleanSetting alwaysNoRotate = new BooleanSetting("Always No Rotate", false);
     private final NumberSetting timeout = new NumberSetting("Timeout", 250, 2000, 1000, 25);
+
+    private final GroupSetting zpewGroup = new GroupSetting("Zpew");
+    private final BooleanSetting zpew = new BooleanSetting("Enabled", true);
+
+    private Pos renderPos;
+
 
     private final List<Long> sent = new ArrayList<>();
 
@@ -62,7 +74,12 @@ public class NoRotate extends Module {
                 teleportItem,
                 outbounds,
                 alwaysNoRotate,
-                timeout
+                timeout,
+                zpewGroup
+        );
+
+        zpewGroup.add(
+                zpew
         );
     }
 
@@ -71,17 +88,28 @@ public class NoRotate extends Module {
         if (!this.teleportItem.getValue() || (Dungeon.isInBoss() && (Location.getFloor() == Floor.F7 || Location.getFloor() == Floor.M7))) return;
         if (event.getPacket() instanceof ServerboundUseItemPacket packet) {
             ItemStack stack = mc.player.getItemBySlot(packet.getHand().asEquipmentSlot());
-            if (isHoldingTpItem(stack)) {
-                sent.add(System.currentTimeMillis());
-            }
-        } else if (event.getPacket() instanceof ServerboundUseItemOnPacket packet) {
+            if (!isTpItem(stack)) return;
+            sent.add(System.currentTimeMillis());
+            checkZpew(stack, packet.getYRot(), packet.getXRot());
+            return;
+        }
+
+        if (event.getPacket() instanceof ServerboundUseItemOnPacket packet) {
             ItemStack stack = mc.player.getItemBySlot(packet.getHand().asEquipmentSlot());
             Block block =  mc.level.getBlockState(packet.getHitResult().getBlockPos()).getBlock();
-            if (!ignored.contains(block) && isHoldingTpItem(stack)) {
+            if (!ignored.contains(block) && isTpItem(stack)) {
                 sent.add(System.currentTimeMillis());
+                checkZpew(stack, mc.player.getYRot(), mc.player.getXRot());
             }
         }
     }
+
+    private void checkZpew(ItemStack stack, float yaw, float pitch) {
+        if (Minecraft.getInstance().player == null || stack.getItem() != Items.DIAMOND_SHOVEL || !Minecraft.getInstance().player.isShiftKeyDown()) return;
+        Vec3 pos = renderPos == null ? Minecraft.getInstance().player.position() : renderPos.asVec3();
+        renderPos = new Pos(EtherUtils.getEtherPosFromOrigin(pos, yaw, pitch)).selfAdd(0.5d, 1.05d, 0.5d);
+    }
+
 
     @SubscribeEvent
     public void onEnterBoss(DungeonEvent.EnterBoss event) {
@@ -130,12 +158,19 @@ public class NoRotate extends Module {
         ci.cancel();
     }
 
+    public Vec3 getCameraPos() {
+        if (!zpew.getValue() || renderPos == null) return null;
+        return renderPos.asVec3();
+    }
+
     @Override
     public void reset() {
         sent.clear();
+        this.renderPos = null;
     }
 
-    private boolean isHoldingTpItem(ItemStack item) {
+    private boolean isTpItem(ItemStack item) {
+        if (item.getItem() == Items.DIAMOND_SHOVEL) return true;
         String sbId = ItemUtils.getID(item);
         if (Utils.equalsOneOf(sbId, "ASPECT_OF_THE_END", "ASPECT_OF_THE_VOID", "ETHERWARP_CONDUIT", "ASPECT_OF_THE_LEECH_1", "ASPECT_OF_THE_LEECH_2", "ASPECT_OF_THE_LEECH_3")) return true;
         return Utils.equalsOneOf(sbId, "NECRON_BLADE", "SCYLLA", "HYPERION", "VALKYRIE", "ASTRAEA") && ItemUtils.getCustomData(item).getListOrEmpty("ability_scroll").size() == 3;
