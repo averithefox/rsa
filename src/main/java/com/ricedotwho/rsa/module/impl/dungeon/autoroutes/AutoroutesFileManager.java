@@ -2,6 +2,7 @@ package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitEWRaytrace;
@@ -96,7 +97,12 @@ public class AutoroutesFileManager {
             List<Node> nodes = new ArrayList<>();
 
             for (JsonElement nodeEl : nodeArray) {
-                nodes.add(deserializeNode(nodeEl.getAsJsonObject()));
+                try {
+                    nodes.add(deserializeNode(nodeEl.getAsJsonObject()));
+                } catch (Throwable e) {
+                    RSA.getLogger().error("Failed to deserialize a node!");
+                    e.printStackTrace();
+                }
             }
 
             loaded.put(roomName, nodes);
@@ -129,7 +135,7 @@ public class AutoroutesFileManager {
             }
 
             case "break" -> {
-                return new BreakNode(localPos, gson.fromJson(jsonObject.getAsJsonObject("blocks"), new TypeToken<ArrayList<Pos>>() {}.getType()), start);
+                return new BreakNode(localPos, gson.fromJson(jsonObject.getAsJsonObject("blocks"), new TypeToken<ArrayList<Pos>>() {}.getType()), awaits, start);
             }
 
             case "use" -> {

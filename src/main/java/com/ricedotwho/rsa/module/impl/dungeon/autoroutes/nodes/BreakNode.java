@@ -46,6 +46,11 @@ public class BreakNode extends Node implements Accessor {
         this.blocks = new ArrayList<>();
     }
 
+    public BreakNode(Pos localPos, List<Pos> blocks, AwaitManager awaits, boolean start) {
+        super(localPos, awaits, start);
+        this.blocks = blocks;
+    }
+
     @Getter
     @Expose
     private final List<Pos> blocks;
@@ -67,7 +72,7 @@ public class BreakNode extends Node implements Accessor {
             BlockPos bp = p.asBlockPos();
             BlockState state = mc.level.getBlockState(bp);
             VoxelShape shape = state.getShape(mc.level, bp);
-            return !shape.isEmpty() && DungeonBreaker.canInstantMine(state) && p.squaredDistanceTo(mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0)) < 26;
+            return !shape.isEmpty() && DungeonBreaker.canInstantMine(state) && faceDistance(p.asVec3(), mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0)) < 26;
         }).toList();
 
         if (f.isEmpty()) return true;
@@ -159,12 +164,51 @@ public class BreakNode extends Node implements Accessor {
 
     //todo: move to another class
     public static void breakBlock(Pos pos, boolean remove, boolean sync) {
+        if (faceDistance(pos.asVec3(), mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0)) > 25) return;
         Direction dir = closestFace(pos.asVec3(), mc.player.getEyePosition());
         PacketOrderManager.register(PacketOrderManager.STATE.ATTACK, () -> {
             BlockPos bp = pos.asBlockPos();
             SwapManager.sendC07(bp, ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, dir, true, sync);
             if (remove) mc.level.setBlock(bp, Blocks.AIR.defaultBlockState(), 0);
         });
+    }
+
+    private static double faceDistance(Vec3 pos, Vec3 player) {
+        double minDist = Double.MAX_VALUE;
+        for (Direction face : Direction.values()) {
+            double offsetX = 0;
+            double offsetY = 0;
+            double offsetZ = 0;
+
+            switch (face) {
+                case DOWN:
+                    offsetY = -0.5;
+                    break;
+                case UP:
+                    offsetY = 0.5;
+                    break;
+                case NORTH:
+                    offsetZ = -0.5;
+                    break;
+                case SOUTH:
+                    offsetZ = 0.5;
+                    break;
+                case WEST:
+                    offsetX = -0.5;
+                    break;
+                case EAST:
+                    offsetX = 0.5;
+                    break;
+            }
+
+            Vec3 faceVec = pos.add(0.5 + offsetX, 0.5 + offsetY, 0.5 + offsetZ);
+            double dist = player.distanceToSqr(faceVec);
+
+            if (dist < minDist) {
+                minDist = dist;
+            }
+        }
+        return minDist;
     }
 
     private static Direction closestFace(Vec3 pos, Vec3 player) {
