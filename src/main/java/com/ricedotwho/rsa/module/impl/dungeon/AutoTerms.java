@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.primitives.Shorts;
 import com.google.common.primitives.SignedBytes;
 import com.ricedotwho.rsa.module.impl.dungeon.terminals.*;
+import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
@@ -107,19 +108,23 @@ public class AutoTerms extends Module {
 
     @SubscribeEvent
     public void onRenderGui(Render2DEvent event) {
-        if (!isInTerm() || !this.doInvwalk.getValue()) return;
+        try {
+           if (!isInTerm() || !this.doInvwalk.getValue()) return;
 
-        float width = 9 * 16f;
-        int slots = TerminalRenderer.getGuiSlotCount(this.terminalContainer.getType());
-        float height = (float) (Math.floor(slots / 9f) * 16);
+           float width = 9 * 16f;
+           int slots = TerminalRenderer.getGuiSlotCount(this.terminalContainer.getType());
+           float height = (float) (Math.floor(slots / 9f) * 16);
 
-        if (this.style.is("Items")) {
-            gui.renderScaledGFX(event.getGfx(), () -> terminalRenderer.renderItems(event.getGfx(), this.terminal), width, height);
-        } else {
-            gui.renderScaled(event.getGfx(), () -> {
-                terminalRenderer.renderSolver(this.gap.getValue().floatValue(), this.terminal);
-            }, width, height);
-        }
+           if (this.style.is("Items")) {
+               gui.renderScaledGFX(event.getGfx(), () -> terminalRenderer.renderItems(event.getGfx(), this.terminal), width, height);
+           } else {
+               gui.renderScaled(event.getGfx(), () -> {
+                   terminalRenderer.renderSolver(this.gap.getValue().floatValue(), this.terminal);
+               }, width, height);
+           }
+       } catch (Exception e) {
+           throw new RuntimeException(e);
+       }
     }
 
     @SubscribeEvent
@@ -299,6 +304,10 @@ public class AutoTerms extends Module {
             this.close();
             return;
         }
+    }
+
+    public static boolean isInTerminal() {
+        return RSM.getModule(AutoTerms.class).isInTerm();
     }
 
     private boolean isInTerm() {
