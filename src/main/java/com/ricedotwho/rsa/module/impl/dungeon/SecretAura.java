@@ -59,6 +59,7 @@ public class SecretAura extends Module {
     ModeSetting type = new ModeSetting("Type", "Triggerbot", List.of("Triggerbot", "Aura"));
     MultiSetting bigHitboxes = new MultiSetting("Hitboxes", new ArrayList<>(), List.of("Big Buttons", "Big Levers", "Big Skulls"));
     NumberSetting delay = new NumberSetting("Click Delay", 100, 4000, 150, 50);
+    NumberSetting reclick = new NumberSetting("Re-Click Delay", 200, 10000, 500, 50);
     NumberSetting swapSlot = new NumberSetting("Swap Slot Index", 0, 7, 0, 1);
     BooleanSetting inBoss = new BooleanSetting("In Boss", true);
     BooleanSetting autoClose = new BooleanSetting("Auto Close GUI", false);
@@ -75,6 +76,7 @@ public class SecretAura extends Module {
                 type,
                 bigHitboxes,
                 delay,
+                reclick,
                 swapSlot,
                 inBoss,
                 autoClose,
@@ -163,7 +165,7 @@ public class SecretAura extends Module {
         BlockState blockState = level.getBlockState(bestCandidate);
         if ((blockState.getBlock() == Blocks.PLAYER_HEAD || Minecraft.getInstance().player.getInventory().getSelectedSlot() == 8) && !SwapManager.swapSlot(swapSlot.getValue().intValue())) return;
 
-        clickedBlocks.put(getBlockPosHash(bestCandidate), System.currentTimeMillis() + 500L); // 500ms re-click delay
+        clickedBlocks.put(getBlockPosHash(bestCandidate), System.currentTimeMillis() + reclick.getValue().longValue()); // re-click delay
 
         AABB blockAABB = blockState.getShape(level, bestCandidate).bounds();
 

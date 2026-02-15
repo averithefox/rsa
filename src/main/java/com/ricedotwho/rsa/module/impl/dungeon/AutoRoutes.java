@@ -1,6 +1,7 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.NodeType;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
@@ -90,6 +91,8 @@ public class AutoRoutes extends Module implements Accessor {
     private byte crouchDataShiftRegister = 0;
     public int lastBlockC08 = 0;
 
+    private Class<? extends Node> lastType = null;
+
     // Player inputs are sent after C08s and keybinding events, in level.tickEntities
 
     private static final Set<String> SECRET_NAMES  = Set.of(
@@ -169,6 +172,8 @@ public class AutoRoutes extends Module implements Accessor {
 
 
         nodes.forEach(n -> n.updateNodeState(playerPos, tickTime));
+
+        this.lastType = null;
 
         while (true) {
             if (!handleQueue(playerPos, nodes)) break;
@@ -296,10 +301,10 @@ public class AutoRoutes extends Module implements Accessor {
     public void onTrigger() {
         if (!this.isEnabled() || !Location.getArea().is(Island.Dungeon) || Map.getCurrentRoom() == null) return;
 
+        if (this.inNode instanceof BatNode) this.inNode.setTriggered(true);
         if (this.inNode == null || !this.inNode.hasAwaits()) return;
         this.inNode.getAwaitManager().consume(AwaitClick.class, true);
         this.inNode.getAwaitManager().consume(AwaitSecrets.class, 100); // Skip secret
-        if (this.inNode instanceof BatNode) this.inNode.setTriggered(true);
     }
 
     @SubscribeEvent
@@ -365,10 +370,12 @@ public class AutoRoutes extends Module implements Accessor {
         Node node = activeNodes.getFirst();
         trySetInNode(node);
 
-        if (node.shouldAwait() || lastBlockC08 > 0) return false;
+        if (node.shouldAwait() || lastBlockC08 > 0 || (lastType != null && lastType != node.getClass())) return false;
 
         node.preTrigger(tickTime);
-        return node.run(playerPos);
+        boolean bl = node.run(playerPos);
+        if (bl) lastType = node.getClass();
+        return bl;
     }
 
     private void addBlockToInNode() {

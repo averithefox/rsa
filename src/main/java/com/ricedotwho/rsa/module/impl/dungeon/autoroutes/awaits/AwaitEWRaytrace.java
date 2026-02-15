@@ -5,6 +5,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitCondition;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.EtherwarpNode;
 import com.ricedotwho.rsm.data.Pos;
+import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
@@ -25,7 +26,9 @@ public class AwaitEWRaytrace extends AwaitCondition<EtherwarpNode> {
         Vec3 vec = EtherUtils.rayTraceBlock(61, angles[0], angles[1], eyePos.asVec3());
         viewVector = viewVector.multiply(EtherUtils.EPSILON).selfAdd(vec.x, vec.y, vec.z);
         BlockPos blockPos = BlockPos.containing(viewVector.x, viewVector.y, viewVector.z);
-        return blockPos.equals(BlockPos.containing(etherwarpNode.getRealTargetPos().asVec3()));
+        BlockPos etherPos = etherwarpNode.getRealTargetPos().add(etherwarpNode.getRealTargetPos().subtract(eyePos).normalize().multiply(EtherUtils.EPSILON)).asBlockPos();
+
+        return blockPos.equals(etherPos);
     }
 
 

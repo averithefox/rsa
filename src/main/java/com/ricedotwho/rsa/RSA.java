@@ -8,6 +8,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
 import com.ricedotwho.rsa.module.impl.movement.NoRotate;
 import com.ricedotwho.rsa.module.impl.player.CancelInteract;
 import com.ricedotwho.rsa.module.impl.render.EffectsAndRender;
+import com.ricedotwho.rsa.module.impl.render.Esp;
 import com.ricedotwho.rsa.module.impl.render.PresetWaypoints;
 import com.ricedotwho.rsa.utils.render3d.type.Ring;
 import com.ricedotwho.rsm.RSM;
@@ -65,7 +66,8 @@ public class RSA implements Addon {
                 CancelInteract.class,
                 DevUtils.class,
                 CancelInteract.class,
-                TermAura.class
+                TermAura.class,
+                Esp.class
         );
     }
 

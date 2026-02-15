@@ -39,7 +39,7 @@ public class AotvNode extends Node {
     @Override
     public void calculate(UniqueRoom room) {
         super.calculate(room);
-        this.realRotationVector = RoomUtils.getRealPosition(this.localRotationVector, room.getMainRoom());
+        this.realRotationVector = RoomUtils.rotateRealFixed(this.localRotationVector, room.getRotation());
     }
 
     @Override
@@ -70,11 +70,11 @@ public class AotvNode extends Node {
                 ChatUtils.chat("Failed to send ether C08!");
                 return;
             }
+            autoRoutes.setForceSneak(false);
         });
 
-        playerPos.selfAdd(0.0d, player.getEyeHeight(Pose.STANDING), 0.0d).selfAdd(realRotationVector.multiply(12));
-        autoRoutes.setForceSneak(true);
-        return true;
+        //playerPos.selfAdd(0.0d, player.getEyeHeight(Pose.STANDING), 0.0d).selfAdd(realRotationVector.multiply(12));
+        return false;
     }
 
     @Override
@@ -109,7 +109,7 @@ public class AotvNode extends Node {
     public static AotvNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits, boolean start) {
         Room mainRoom = fullRoom.getMainRoom();
         Pos playerRelative = RoomUtils.getRelativePosition(new Pos(player.position()), mainRoom);
-        Pos targetRelative = RoomUtils.getRelativePosition(new Pos(player.getViewVector(1f)), mainRoom);
+        Pos targetRelative = RoomUtils.rotateRelativeFixed(new Pos(player.getViewVector(1f)), fullRoom.getRotation());
         return new AotvNode(playerRelative, targetRelative, awaits, start);
     }
 }
