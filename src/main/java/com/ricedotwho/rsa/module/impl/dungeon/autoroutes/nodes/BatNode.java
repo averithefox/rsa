@@ -53,7 +53,6 @@ public class BatNode extends Node {
             SwapManager.sendAirC08(yaw, pitch, swap, false);
         });
 
-
         return false;
     }
 

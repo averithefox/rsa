@@ -80,6 +80,13 @@ public class RouteCommand extends Command {
                 .then(literal("redo")
                         .executes(RouteCommand::redoNode)
                 )
+                .then(literal("backup")
+                        .executes((ctx) -> {
+                            AutoroutesFileManager.createBackup();
+                            ChatUtils.chat("Made backup!");
+                            return 1;
+                        })
+                )
                 .then(literal("undo")
                         .executes(RouteCommand::undoNode)
                 );

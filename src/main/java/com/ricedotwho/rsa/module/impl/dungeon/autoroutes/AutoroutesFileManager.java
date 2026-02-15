@@ -8,6 +8,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitEWRaytrace;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.*;
 import com.ricedotwho.rsm.data.Pos;
+import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.FileUtils;
 
 import java.io.File;
@@ -108,7 +109,7 @@ public class AutoroutesFileManager {
         AwaitManager awaits = deserializeAwaits(jsonObject);
         Pos localPos = deserializePosition(jsonObject.getAsJsonObject("localPos"));
         float radius = jsonObject.get("radius").getAsFloat();
-        boolean start = jsonObject.get("start").getAsBoolean();
+        boolean start = jsonObject.has("start") && jsonObject.get("start").getAsBoolean();
 
         String type = jsonObject.get("type").getAsString();
         switch (type) {
@@ -178,17 +179,18 @@ public class AutoroutesFileManager {
         createBackup();
     }
 
-    private static void createBackup() {
+    public static void createBackup() {
         if (!routesFile.isFile()) return;
 
         File backUpDir = new File(autoRoutesDir, "backup");
-        if (!backUpDir.mkdir()) return;
+        if (!backUpDir.isDirectory() && !backUpDir.mkdir()) return;
+
         List<Long> timeStamps = new ArrayList<>();
 
         for (File file : backUpDir.listFiles()) {
             String name = file.getName();
-            if (!name.endsWith(".json.bak")) continue;
-            String timeString = name.substring(0, name.length() - 9);
+            if (!name.endsWith(".json")) continue;
+            String timeString = name.substring(0, name.length() - 5);
             if (timeString.isEmpty()) continue;
             try {
                 timeStamps.add(Long.parseLong(timeString));
@@ -199,7 +201,7 @@ public class AutoroutesFileManager {
 
         pruneBackups(backUpDir, timeStamps, 9);
 
-        File newBackup = new File(backUpDir, System.currentTimeMillis() + ".json.bak");
+        File newBackup = new File(backUpDir, System.currentTimeMillis() + ".json");
         try {
             Files.copy(routesFile.toPath(), newBackup.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
