@@ -7,6 +7,7 @@ import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.ButtonSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.ItemUtils;
 import lombok.Getter;
 import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.Minecraft;
@@ -14,6 +15,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.tooltip.BundleTooltip;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -85,13 +87,22 @@ public class DevUtils extends Module {
         ChatUtils.chat("ID: " + entityId);
         ChatUtils.chat("Pos: " + simplePos);
     });
+    private final ButtonSetting getSbID = new ButtonSetting("Gets the SBID of the item you're holding" , "Get SBID", () -> {
+        LocalPlayer player = Minecraft.getInstance().player;
+        Minecraft mc = Minecraft.getInstance();
+        if(player == null) return;
+        ItemStack stack = player.getMainHandItem();
+        String sbid = ItemUtils.getID(stack);
+        ChatUtils.chat("SBID: " + sbid);
+    });
 
     public DevUtils() {
         this.registerProperty(
                 pos,
                 yawPitch,
                 blockinfo,
-                entityinfo
+                entityinfo,
+                getSbID
         );
     }
 
