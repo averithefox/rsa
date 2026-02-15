@@ -61,7 +61,6 @@ public class AutoRoutes extends Module implements Accessor {
     private final BooleanSetting editMode = new BooleanSetting("Edit Mode", false);
     private final KeybindSetting triggerBind = new KeybindSetting("Trigger Bind", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, this::onTrigger));
     private final KeybindSetting addBlockBind = new KeybindSetting("Add Block Bind", new Keybind(GLFW.GLFW_KEY_SEMICOLON, true, this::addBlockToInNode));
-    private final BooleanSetting forceSneakingState = new BooleanSetting("Force Sneaking State", false);
 
     // uhh surely this won't cause issues...
     private final GroupSetting render = new GroupSetting("Render");
@@ -112,11 +111,22 @@ public class AutoRoutes extends Module implements Accessor {
                 teleportOnly,
                 triggerBind,
                 addBlockBind,
-                //forceSneakingState,
                 render
         );
         render.add(startDepth, nodeDepth, startColour, etherwarpColour, breakColour, boomColour, batColour, aotvColour);
         this.inNode = null;
+    }
+
+    @Override
+    public void onEnable() {
+        this.triggerBind.getValue().register();
+        this.addBlockBind.getValue().register();
+    }
+
+    @Override
+    public void onDisable() {
+        this.triggerBind.getValue().unregister();
+        this.addBlockBind.getValue().unregister();
     }
 
     @SubscribeEvent
@@ -174,7 +184,6 @@ public class AutoRoutes extends Module implements Accessor {
     }
 
     public boolean willBeCrouchingForEtherwarpEvaluation() {
-        if (forceSneakingState.getValue()) return true;
         return ((this.crouchDataShiftRegister >> 1) & 1) == 1;
     }
 
@@ -350,7 +359,6 @@ public class AutoRoutes extends Module implements Accessor {
         if (node.hasAwaits()) node.getAwaitManager().onEnterNode();
     }
 
-
     public boolean handleQueue(Pos playerPos, List<Node> nodes) {
         List<Node> activeNodes = nodes.stream().filter(n -> !n.isTriggered() && !n.hasRanThisTick(tickTime) && n.isInNode(playerPos)).sorted(Comparator.comparingInt(n -> ((Node) n).getPriority()).reversed()).toList();
         if (activeNodes.isEmpty()) {
@@ -373,8 +381,8 @@ public class AutoRoutes extends Module implements Accessor {
 
     private void addBlockToInNode() {
         Room currentRoom = Map.getCurrentRoom();
-        if (!Location.getArea().is(Island.Dungeon) || currentRoom == null || this.activeNodes.isEmpty()) return;
-        Pos playerPos = new Pos(Minecraft.getInstance().player.position());
+        if (!Location.getArea().is(Island.Dungeon) || currentRoom == null || this.activeNodes.isEmpty() || mc.player == null) return;
+        Pos playerPos = new Pos(mc.player.position());
         Optional<BreakNode> opt = this.activeNodes.get(currentRoom.getData())
                 .stream().filter(n -> n.isInNode(playerPos) && n instanceof BreakNode).map(n -> (BreakNode) n).findFirst();
         if (opt.isEmpty()) {

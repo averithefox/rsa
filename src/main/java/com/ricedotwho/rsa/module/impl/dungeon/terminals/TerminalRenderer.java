@@ -95,6 +95,9 @@ public class TerminalRenderer {
 
 
     public static int getGuiSlotCount(MenuType<?> menuType) {
+        if (menuType == MenuType.GENERIC_9x1) return 9;
+        if (menuType == MenuType.GENERIC_9x2) return 18;
+        if (menuType == MenuType.GENERIC_9x3) return 27;
         if (menuType == MenuType.GENERIC_9x4) return 36;
         if (menuType == MenuType.GENERIC_9x5) return 45;
         if (menuType == MenuType.GENERIC_9x6) return 54;

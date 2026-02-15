@@ -1,0 +1,330 @@
+package com.ricedotwho.rsa.module.impl.dungeon;
+
+import com.google.common.collect.Lists;
+import com.google.common.primitives.Shorts;
+import com.google.common.primitives.SignedBytes;
+import com.mojang.blaze3d.platform.InputConstants;
+import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
+import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsa.module.impl.dungeon.terminals.SolutionClick;
+import com.ricedotwho.rsa.module.impl.dungeon.terminals.TerminalRenderer;
+import com.ricedotwho.rsm.RSM;
+import com.ricedotwho.rsm.component.impl.EventComponent;
+import com.ricedotwho.rsm.component.impl.location.Floor;
+import com.ricedotwho.rsm.component.impl.location.Island;
+import com.ricedotwho.rsm.component.impl.location.Location;
+import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
+import com.ricedotwho.rsm.component.impl.task.TaskComponent;
+import com.ricedotwho.rsm.data.DungeonClass;
+import com.ricedotwho.rsm.data.DungeonPlayer;
+import com.ricedotwho.rsm.data.Keybind;
+import com.ricedotwho.rsm.data.Phase7;
+import com.ricedotwho.rsm.event.api.SubscribeEvent;
+import com.ricedotwho.rsm.event.impl.client.MouseInputEvent;
+import com.ricedotwho.rsm.event.impl.client.PacketEvent;
+import com.ricedotwho.rsm.event.impl.world.WorldEvent;
+import com.ricedotwho.rsm.module.Module;
+import com.ricedotwho.rsm.module.api.Category;
+import com.ricedotwho.rsm.module.api.ModuleInfo;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.*;
+import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.DungeonUtils;
+import com.ricedotwho.rsm.utils.ItemUtils;
+import com.ricedotwho.rsm.utils.Utils;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import lombok.Getter;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.HashedStack;
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
+import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
+import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
+import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+
+import java.util.Arrays;
+import java.util.List;
+
+@Getter
+@ModuleInfo(aliases = "FastLeap", id = "FastLeap", category = Category.DUNGEONS)
+public class FastLeap extends Module {
+
+    private final KeybindSetting key = new KeybindSetting("Key", new Keybind(InputConstants.MOUSE_BUTTON_LEFT, false, true, true, null) {
+        @Override
+        public boolean run() {
+            return doAutoLeap();
+        }
+    });
+
+    private final NumberSetting cooldown = new NumberSetting("Cooldown", 0, 3500, 3500, 50);
+
+    private final BooleanSetting flMessage = new BooleanSetting("Chat Message", false);
+    private final BooleanSetting flP3 = new BooleanSetting("P3 Only", true);
+    private final ModeSetting flS1 = new ModeSetting("S1", "Archer", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom"));
+    private final StringSetting flS1Custom = new StringSetting("S1 Custom", "");
+    private final ModeSetting flS2 = new ModeSetting("S2", "Healer", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom"));
+    private final StringSetting flS2Custom = new StringSetting("S2 Custom", "");
+    private final ModeSetting flS3 = new ModeSetting("S3", "Mage", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom"));
+    private final StringSetting flS3Custom = new StringSetting("S3 Custom", "");
+    private final ModeSetting flS4 = new ModeSetting("S4", "Mage", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom"));
+    private final StringSetting flS4Custom = new StringSetting("S4 Custom", "");
+
+    private final ModeSetting flP1 = new ModeSetting("P1", "Berserk", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom"));
+    private final StringSetting flP1Custom = new StringSetting("P1 Custom", "");
+
+    private final ModeSetting flP2 = new ModeSetting("P2", "Auto", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom", "Auto"));
+    private final StringSetting flP2Custom = new StringSetting("P2 Custom", "");
+
+    private final ModeSetting flP4 = new ModeSetting("P4", "Berserk", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom"));
+    private final StringSetting flP4Custom = new StringSetting("P4 Custom", "");
+
+    private final ModeSetting flP5Orange = new ModeSetting("P5 Orange", "Berserk", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom"));
+    private final StringSetting flP5OrangeCustom = new StringSetting("Orange Custom", "");
+    private final ModeSetting flP5Red = new ModeSetting("P5 Red", "Archer", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom"));
+    private final StringSetting flP5RedCustom = new StringSetting("Red Custom", "");
+
+    private static String toLeap = null;
+    private static boolean openingGui = false;
+    private static long lastUsed = 0;
+    private boolean windowOpen = false;
+
+    private AbstractContainerMenu container;
+
+    public FastLeap() {
+        this.registerProperty(
+                key,
+                cooldown,
+                flMessage,
+                flP3,
+                flS1, flS1Custom,
+                flS2, flS2Custom,
+                flS3, flS3Custom,
+                flS4, flS4Custom,
+                flP1, flP1Custom,
+                flP2, flP2Custom,
+                flP4, flP4Custom,
+                flP5Orange, flP5OrangeCustom,
+                flP5Red, flP5RedCustom
+        );
+    }
+
+
+    @Override
+    public void onEnable() {
+        this.key.getValue().register();
+    }
+
+    @Override
+    public void onDisable() {
+        this.key.getValue().unregister();
+    }
+
+    @Override
+    public void reset() {
+        toLeap = null;
+        openingGui = false;
+        windowOpen = false;
+        container = null;
+    }
+
+    @SubscribeEvent
+    public void onLoad(WorldEvent.Load event) {
+        reset();
+    }
+
+    public static boolean doAutoLeap() {
+        FastLeap module = RSM.getModule(FastLeap.class);
+        if (
+                module.flP3.getValue() && !DungeonUtils.isPhase(Phase7.P3)
+                || !Location.getArea().is(Island.Dungeon)
+                || mc.player == null || mc.level == null
+                || !Utils.equalsOneOf(ItemUtils.getID(mc.player.getInventory().getSelectedItem()), "SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP")
+                || (System.currentTimeMillis() - module.lastUsed) < module.cooldown.getValue()
+                || module.windowOpen
+                || openingGui
+                || !EventComponent.isInTerminal() && mc.screen != null
+                || module.container != null
+        ) return false;
+
+        // todo: queue leap
+        if (EventComponent.isInTerminal()) return false;
+
+        String leap = getLeap();
+        if (leap == null || "NONE".equals(leap) || mc.player.getName().getString().equalsIgnoreCase(leap)) {
+            module.modMessage(ChatFormatting.RED + "Couldn't find who to leap to!");
+            return false;
+        }
+
+        doLeap(leap);
+        return true;
+    }
+
+    public static void doLeap(String name) {
+        toLeap = name;
+        openingGui = true;
+        lastUsed = System.currentTimeMillis();
+        PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> SwapManager.sendAirC08(mc.player.yRotO, mc.player.xRotO, false));
+    }
+
+    public static void doLeap(DungeonPlayer player){
+        doLeap(player.getName());
+    }
+
+    @SubscribeEvent
+    public void onOpenWindow(PacketEvent.Receive event) {
+        if (event.getPacket() instanceof ClientboundOpenScreenPacket packet) {
+            if (packet.getContainerId() < 1
+                    || packet.getContainerId() > 100
+                    || mc.player == null
+                    || !Location.getArea().is(Island.Dungeon)
+            ) return;
+
+            if (openingGui && "Spirit Leap".equals(packet.getTitle().getString())) {
+                openingGui = false;
+                windowOpen = true;
+                this.container = packet.getType().create(packet.getContainerId(), mc.player.getInventory());
+                event.setCancelled(true);
+            } else {
+                reset();
+            }
+        }
+        else if (event.getPacket() instanceof ClientboundContainerSetSlotPacket packet) {
+            if (
+                    packet.getContainerId() < 1
+                    || packet.getContainerId() > 100
+                    || mc.player == null
+                    || !windowOpen
+                    || openingGui
+                    || this.container.containerId != packet.getContainerId()
+                    || packet.getSlot() < 11
+                    || toLeap == null
+            ) return;
+
+            container.setItem(packet.getSlot(), packet.getStateId(), packet.getItem());
+
+            if (packet.getSlot() > 16) {
+                modMessage(ChatFormatting.RED + "Failed to find player!");
+                close();
+                return;
+            }
+            ItemStack item = packet.getItem();
+            if (!item.getItem().equals(Items.PLAYER_HEAD)) return;
+
+            String name = ChatFormatting.stripFormatting(item.getHoverName().getString());
+            if (!name.equals(toLeap)) return;
+            sendWindowClick(packet.getSlot(), mc.player, this.container);
+
+            if (getFlMessage().getValue()) {
+                mc.getConnection().sendCommand("pc Leaping to " + toLeap);
+            }
+            else {
+                modMessage("Leaping to " + toLeap);
+            }
+            reset();
+        }
+    }
+
+    private void close() {
+        if (container == null || mc.getConnection() == null) return;
+        mc.getConnection().send(new ServerboundContainerClosePacket(this.container.containerId));
+        reset();
+    }
+
+    private static void sendWindowClick(int slotNumber, Player player, AbstractContainerMenu abstractContainerMenu) {
+        ClientPacketListener connection = Minecraft.getInstance().getConnection();
+        if (connection == null) return;
+
+        NonNullList<Slot> nonNullList = abstractContainerMenu.slots;
+        int l = nonNullList.size();
+        List<ItemStack> list = Lists.newArrayListWithCapacity(l);
+
+        for (Slot slot : nonNullList) {
+            list.add(slot.getItem().copy());
+        }
+
+        abstractContainerMenu.clicked(slotNumber, 0, ClickType.CLONE, player);
+
+        Int2ObjectMap<HashedStack> int2ObjectMap = new Int2ObjectOpenHashMap<>();
+
+        for (int m = 0; m < l; m++) {
+            ItemStack itemStack = list.get(m);
+            ItemStack itemStack2 = nonNullList.get(m).getItem();
+            if (!ItemStack.matches(itemStack, itemStack2)) {
+                int2ObjectMap.put(m, HashedStack.create(itemStack2, connection.decoratedHashOpsGenenerator()));
+            }
+        }
+
+        HashedStack hashedStack = HashedStack.create(abstractContainerMenu.getCarried(), connection.decoratedHashOpsGenenerator());
+        connection.send(new ServerboundContainerClickPacket(abstractContainerMenu.containerId, abstractContainerMenu.getStateId(), Shorts.checkedCast(slotNumber), SignedBytes.checkedCast(0), ClickType.CLONE, int2ObjectMap, hashedStack));
+    }
+
+    private static String getLeap() {
+        DungeonPlayer player = getClassPlayer();
+        if (player == null) return null;
+        return player.getName();
+    }
+
+    private static Object getStageClass() {
+        if (!Utils.equalsOneOf(Location.getFloor(), Floor.F7, Floor.M7) || !Dungeon.isInBoss()) return -1;
+
+        FastLeap module = RSM.getModule(FastLeap.class);
+
+        DungeonPlayer me = Dungeon.getMyPlayer();
+
+        switch (DungeonUtils.getF7Phase()) {
+            case P1:
+                return module.getFlP1().is("Custom") ? module.getFlP1Custom().getValue() : module.getFlP1().getIndex();
+            case P2:
+                if (module.getFlP2().is("Auto")) {
+                    if (me == null) return -1;
+                    DungeonPlayer healer = Dungeon.getClazz(DungeonClass.HEALER);
+                    DungeonPlayer mage = Dungeon.getClazz(DungeonClass.MAGE);
+                    DungeonPlayer bers = Dungeon.getClazz(DungeonClass.BERSERKER);
+                    if(me.getMyClass().equals(DungeonClass.TANK) && mage != null && Location.getFloor().equals(Floor.F7)) return mage.getName();
+                    if(healer != null && !me.equals(healer)) return healer.getName();
+                    if(bers != null && me.equals(healer)) return bers.getName();
+                    return -1;
+                }
+                return module.getFlP2().is("Custom") ? module.getFlP2Custom().getValue() : module.getFlP2().getIndex();
+            case P3:
+                return switch (DungeonUtils.getP3Section()) {
+                    case S1 -> module.getFlS1().is("Custom") ? module.getFlS1Custom().getValue() : module.getFlS1().getIndex();
+                    case S2 -> module.getFlS2().is("Custom") ? module.getFlS2Custom().getValue() : module.getFlS2().getIndex();
+                    case S3 -> module.getFlS3().is("Custom") ? module.getFlS3Custom().getValue() : module.getFlS3().getIndex();
+                    case S4 -> module.getFlS4().is("Custom") ? module.getFlS4Custom().getValue() : module.getFlS4().getIndex();
+                    default -> -1;
+                };
+            case P4:
+                return module.getFlS4().is("Custom") ? module.getFlS4Custom().getValue() : module.getFlS4().getIndex();
+            case P5:
+                if (me == null) return -1;
+                if (DungeonClass.HEALER.equals(me.getMyClass())) return module.getFlP5Orange().is("Custom") ? module.getFlP5OrangeCustom().getValue() : module.getFlP5Orange().getIndex();
+                if (DungeonClass.MAGE.equals(me.getMyClass())) return module.getFlP5Orange().is("Custom") ? module.getFlP5OrangeCustom().getValue() : module.getFlP5Orange().getIndex();
+                if (DungeonClass.TANK.equals(me.getMyClass())) return module.getFlP5Red().is("Custom") ? module.getFlP5RedCustom().getValue() : module.getFlP5Red().getIndex();
+                return -1;
+            default:
+                return -1;
+        }
+    }
+
+    private static DungeonPlayer getClassPlayer() {
+        Object yuh = getStageClass();
+        if(yuh instanceof String) {
+            return Dungeon.getPlayer((String) yuh);
+        } else {
+            return Dungeon.getClazz((int) yuh);
+        }
+    }
+
+    private void modMessage(String message) {
+        ChatUtils.chat(ChatFormatting.BLUE + "Fast Leap » " + ChatFormatting.RESET + message);
+    }
+}
