@@ -1,7 +1,10 @@
 package com.ricedotwho.rsa.command.impl;
 
 import com.mojang.brigadier.StringReader;
-import com.mojang.brigadier.arguments.*;
+import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -13,7 +16,6 @@ import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.*;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitEWRaytrace;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BreakNode;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.UseNode;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;

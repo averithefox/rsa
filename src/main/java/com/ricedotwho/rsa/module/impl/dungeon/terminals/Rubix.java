@@ -19,7 +19,7 @@ public class Rubix extends Terminal {
     protected Rubix(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
         super(TerminalType.RUBIX, packet, menu);
     }
-    private static final Item[] COLOR_ORDER = {Items.BLUE_STAINED_GLASS_PANE, Items.RED_STAINED_GLASS_PANE, Items.ORANGE_STAINED_GLASS_PANE, Items.YELLOW_STAINED_GLASS_PANE, Items.GREEN_STAINED_GLASS_PANE};
+    public static final Item[] COLOR_ORDER = {Items.BLUE_STAINED_GLASS_PANE, Items.RED_STAINED_GLASS_PANE, Items.ORANGE_STAINED_GLASS_PANE, Items.YELLOW_STAINED_GLASS_PANE, Items.GREEN_STAINED_GLASS_PANE};
 
     @Override
     public TerminalState getNextState() {

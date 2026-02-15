@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
@@ -122,6 +121,7 @@ public abstract class Node {
         json.addProperty("type", this.getName());
         json.add("localPos", AutoroutesFileManager.gson.toJsonTree(localPos));
         json.addProperty("radius", r);
+        json.addProperty("start", start);
         if (this.awaitManager == null || !this.awaitManager.hasAwaits()) return json;
         json.add("awaits", this.awaitManager.serialize());
         return json;

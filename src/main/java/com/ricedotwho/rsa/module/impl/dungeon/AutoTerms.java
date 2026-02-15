@@ -18,6 +18,7 @@ import com.ricedotwho.rsm.ui.clickgui.settings.impl.*;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.core.NonNullList;
@@ -45,36 +46,40 @@ public class AutoTerms extends Module {
     private final NumberSetting firstClickDelay = new NumberSetting("First Click Delay", 200d, 600d, 400d, 5d);
     private final NumberSetting delay = new NumberSetting("Delay", 100d, 250d, 150d, 5d);
     private final NumberSetting breakThreshold = new NumberSetting("Break Threshold", 200d, 800d, 500d, 10d);
-    //private final BooleanSetting invWalk = new BooleanSetting("Inventory Walk", false);
 
     private final GroupSetting invWalkGroup = new GroupSetting("Invwalk");
     private final BooleanSetting doInvwalk = new BooleanSetting("Enabled", false);
-    private final ModeSetting style = new ModeSetting("Style", "Solver", Arrays.asList("Solver", "Items"));
+    private final ModeSetting style = new ModeSetting("Style", "Items", Arrays.asList("Solver", "Items"));
 
     private final BooleanSetting renderTitles = new BooleanSetting("Render title thing", true);
     private final BooleanSetting renderClicksLeft = new BooleanSetting("Render clicks left", true);
     private final ColourSetting titleColour = new ColourSetting("Title Colour", new Colour(96,31,158));
     private final ColourSetting remainingColour = new ColourSetting("Remaining Colour", new Colour(96,31,158));
     private final ColourSetting clicksColour = new ColourSetting("Clicks Colour", new Colour(0, 191, 0));
+    @Getter private static final ColourSetting solutionColour = new ColourSetting("Solution Colour", new Colour(0, 150, 0));
+    @Getter private static final ColourSetting oppositeColour = new ColourSetting("Opposite Colour", new Colour(0, 0, 150));
+    @Getter private static final ColourSetting orderColour1 = new ColourSetting("Order Colour 1", new Colour(0, 150, 0));
+    @Getter private static final ColourSetting orderColour2 = new ColourSetting("Order Colour 2", new Colour(150, 150, 0));
+    @Getter private static final ColourSetting orderColour3 = new ColourSetting("Order Colour 3", new Colour(150, 0, 0));
+    private final NumberSetting gap = new NumberSetting("Gap", 0, 3, 1.5, 0.01);
     private final BooleanSetting textShadow = new BooleanSetting("Text Shadow", false);
 
     private final BooleanSetting doMoveDelay = new BooleanSetting("Do move delay", true);
     private final NumberSetting melodyMoveDelay = new NumberSetting("Move delay", 0, 10, 6, 1);
 
-    private final DragSetting termTitle = new DragSetting("Term Title", new Vector2d(10, 10), new Vector2d(15, 150));
-    private final DragSetting clicksText = new DragSetting("Clicks Text", new Vector2d(10, 10), new Vector2d(15, 150));
-    private final DragSetting gui = new DragSetting("Visualiser Gui", new Vector2d(10d, 10d), new Vector2d(100, 66)); // idk how to use ts
-
-    // Make this the drag setting or whatever
-    private final NumberSetting xPos = new NumberSetting("Render X Position", 0d, 1280d, 640d, 5d);
-    private final NumberSetting yPos = new NumberSetting("Render Y Position", 0d, 768d, 384d, 4d);
+    private final DragSetting termTitle = new DragSetting("Term Title", new Vector2d(10, 10), new Vector2d(150, 15));
+    private final DragSetting clicksText = new DragSetting("Clicks Text", new Vector2d(10, 10), new Vector2d(150, 15));
+    private final DragSetting gui = new DragSetting("Visualiser Gui", new Vector2d(10d, 10d), new Vector2d(144, 80));
 
     public AutoTerms() {
         registerProperty(
                 firstClickDelay,
                 delay,
                 breakThreshold,
-                invWalkGroup
+                invWalkGroup,
+                gui,
+                termTitle,
+                clicksText
         );
 
         invWalkGroup.add(
@@ -85,11 +90,12 @@ public class AutoTerms extends Module {
                 titleColour,
                 remainingColour,
                 clicksColour,
+                solutionColour,
+                oppositeColour,
+                gap,
                 textShadow,
                 doMoveDelay,
-                melodyMoveDelay,
-                xPos,
-                yPos
+                melodyMoveDelay
         );
         this.terminalRenderer = new TerminalRenderer();
     }
@@ -101,8 +107,19 @@ public class AutoTerms extends Module {
 
     @SubscribeEvent
     public void onRenderGui(Render2DEvent event) {
-        if (isInTerm() && this.doInvwalk.getValue())
-            terminalRenderer.render(event.getGfx(), xPos.getValue().floatValue(), yPos.getValue().floatValue(), this.terminal);
+        if (!isInTerm() || !this.doInvwalk.getValue()) return;
+
+        float width = 9 * 16f;
+        int slots = TerminalRenderer.getGuiSlotCount(this.terminalContainer.getType());
+        float height = (float) (Math.floor(slots / 9f) * 16);
+
+        if (this.style.is("Items")) {
+            gui.renderScaledGFX(event.getGfx(), () -> terminalRenderer.renderItems(event.getGfx(), this.terminal), width, height);
+        } else {
+            gui.renderScaled(event.getGfx(), () -> {
+                terminalRenderer.renderSolver(this.gap.getValue().floatValue(), this.terminal);
+            }, width, height);
+        }
     }
 
     @SubscribeEvent

@@ -1,5 +1,8 @@
 package com.ricedotwho.rsa.module.impl.dungeon.terminals;
 
+import com.ricedotwho.rsa.module.impl.dungeon.AutoTerms;
+import com.ricedotwho.rsm.data.Colour;
+import com.ricedotwho.rsm.utils.render.render2d.NVGUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -24,11 +27,8 @@ public class TerminalRenderer {
         this.overridesUpdated = false;
     }
 
-    public void render(GuiGraphics guiGraphics, float x, float y, Terminal terminal) {
+    public void renderItems(GuiGraphics guiGraphics, Terminal terminal) {
         if (terminalContainer == null || terminalContainer.slots.isEmpty()) return;
-
-        guiGraphics.pose().pushMatrix();
-        guiGraphics.pose().translate(x, y);
 
         int slotCount = getGuiSlotCount(this.terminalContainer.getType());
 
@@ -41,9 +41,10 @@ public class TerminalRenderer {
             Slot slot = this.terminalContainer.slots.get(i);
             ItemStack stack = bl && overrides.containsKey(slot.index) ? overrides.get(slot.index) : slot.getItem();
 
-            renderSlot(guiGraphics, slot.x, slot.y, stack);
+            int x = i % 9 * 16;
+            int y = (int) (Math.floor(i / 9f) * 16);
+            renderSlot(guiGraphics, x, y, stack);
         }
-        guiGraphics.pose().popMatrix();
     }
 
     // This swaps the select with colors and starts with terms with just panes
@@ -100,4 +101,45 @@ public class TerminalRenderer {
         return -1;
     }
 
+    public void renderSolver(float g, Terminal terminal) {
+        Solution solution = terminal.getSolution();
+        if (solution == null || solution.clicks.isEmpty()) return;
+
+        boolean bl = terminal instanceof StartsWith || terminal instanceof Colors;
+        if (bl && terminal.isSolved())
+            tryUpdateOverrides(terminal);
+
+        float gap = g + 16;
+
+        switch (terminal.getType()) {
+            case COLORS, STARTSWITH, REDGREEN -> solution.clicks.forEach(click -> renderRect(gap, click.index(), AutoTerms.getSolutionColour().getValue()));
+            case NUMBERS -> renderOrder(gap, solution);
+            case RUBIX -> renderRubix(gap, solution);
+        }
+    }
+
+    private void renderOrder(float gap, Solution solution) {
+        renderRect(gap, solution.clicks.getFirst().index(), AutoTerms.getOrderColour1().getValue());
+
+        if (solution.clicks.size() > 1) {
+            renderRect(gap, solution.clicks.get(1).index(), AutoTerms.getOrderColour2().getValue());
+        }
+        if (solution.clicks.size() > 2) {
+            renderRect(gap, solution.clicks.get(2).index(), AutoTerms.getOrderColour3().getValue());
+        }
+    }
+
+    private void renderRubix(float gap, Solution solution) {
+        solution.clicks.forEach(click -> {
+            if (click instanceof RubixSolutionClick c) {
+                renderRect(gap, click.index(), c.button() == 0 ? AutoTerms.getSolutionColour().getValue() : AutoTerms.getOppositeColour().getValue());
+            }
+        });
+    }
+
+    private void renderRect(float gap, int index, Colour colour) {
+        float x = index % 9 * gap;
+        float y = (float) (Math.floor((double) index / 9) * gap);
+        NVGUtils.drawRect(x, y, 16, 16, colour);
+    }
 }

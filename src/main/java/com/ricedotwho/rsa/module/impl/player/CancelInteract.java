@@ -30,6 +30,11 @@ public class CancelInteract extends Module {
             ChestBlock.class
     );
 
+    private static final List<TagKey<Block>> WHITELIST_TAGS = List.of(
+            BlockTags.BUTTONS,
+            BlockTags.COPPER_CHESTS
+    );
+
     private static final List<Class<?>> BLACKLIST = List.of(
             HopperBlock.class,
             CraftingTableBlock.class,
@@ -53,7 +58,7 @@ public class CancelInteract extends Module {
     public static boolean shouldCancelInteract(BlockHitResult hit, LocalPlayer player, ItemStack item) {
         if (!RSM.getModule(CancelInteract.class).isEnabled()) return false;
         BlockState state = player.level().getBlockState(hit.getBlockPos());
-        if (WHITELIST.stream().anyMatch(c -> c.isInstance(state.getBlock()))) return false;
+        if (WHITELIST.stream().anyMatch(c -> c.isInstance(state.getBlock())) || WHITELIST_TAGS.stream().anyMatch(state::is)) return false;
         if ("ENDER_PEARL".equals(ItemUtils.getID(item))) return true;
         return BLACKLIST_TAGS.stream().anyMatch(state::is)
                 || BLACKLIST.stream().anyMatch(c -> c.isInstance(state.getBlock()));

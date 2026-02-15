@@ -67,7 +67,7 @@ public class BreakNode extends Node implements Accessor {
             BlockPos bp = p.asBlockPos();
             BlockState state = mc.level.getBlockState(bp);
             VoxelShape shape = state.getShape(mc.level, bp);
-            return !shape.isEmpty() && DungeonBreaker.canInstantMine(state) && p.squaredDistanceTo(mc.player.getEyePosition()) < 26;
+            return !shape.isEmpty() && DungeonBreaker.canInstantMine(state) && p.squaredDistanceTo(mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0)) < 26;
         }).toList();
 
         if (f.isEmpty()) return true;

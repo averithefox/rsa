@@ -73,7 +73,7 @@ public class InstaMid extends Module {
 
         if (mc.player.onGround()) {
             startOnNextFlying = true;
-            mc.player.setJumping(true) ;
+            mc.player.jumpFromGround();
         } else {
             startIMid();
         }
