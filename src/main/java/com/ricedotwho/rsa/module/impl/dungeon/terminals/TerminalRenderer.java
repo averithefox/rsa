@@ -61,7 +61,7 @@ public class TerminalRenderer {
             ItemStack stack = slot.getItem();
 
             if (stack.isEmpty() || stack.getItem() == Items.BLACK_STAINED_GLASS_PANE) continue;
-            Item item = (terminal.isSolved() && terminal.getSolution().containsIndex(i)) ? Items.RED_STAINED_GLASS_PANE : Items.GREEN_STAINED_GLASS_PANE;
+            Item item = (terminal.isSolved() && terminal.getSolution().containsIndex(i)) ? Items.RED_STAINED_GLASS_PANE : Items.LIME_STAINED_GLASS_PANE;
             overrides.put(slot.index, item.getDefaultInstance().copyWithCount(stack.getCount()));
         }
 
