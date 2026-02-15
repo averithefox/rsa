@@ -61,8 +61,6 @@ public class BreakNode extends Node implements Accessor {
     public void calculate(UniqueRoom room) {
         super.calculate(room);
         rotated = blocks.stream().map(pos -> RoomUtils.getRealPosition(pos, room.getMainRoom())).toList();
-        ChatUtils.chat("Blocks: %s", blocks);
-        ChatUtils.chat("Rotated: %s", rotated);
     }
 
     @Override
@@ -147,10 +145,8 @@ public class BreakNode extends Node implements Accessor {
             return;
         }
 
-        Vec3 eyePos = mc.player.position().add(0d, EtherUtils.SNEAK_EYE_HEIGHT, 0d);
-        Vec3 dir = blockHitResult.getLocation().subtract(eyePos).normalize().scale(EtherUtils.EPSILON);
-        Pos pos = new Pos(blockHitResult.getLocation()).floor();
-        pos.selfAdd(dir.x, dir.y, dir.z);
+        // why the fuck does this fix it
+        Pos pos = new Pos(blockHitResult.getLocation()).floor().add(0.5, 0, 0.5);
 
         Pos relPos = RoomUtils.getRelativePosition(pos, Map.getCurrentRoom().getUniqueRoom().getMainRoom());
 
