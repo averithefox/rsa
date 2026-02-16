@@ -17,6 +17,7 @@ import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.GroupSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
+import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
 import com.ricedotwho.rsm.utils.Utils;
@@ -52,7 +53,6 @@ public class NoRotate extends Module {
     private final BooleanSetting zpew = new BooleanSetting("Enabled", true);
 
     private Pos renderPos;
-
 
     private final List<Long> sent = new ArrayList<>();
 
@@ -90,7 +90,8 @@ public class NoRotate extends Module {
             ItemStack stack = mc.player.getItemBySlot(packet.getHand().asEquipmentSlot());
             if (!isTpItem(stack)) return;
             sent.add(System.currentTimeMillis());
-            checkZpew(stack, packet.getYRot(), packet.getXRot());
+            if (zpew.getValue())
+                checkZpew(stack, packet.getYRot(), packet.getXRot());
             return;
         }
 
@@ -99,15 +100,28 @@ public class NoRotate extends Module {
             Block block =  mc.level.getBlockState(packet.getHitResult().getBlockPos()).getBlock();
             if (!ignored.contains(block) && isTpItem(stack)) {
                 sent.add(System.currentTimeMillis());
-                checkZpew(stack, mc.player.getYRot(), mc.player.getXRot());
+                //checkZpew(stack, mc.player.getYRot(), mc.player.getXRot());
             }
         }
     }
 
     private void checkZpew(ItemStack stack, float yaw, float pitch) {
         if (Minecraft.getInstance().player == null || stack.getItem() != Items.DIAMOND_SHOVEL || !Minecraft.getInstance().player.isShiftKeyDown()) return;
-        Vec3 pos = renderPos == null ? Minecraft.getInstance().player.position() : renderPos.asVec3();
-        renderPos = new Pos(EtherUtils.getEtherPosFromOrigin(pos, yaw, pitch)).selfAdd(0.5d, 1.05d, 0.5d);
+        Vec3 eyePos = (renderPos == null ? Minecraft.getInstance().player.position() : renderPos.asVec3()).add(0.0d, EtherUtils.SNEAK_EYE_HEIGHT, 0.0d);
+//        ChatUtils.chat(eyePos);
+//        ChatUtils.chat(yaw + ", " + pitch);
+        Vec3 ray = EtherUtils.rayTraceBlock(61, yaw, pitch, eyePos);
+        if (ray == null) return;
+        Vec3 directionVector = ray.subtract(eyePos).normalize();
+
+        Vec3 blockRay = ray.add(directionVector.scale(EtherUtils.EPSILON));
+        BlockPos etherBlock = BlockPos.containing(blockRay);
+        if (!EtherUtils.isValidEtherwarpPosition(etherBlock)) return;
+
+//        ChatUtils.chat(etherBlock);
+//        ChatUtils.chat(ray);
+//        ChatUtils.chat(blockRay);
+        renderPos = new Pos(etherBlock).selfAdd(0.5d, 1.05d, 0.5d);
     }
 
 
@@ -131,6 +145,7 @@ public class NoRotate extends Module {
     }
 
     public void onHandleMovePlayer(ClientboundPlayerPositionPacket packet, Connection connection, CallbackInfo ci) {
+        this.renderPos = null;
         if (!this.isEnabled() || !shouldNoRotate()) return;
         if (!sent.isEmpty()) sent.removeFirst();
         // Thanks noob for the code
@@ -159,8 +174,9 @@ public class NoRotate extends Module {
     }
 
     public Vec3 getCameraPos() {
-        if (!zpew.getValue() || renderPos == null) return null;
-        return renderPos.asVec3();
+        if (!zpew.getValue() || renderPos == null || Minecraft.getInstance().player == null) return null;
+        //ChatUtils.chat(renderPos);
+        return renderPos.add(0.0d, Minecraft.getInstance().player.getEyeHeight(), 0.0d).asVec3();
     }
 
     @Override

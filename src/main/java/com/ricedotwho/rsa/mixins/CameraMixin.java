@@ -16,13 +16,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(value = Camera.class)
 public abstract class CameraMixin {
 
-//    @Inject(method = "getPosition", at = @At("HEAD"), cancellable = true)
-//    private void onGetPosition(CallbackInfoReturnable<Vec3> cir) {
-//        NoRotate noRotate = RSM.getModule(NoRotate.class);
-//        if (noRotate.isEnabled()) {
-//            Vec3 pos = noRotate.getCameraPos();
-//            if (pos == null) return;
-//            cir.setReturnValue(pos);
-//        }
-//    }
+    @Inject(method = "getPosition", at = @At("HEAD"), cancellable = true)
+    private void onGetPosition(CallbackInfoReturnable<Vec3> cir) {
+        NoRotate noRotate = RSM.getModule(NoRotate.class);
+        if (noRotate.isEnabled()) {
+            Vec3 pos = noRotate.getCameraPos();
+            if (pos == null) return;
+            cir.setReturnValue(pos);
+        }
+    }
 }

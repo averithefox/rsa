@@ -29,12 +29,14 @@ import com.ricedotwho.rsm.ui.clickgui.settings.impl.ModeSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
+import com.ricedotwho.rsm.utils.ItemUtils;
 import lombok.Getter;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ClientboundPingPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
@@ -323,7 +325,7 @@ public class BloodBlink extends Module {
                         // If we can't pearl
                         state = 29;
                         // Can't use pearl() because concurrentModification exception
-                        if (!SwapManager.swapItem(Items.ENDER_PEARL)) return;
+                        if (!SwapManager.swapItem(i -> i.getItem() == Items.ENDER_PEARL && ItemUtils.getID(i).isEmpty())) return;
                         if (!SwapManager.sendAirC08(player.getYRot(), -90f, true, true)) {
                             ChatUtils.chat("Pearl failed!");
                             return;
@@ -418,7 +420,7 @@ public class BloodBlink extends Module {
 
     private void pearl(float yaw, float pitch, Runnable succeed) {
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
-            if (!SwapManager.swapItem(Items.ENDER_PEARL)) return;
+            if (!SwapManager.swapItem(i -> i.getItem() == Items.ENDER_PEARL && ItemUtils.getID(i).isEmpty())) return;
             if (!SwapManager.sendAirC08(yaw, pitch, true, false)) return;
             if (succeed != null) succeed.run();
         });

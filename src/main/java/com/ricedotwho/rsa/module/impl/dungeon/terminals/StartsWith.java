@@ -1,5 +1,8 @@
 package com.ricedotwho.rsa.module.impl.dungeon.terminals;
 
+import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
+import com.ricedotwho.rsa.module.impl.dungeon.AutoTerms;
+import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
@@ -69,7 +72,7 @@ public class StartsWith extends Terminal {
             ItemStack stack = slot.getItem();
 
             if (stack.isEmpty()) continue;
-            if (Boolean.TRUE.equals(stack.get(DataComponents.ENCHANTMENT_GLINT_OVERRIDE)) || stack.isEnchanted()) continue; // Fuck you, isEnchanted check doesn;t work
+            if (RSM.getModule(AutoTerms.class).getClickedSlotsTracker().contains(slot)) continue; // Fuck you, isEnchanted check doesn;t work
 
             String name = ChatFormatting.stripFormatting(stack.getHoverName().getString()).toLowerCase();
 

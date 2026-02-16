@@ -58,8 +58,8 @@ public class BatNode extends Node {
 
     private boolean hasBatNear(Pos player, ClientLevel level) {
         Vec3 playerPos = player.asVec3();
-        AABB aabb = new AABB(playerPos, playerPos).inflate(6.0d, 6.0d, 6.0d);
-        return level.getEntitiesOfClass(Bat.class, aabb).stream().anyMatch(bat -> bat.distanceToSqr(playerPos) < 36);
+        AABB aabb = new AABB(playerPos, playerPos).inflate(10.0d, 10.0d, 10.0d);
+        return level.getEntitiesOfClass(Bat.class, aabb).stream().anyMatch(bat -> bat.distanceToSqr(playerPos) < 100);
     }
 
     private static boolean isWitherBlade(ItemStack itemStack) {

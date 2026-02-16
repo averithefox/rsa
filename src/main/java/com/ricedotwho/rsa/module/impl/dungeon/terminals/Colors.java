@@ -1,5 +1,7 @@
 package com.ricedotwho.rsa.module.impl.dungeon.terminals;
 
+import com.ricedotwho.rsa.module.impl.dungeon.AutoTerms;
+import com.ricedotwho.rsm.RSM;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
@@ -77,7 +79,7 @@ public class Colors extends Terminal {
             ItemStack stack = slot.getItem();
 
             if (stack.isEmpty()) continue;
-            if (Boolean.TRUE.equals(stack.get(DataComponents.ENCHANTMENT_GLINT_OVERRIDE)) || stack.isEnchanted()) continue;
+            if (RSM.getModule(AutoTerms.class).getClickedSlotsTracker().contains(slot)) continue; // Fuck you, isEnchanted check doesn;t work
 
             String fixedName = fixColorItemName(ChatFormatting.stripFormatting(stack.getHoverName().getString()).toLowerCase());
 

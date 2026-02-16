@@ -70,9 +70,15 @@ public class AutoTerms extends Module {
 
     private final DragSetting termTitle = new DragSetting("Term Title", new Vector2d(10, 10), new Vector2d(150, 15));
     private final DragSetting clicksText = new DragSetting("Clicks Text", new Vector2d(10, 10), new Vector2d(150, 15));
-    private final DragSetting gui = new DragSetting("Visualiser Gui", new Vector2d(10d, 10d), new Vector2d(144, 80));
+    private final DragSetting gui = new DragSetting("Visualiser Gui", new Vector2d(551, 330), new Vector2d(144, 80));
+
+    @Getter
+    private ClickedSlotsTracker clickedSlotsTracker;
+
 
     public AutoTerms() {
+        this.clickedSlotsTracker = new ClickedSlotsTracker();
+        this.terminalRenderer = new TerminalRenderer();
         registerProperty(
                 firstClickDelay,
                 delay,
@@ -98,12 +104,11 @@ public class AutoTerms extends Module {
                 doMoveDelay,
                 melodyMoveDelay
         );
-        this.terminalRenderer = new TerminalRenderer();
     }
 
     @SubscribeEvent
     public void onLoadWorld(WorldEvent.Load event) {
-        this.terminal = null;
+        close();
     }
 
     @SubscribeEvent
@@ -146,6 +151,7 @@ public class AutoTerms extends Module {
 //                ChatUtils.chat("new : " + newState.getHash());
                 this.firstClick = true;
                 this.lastClickTime = System.currentTimeMillis();
+                this.clickedSlotsTracker.clear();
             }
             this.predictedState = null;
         }
@@ -214,6 +220,8 @@ public class AutoTerms extends Module {
         if (Minecraft.getInstance().player == null) return;
         if (!isInTerm() || click.index() < 0 || click.index() >= terminal.getType().getSlotCount()) return;
         // Make some checks
+        if (this.terminal instanceof StartsWith || this.terminal instanceof Colors)
+            this.clickedSlotsTracker.clickSlot(this.terminalContainer.getSlot(click.index()));
         sendWindowClick(terminal.getWindowID(), click, Minecraft.getInstance().player, this.terminalContainer);
     }
 
@@ -221,6 +229,7 @@ public class AutoTerms extends Module {
     public void onTick(ClientTickEvent.Start event) {
         if (isInTerm()) return;
         firstClick = true;
+        this.clickedSlotsTracker.clear();
         lastClickTime = System.currentTimeMillis();
     }
 
@@ -289,17 +298,11 @@ public class AutoTerms extends Module {
         this.predictedState = null;
         this.firstClick = true;
         this.lastClickTime = System.currentTimeMillis();
+        this.clickedSlotsTracker.clear();
     }
 
     @SubscribeEvent
     public void onSendPacket(PacketEvent.Send event) {
-//        if (event.getPacket() instanceof  ServerboundContainerClickPacket packet) {
-//            ChatUtils.chat("WindowID : " + packet.containerId());
-//            ChatUtils.chat("ActionID : " + packet.stateId());
-//            ChatUtils.chat("Changed Slots : " + packet.changedSlots());
-//            ChatUtils.chat("Carried Item : " + packet.carriedItem());
-//        }
-
         if (isInTerm() && event.getPacket() instanceof ServerboundContainerClosePacket packet) {
             this.close();
             return;

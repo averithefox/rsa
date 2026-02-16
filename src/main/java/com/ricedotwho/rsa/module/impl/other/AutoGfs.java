@@ -112,7 +112,7 @@ public class AutoGfs extends Module {
         if (enderPearlStackSize > 0 && enderPearlStackSize < 16) {
             int missingAmount = 16 - enderPearlStackSize;
             player.connection.sendCommand("gfs ender_pearl " + missingAmount);
-            ChatUtils.chat("GFS ep: " + missingAmount);
+            //ChatUtils.chat("GFS ep: " + missingAmount);
             return true;
         }
         return false;
@@ -138,7 +138,7 @@ public class AutoGfs extends Module {
         if(spiritLeapCount > 0 && spiritLeapCount < 16){
             int missingAmount = 16 - spiritLeapCount;
             player.connection.sendCommand("gfs spirit_leap " + missingAmount);
-            ChatUtils.chat("GFS sl: " + missingAmount);
+            //ChatUtils.chat("GFS sl: " + missingAmount);
             return true;
         }
         return false;
@@ -163,7 +163,7 @@ public class AutoGfs extends Module {
         if(superBoomCount > 0 && superBoomCount < 64){
             int missingAmount = 64 - superBoomCount;
             player.connection.sendCommand("gfs superboom_tnt " + missingAmount);
-            ChatUtils.chat("GFS sb: " + missingAmount);
+            //ChatUtils.chat("GFS sb: " + missingAmount);
             return true;
         }
         return false;
