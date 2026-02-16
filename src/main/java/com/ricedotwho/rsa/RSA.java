@@ -20,15 +20,19 @@ import com.ricedotwho.rsm.component.api.ModComponent;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.module.Module;
 import lombok.Getter;
+import net.fabricmc.loader.api.FabricLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 public class RSA implements Addon {
 
     @Getter
     private static final Logger logger = LogManager.getLogger("rsa");
+    public static Path SOUNDS_FOLDER;
 
     @Override
     public void onInitialize() {
@@ -39,6 +43,17 @@ public class RSA implements Addon {
         AutoroutesFileManager.load();
 
         Renderer3D.registerLine(Ring.class);
+
+        SOUNDS_FOLDER = FabricLoader.getInstance()
+                .getConfigDir()
+                .resolve("rsm")
+                .resolve("sounds");
+
+        try {
+            Files.createDirectories(SOUNDS_FOLDER);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -72,7 +87,7 @@ public class RSA implements Addon {
                 Esp.class,
                 AlignAura.class,
                 AntiCheat.class,
-                FastLeap.class
+                TestingStuff.class
         );
     }
 
