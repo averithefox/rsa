@@ -14,7 +14,7 @@ public enum TerminalType {
     STARTSWITH(2, "What starts with:", 44, StartsWith::supply),
     RUBIX(3, "Change all to same color!", 44, Rubix::supply),
     REDGREEN(4, "Correct all the panes!", 44, RedGreen::supply),
-    MELODY(5, "Click the button on time!", 44, null);
+    MELODY(5, "Click the button on time!", 44, Melody::supply);
     @Getter
     private final int id;
 

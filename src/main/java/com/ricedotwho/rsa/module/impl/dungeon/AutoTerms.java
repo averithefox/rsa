@@ -7,6 +7,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.terminals.*;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
+import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.event.impl.render.Render2DEvent;
@@ -20,11 +21,13 @@ import com.ricedotwho.rsm.utils.ChatUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.HashedStack;
 import net.minecraft.network.protocol.game.*;
+import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
@@ -48,6 +51,8 @@ public class AutoTerms extends Module {
     private final NumberSetting delay = new NumberSetting("Delay", 100d, 250d, 150d, 5d);
     private final NumberSetting breakThreshold = new NumberSetting("Break Threshold", 200d, 800d, 500d, 10d);
 
+    private final BooleanSetting melodySkip = new BooleanSetting("Melody Skip", true);
+
     private final GroupSetting invWalkGroup = new GroupSetting("Invwalk");
     private final BooleanSetting doInvwalk = new BooleanSetting("Enabled", false);
     private final ModeSetting style = new ModeSetting("Style", "Items", Arrays.asList("Solver", "Items"));
@@ -65,8 +70,7 @@ public class AutoTerms extends Module {
     private final NumberSetting gap = new NumberSetting("Gap", 0, 3, 1.5, 0.01);
     private final BooleanSetting textShadow = new BooleanSetting("Text Shadow", false);
 
-    private final BooleanSetting doMoveDelay = new BooleanSetting("Do move delay", true);
-    private final NumberSetting melodyMoveDelay = new NumberSetting("Move delay", 0, 10, 6, 1);
+    private final NumberSetting melodyMoveDelay = new NumberSetting("Melody Move Delay", 0, 10, 6, 1);
 
     private final DragSetting termTitle = new DragSetting("Term Title", new Vector2d(10, 10), new Vector2d(150, 15));
     private final DragSetting clicksText = new DragSetting("Clicks Text", new Vector2d(10, 10), new Vector2d(150, 15));
@@ -74,6 +78,8 @@ public class AutoTerms extends Module {
 
     @Getter
     private ClickedSlotsTracker clickedSlotsTracker;
+
+    private int melodyMoveCounter = 0;
 
 
     public AutoTerms() {
@@ -83,6 +89,7 @@ public class AutoTerms extends Module {
                 firstClickDelay,
                 delay,
                 breakThreshold,
+                melodySkip,
                 invWalkGroup,
                 gui,
                 termTitle,
@@ -101,9 +108,12 @@ public class AutoTerms extends Module {
                 oppositeColour,
                 gap,
                 textShadow,
-                doMoveDelay,
                 melodyMoveDelay
         );
+    }
+
+    public boolean isMelodySkip() {
+        return this.melodySkip.getValue();
     }
 
     @SubscribeEvent
@@ -135,7 +145,7 @@ public class AutoTerms extends Module {
     @SubscribeEvent
     public void render(Render3DEvent.Last event) {
         // issues with race conditions
-        if (!isInTerm()) return;
+        if (!isInTerm() || terminal instanceof Melody) return;
 
         if (terminal.shouldSolve() && !terminal.isSolved()) {
             terminal.solve();
@@ -216,7 +226,7 @@ public class AutoTerms extends Module {
         connection.send(new ServerboundContainerClickPacket(windowID, abstractContainerMenu.getStateId(), Shorts.checkedCast(click.index()), SignedBytes.checkedCast(click.button()), click.type(), int2ObjectMap, hashedStack));
     }
 
-    private void sendWindowClick(SolutionClick click) {
+    public void sendWindowClick(SolutionClick click) {
         if (Minecraft.getInstance().player == null) return;
         if (!isInTerm() || click.index() < 0 || click.index() >= terminal.getType().getSlotCount()) return;
         // Make some checks
@@ -225,9 +235,31 @@ public class AutoTerms extends Module {
         sendWindowClick(terminal.getWindowID(), click, Minecraft.getInstance().player, this.terminalContainer);
     }
 
+    // This works for strafe but not for forwards and backwards for some reason
+    @SubscribeEvent
+    public void onPollInput(InputPollEvent event) {
+        if (this.melodyMoveCounter < 1) return;
+
+        if (Minecraft.getInstance().screen == null && !this.isInTerm()) {
+            this.melodyMoveCounter = 0;
+            return;
+        }
+
+        Input oldInputs = event.getClientInput();
+        Input newInputs = new Input(false, false, false, false, false, oldInputs.shift(), false);
+        event.getInputConsumer().accept(newInputs);
+
+        this.melodyMoveCounter--;
+    }
+
     @SubscribeEvent
     public void onTick(ClientTickEvent.Start event) {
-        if (isInTerm()) return;
+        if (isInTerm()) {
+            if (!(terminal instanceof Melody melody)) return;
+            if (melody.onTickStart(this)) this.melodyMoveCounter = this.melodyMoveDelay.getValue().intValue();
+            return;
+        }
+
         firstClick = true;
         this.clickedSlotsTracker.clear();
         lastClickTime = System.currentTimeMillis();
@@ -261,7 +293,7 @@ public class AutoTerms extends Module {
         }
 
         if (isInTerm() && event.getPacket() instanceof ClientboundContainerSetSlotPacket packet) {
-            if (packet.getContainerId() == 0) return;
+            if (packet.getContainerId() == 0 || packet.getContainerId() != this.terminalContainer.containerId) return;
             terminalContainer.setItem(packet.getSlot(), packet.getStateId(), packet.getItem());
             terminal.loadSlot(packet);
 

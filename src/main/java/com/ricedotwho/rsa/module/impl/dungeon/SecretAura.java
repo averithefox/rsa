@@ -55,6 +55,7 @@ public class SecretAura extends Module {
     private static final String REDSTONE_KEY_ID = "fed95410-aba1-39df-9b95-1d4f361eb66e";
     private static final String WITHER_ESSENCE_ID = "e0f3e929-869e-3dca-9504-54c666ee6f23";
 
+
     private final ModeSetting type = new ModeSetting("Type", "Triggerbot", List.of("Triggerbot", "Aura"));
     private final MultiSetting bigHitboxes = new MultiSetting("Hitboxes", new ArrayList<>(), List.of("Big Buttons", "Big Levers", "Big Skulls"));
     private final NumberSetting delay = new NumberSetting("Click Delay", 100, 4000, 150, 50);
