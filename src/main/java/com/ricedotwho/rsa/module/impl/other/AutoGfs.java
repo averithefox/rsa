@@ -14,12 +14,15 @@ import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.StringSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.ItemUtils;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+
+import java.util.function.Predicate;
 
 @Getter
 @ModuleInfo(aliases = "AutoGfs", id = "AutoGfs", category = Category.OTHER)
@@ -100,7 +103,7 @@ public class AutoGfs extends Module {
     private boolean tryGetEnderPearls(LocalPlayer player) {
         int enderPearlStackSize = 0;
         try {
-            ItemStack stack = findItemStackMatching(Items.ENDER_PEARL);
+            ItemStack stack = findItemStackMatching(i -> i.getItem() == Items.ENDER_PEARL && ItemUtils.getID(i).equals("ENDER_PEARL"));
             if (stack != null) {
                 enderPearlStackSize = stack.getCount();
             }
@@ -190,12 +193,16 @@ public class AutoGfs extends Module {
     }
 
     public static ItemStack findItemStackMatching(Item item) {
+        return findItemStackMatching(i -> i.getItem() == item);
+    }
+
+    public static ItemStack findItemStackMatching(Predicate<ItemStack> predicate) {
         LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null || item == null) return null;
+        if (player == null) return null;
 
         for (int i = 0; i < 9; i++) {
             ItemStack stack = player.getInventory().getItem(i); // Hotbar is 0 - 8
-            if (stack.getItem() != item) continue;
+            if (!predicate.test(stack)) continue;
             return stack;
         }
         return null;

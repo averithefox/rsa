@@ -6,6 +6,7 @@ import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
+import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
@@ -13,15 +14,14 @@ import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
-import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
-import com.ricedotwho.rsm.ui.clickgui.settings.impl.ModeSetting;
-import com.ricedotwho.rsm.ui.clickgui.settings.impl.MultiSetting;
-import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.*;
+import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
 import com.ricedotwho.rsm.utils.RotationUtils;
 import it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import lombok.Getter;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -39,6 +39,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,6 +84,7 @@ public class SecretAura extends Module {
                 forceSkyblock
         );
     }
+
 
     @SubscribeEvent
     public void onWorldLoad(WorldEvent.Load event) {

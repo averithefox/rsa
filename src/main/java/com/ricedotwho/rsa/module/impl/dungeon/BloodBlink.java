@@ -36,7 +36,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ClientboundPingPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
@@ -325,7 +324,7 @@ public class BloodBlink extends Module {
                         // If we can't pearl
                         state = 29;
                         // Can't use pearl() because concurrentModification exception
-                        if (!SwapManager.swapItem(i -> i.getItem() == Items.ENDER_PEARL && ItemUtils.getID(i).isEmpty())) return;
+                        if (!SwapManager.swapItem(i -> i.getItem() == Items.ENDER_PEARL && isNormalEnderpearlID(ItemUtils.getID(i)))) return;
                         if (!SwapManager.sendAirC08(player.getYRot(), -90f, true, true)) {
                             ChatUtils.chat("Pearl failed!");
                             return;
@@ -370,6 +369,10 @@ public class BloodBlink extends Module {
             rotation = Direction.SOUTH;
         }
         return rotation;
+    }
+
+    private boolean isNormalEnderpearlID(String s) {
+        return s.equals("ENDER_PEARL");
     }
 
     private static Vec3 fastRotateVec(Direction direction, double x, double y, double z) {
@@ -420,7 +423,7 @@ public class BloodBlink extends Module {
 
     private void pearl(float yaw, float pitch, Runnable succeed) {
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
-            if (!SwapManager.swapItem(i -> i.getItem() == Items.ENDER_PEARL && ItemUtils.getID(i).isEmpty())) return;
+            if (!SwapManager.swapItem(i -> i.getItem() == Items.ENDER_PEARL && isNormalEnderpearlID(ItemUtils.getID(i)))) return;
             if (!SwapManager.sendAirC08(yaw, pitch, true, false)) return;
             if (succeed != null) succeed.run();
         });

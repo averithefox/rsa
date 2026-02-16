@@ -43,8 +43,12 @@ public class AutoTerms extends Module {
     private boolean clickedWindow = false;
     private boolean firstClick = true;
     private Terminal terminal;
+
     private AbstractContainerMenu terminalContainer;
+    @Getter
+    private final ClickedSlotsTracker clickedSlotsTracker;
     private final TerminalRenderer terminalRenderer;
+
     private TerminalState predictedState = null;
 
     private final NumberSetting firstClickDelay = new NumberSetting("First Click Delay", 200d, 600d, 400d, 5d);
@@ -76,8 +80,6 @@ public class AutoTerms extends Module {
     private final DragSetting clicksText = new DragSetting("Clicks Text", new Vector2d(10, 10), new Vector2d(150, 15));
     private final DragSetting gui = new DragSetting("Visualiser Gui", new Vector2d(551, 330), new Vector2d(144, 80));
 
-    @Getter
-    private ClickedSlotsTracker clickedSlotsTracker;
 
     private int melodyMoveCounter = 0;
 
