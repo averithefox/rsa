@@ -1,7 +1,5 @@
 package com.ricedotwho.rsa.module.impl.other;
 
-import com.ricedotwho.rsa.component.impl.managers.SwapManager;
-import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
@@ -13,16 +11,10 @@ import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.Mth;
-import net.minecraft.world.inventory.tooltip.BundleTooltip;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
-
-import java.awt.datatransfer.Clipboard;
-
-import static net.minecraft.core.Direction.getYRot;
 
 @Getter
 @ModuleInfo(aliases = "DevUtils", id = "DevUtils", category = Category.OTHER)
@@ -59,19 +51,14 @@ public class DevUtils extends Module {
         if(player == null) return;
 
         if(hitResult.getType() == HitResult.Type.BLOCK) {
-            String x = String.valueOf(hitResult.getLocation().x);
-            String y = String.valueOf(hitResult.getLocation().y);
-            String z = String.valueOf(hitResult.getLocation().z);
-
-            String simpleX = String.valueOf(Mth.floor(Float.parseFloat(x)));
-            String simpleY = String.valueOf(Mth.floor(Float.parseFloat(y)));
-            String simpleZ = String.valueOf(Mth.floor(Float.parseFloat(z)));
-
+            Minecraft client = Minecraft.getInstance();
+            BlockHitResult blockHit = (BlockHitResult) client.hitResult;
+            BlockPos pos = blockHit.getBlockPos();
+            double x = pos.getX() + .5;
+            int y = pos.getY();
+            double z = pos.getZ() + .5;
 
             String BlockInfo = x + ", " + y + ", " + z;
-            String SblockInfo = simpleX + ", " + simpleY + ", " + simpleZ;;
-
-            ChatUtils.chat("SimpleString: " + SblockInfo);
             ChatUtils.chat("XYZ: " + BlockInfo);
         }
     });
