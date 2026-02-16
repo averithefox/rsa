@@ -23,13 +23,13 @@ import java.util.regex.Pattern;
 
 public class invWalk {
     public static boolean startChecking;
-    private static Pattern playerName = Pattern.compile("^(\\w+)\\s+activated a terminal");
+    private static final Pattern playerName = Pattern.compile("^(\\w+)\\s+activated a terminal");
     public static String username;
 
-    private static Map<BlockPos, Entity> inactiveTerminals = new HashMap<>();
-    private static List<String> termCompleter = new ArrayList<>();
-    private static List<Double> TermPos = new ArrayList<>();
-    private static List<Double> PlayerPos = new ArrayList<>();
+    private static final Map<BlockPos, Entity> inactiveTerminals = new HashMap<>();
+    private static final List<String> termCompleter = new ArrayList<>();
+    private static final List<Double> TermPos = new ArrayList<>();
+    private static final List<Double> PlayerPos = new ArrayList<>();
 
     @SubscribeEvent
     public static void setRunning(){
@@ -47,7 +47,6 @@ public class invWalk {
 
         AABB searchBox = player.getBoundingBox().inflate(192);
         List<Entity> entities = level.getEntities(null, searchBox);
-
         Set<BlockPos> currentInactive = new HashSet<>();
 
         for(Entity entity : entities) {
@@ -94,29 +93,23 @@ public class invWalk {
 
             if(xOffset > 7 && xOffset < 40|| xOffset < -7 && xOffset > -40){
                 ChatUtils.chat("§b" + username + " §7Failed InvWalk Check §4§lxOffSet§r§7: §8" + xOffset);
-                xOffset = 0;
                 username = null;
             }else if(yOffset > 13 || yOffset < -13) {
                 ChatUtils.chat("§b" + username + " §7Failed InvWalk Check §4§lyOffSet§r§7: §8" + yOffset);
-                yOffset = 0;
                 username = null;
             }else if(zOffset > 7 && zOffset < 40|| zOffset < -7 && zOffset > -40) {
                 ChatUtils.chat("§b" + username + " §7Failed InvWalk Check §4§lzOffSet§r§7: §8" + zOffset);
-                zOffset = 0;
                 username = null;
             }else if(xOffset > 40 || xOffset < -40) {
                 ChatUtils.chat("§b" + username + " §7Failed AutoLeap Check §4§lzOffSet§r§7: §8" + xOffset);
-                zOffset = 0;
                 username = null;
             }else if(zOffset > 40 || zOffset < -40) {
                 ChatUtils.chat("§b" + username + " §7Failed AutoLeap Check §4§lzOffSet§r§7: §8" + zOffset);
-                zOffset = 0;
                 username = null;
             }
             PlayerPos.clear();
             TermPos.clear();
         }
-
         termCompleter.clear();
         inactiveTerminals.keySet().retainAll(currentInactive);
     }
@@ -131,26 +124,6 @@ public class invWalk {
         if(matcher.find()){
             termCompleter.add(matcher.group(1));
             username = matcher.group(1);
-        }
-    }
-
-    @AllArgsConstructor
-    private enum EntityType {
-        PartyPlayer(Player.class, e -> Dungeon.getPlayer((Player) e) != null),
-        INACTIVETERMINAL(ArmorStand.class, e -> e.getName().getString().contains("Inactive Terminal")),
-        ACTIVETERMINAL(ArmorStand.class, e -> e.getName().getString().contains("Terminal Active"));
-
-        private Class<? extends Entity> entityClass;
-        private Predicate<Entity> isValid;
-
-        public static boolean isValidEntity(Entity entity) {
-            EntityType type = Arrays.stream(values())
-                    .filter(t -> t.entityClass.isInstance(entity))
-                    .findFirst()
-                    .orElse(null);
-
-            return type != null &&
-                    type.isValid.test(entity);
         }
     }
 }
