@@ -68,7 +68,7 @@ public class invWalk {
                         TermPos.add(TermY);
                         TermPos.add(TermZ);
                         inactiveTerminals.remove(pos);
-                    }else{TermPos.clear();}
+                    }
                 }
             }
 
@@ -92,7 +92,7 @@ public class invWalk {
             PlayerPos.clear();
             TermPos.clear();
 
-            if(xOffset > 7 || xOffset < -7){
+            if(xOffset > 7 && xOffset < 40|| xOffset < -7 && xOffset > -40){
                 ChatUtils.chat("§b" + username + " §7Failed InvWalk Check §4§lxOffSet§r§7: §8" + xOffset);
                 xOffset = 0;
                 username = null;
@@ -100,8 +100,16 @@ public class invWalk {
                 ChatUtils.chat("§b" + username + " §7Failed InvWalk Check §4§lyOffSet§r§7: §8" + yOffset);
                 yOffset = 0;
                 username = null;
-            }else if(zOffset > 7 || zOffset < -7) {
+            }else if(zOffset > 7 && zOffset < 40|| zOffset < -7 && zOffset > -40) {
                 ChatUtils.chat("§b" + username + " §7Failed InvWalk Check §4§lzOffSet§r§7: §8" + zOffset);
+                zOffset = 0;
+                username = null;
+            }else if(xOffset > 40 || xOffset < -40) {
+                ChatUtils.chat("§b" + username + " §7Failed AutoLeap Check §4§lzOffSet§r§7: §8" + xOffset);
+                zOffset = 0;
+                username = null;
+            }else if(zOffset > 40 || zOffset < -40) {
+                ChatUtils.chat("§b" + username + " §7Failed AutoLeap Check §4§lzOffSet§r§7: §8" + zOffset);
                 zOffset = 0;
                 username = null;
             }
