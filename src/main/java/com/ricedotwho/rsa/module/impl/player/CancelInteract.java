@@ -25,7 +25,6 @@ public class CancelInteract extends Module {
 
     private static final List<Class<?>> WHITELIST = List.of(
             LeverBlock.class,
-            CauldronBlock.class,
             SkullBlock.class,
             ChestBlock.class
     );
@@ -48,7 +47,8 @@ public class CancelInteract extends Module {
             BlockTags.BUTTONS,
             BlockTags.COPPER_CHESTS,
             BlockTags.WALLS,
-            BlockTags.FENCES
+            BlockTags.FENCES,
+            BlockTags.DIRT
     );
 
     public CancelInteract() {

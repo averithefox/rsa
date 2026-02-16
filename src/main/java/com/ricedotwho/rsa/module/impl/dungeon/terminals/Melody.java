@@ -69,7 +69,8 @@ public class Melody extends Terminal {
         int mod = slot % 9;
 
         this.queue.clear();
-        boolean skip = RSM.getModule(AutoTerms.class).isMelodySkip() && (mod == 1 || mod == 5);
+        AutoTerms module = RSM.getModule(AutoTerms.class);
+        boolean skip = module.getMelodySkip().getValue() && (mod == 1 || mod == 5) && (!module.getMelodySkipFirst().getValue() || buttonIndex > 18);
         if (!skip) {
             this.queue.add(new SolutionClick(ClickType.CLONE, buttonIndex, 0));
             return;

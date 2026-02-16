@@ -55,7 +55,7 @@ public class AntiCheat extends Module {
     }
 
     @SubscribeEvent
-    public void InvWalk2(ChatEvent event){
+    public void InvWalk2(ChatEvent.Chat event){
         if(!termWalking.getValue()) return;
         terminalCompletedMsg(event);
     }

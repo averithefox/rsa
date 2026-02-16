@@ -205,7 +205,7 @@ public class AutoSS extends Module {
     }
 
     @SubscribeEvent
-    public void onChatMessage(ChatEvent event) {
+    public void onChatMessage(ChatEvent.Chat event) {
         if (!areaCheck() || !autoStart.getValue()) return;
         if (Minecraft.getInstance().player == null) return;
         String msg = event.getMessage().getString();

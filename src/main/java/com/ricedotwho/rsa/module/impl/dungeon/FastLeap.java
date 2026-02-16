@@ -69,27 +69,27 @@ public class FastLeap extends Module {
     private final BooleanSetting flMessage = new BooleanSetting("Chat Message", false);
     private final BooleanSetting flP3 = new BooleanSetting("P3 Only", true);
     private final ModeSetting flS1 = new ModeSetting("S1", "Archer", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom"));
-    private final StringSetting flS1Custom = new StringSetting("S1 Custom", "");
+    private final StringSetting flS1Custom = new StringSetting("S1 Custom", "", true, false, () -> flS1.is("Custom"));
     private final ModeSetting flS2 = new ModeSetting("S2", "Healer", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom"));
-    private final StringSetting flS2Custom = new StringSetting("S2 Custom", "");
+    private final StringSetting flS2Custom = new StringSetting("S2 Custom", "", true, false, () -> flS2.is("Custom"));
     private final ModeSetting flS3 = new ModeSetting("S3", "Mage", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom"));
-    private final StringSetting flS3Custom = new StringSetting("S3 Custom", "");
+    private final StringSetting flS3Custom = new StringSetting("S3 Custom", "", true, false, () -> flS3.is("Custom"));
     private final ModeSetting flS4 = new ModeSetting("S4", "Mage", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom"));
-    private final StringSetting flS4Custom = new StringSetting("S4 Custom", "");
+    private final StringSetting flS4Custom = new StringSetting("S4 Custom", "", true, false, () -> flS4.is("Custom"));
 
     private final ModeSetting flP1 = new ModeSetting("P1", "Berserk", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom"));
-    private final StringSetting flP1Custom = new StringSetting("P1 Custom", "");
+    private final StringSetting flP1Custom = new StringSetting("P1 Custom", "", true, false, () -> flP1.is("Custom"));
 
     private final ModeSetting flP2 = new ModeSetting("P2", "Auto", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom", "Auto"));
-    private final StringSetting flP2Custom = new StringSetting("P2 Custom", "");
+    private final StringSetting flP2Custom = new StringSetting("P2 Custom", "", true, false, () -> flP2.is("Custom"));
 
     private final ModeSetting flP4 = new ModeSetting("P4", "Berserk", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom"));
-    private final StringSetting flP4Custom = new StringSetting("P4 Custom", "");
+    private final StringSetting flP4Custom = new StringSetting("P4 Custom", "", true, false, () -> flP4.is("Custom"));
 
     private final ModeSetting flP5Orange = new ModeSetting("P5 Orange", "Berserk", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom"));
-    private final StringSetting flP5OrangeCustom = new StringSetting("Orange Custom", "");
+    private final StringSetting flP5OrangeCustom = new StringSetting("Orange Custom", "", true, false, () -> flP5Orange.is("Custom"));
     private final ModeSetting flP5Red = new ModeSetting("P5 Red", "Archer", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom"));
-    private final StringSetting flP5RedCustom = new StringSetting("Red Custom", "");
+    private final StringSetting flP5RedCustom = new StringSetting("Red Custom", "", true, false, () -> flP5Red.is("Custom"));
 
     private static String toLeap = null;
     private static boolean openingGui = false;
@@ -159,7 +159,7 @@ public class FastLeap extends Module {
 
         String leap = getLeap();
         if (leap == null || "NONE".equals(leap) || mc.player.getName().getString().equalsIgnoreCase(leap)) {
-            module.modMessage(ChatFormatting.RED + "Couldn't find who to leap to!");
+            module.modMessage(ChatFormatting.RED + "Couldn't find who to leap to! (" + leap + ")");
             return false;
         }
 
@@ -288,9 +288,9 @@ public class FastLeap extends Module {
                     DungeonPlayer healer = Dungeon.getClazz(DungeonClass.HEALER);
                     DungeonPlayer mage = Dungeon.getClazz(DungeonClass.MAGE);
                     DungeonPlayer bers = Dungeon.getClazz(DungeonClass.BERSERKER);
-                    if(me.getMyClass().equals(DungeonClass.TANK) && mage != null && Location.getFloor().equals(Floor.F7)) return mage.getName();
-                    if(healer != null && !me.equals(healer)) return healer.getName();
-                    if(bers != null && me.equals(healer)) return bers.getName();
+                    if(me.getMyClass().equals(DungeonClass.TANK) && mage != null && Location.getFloor().equals(Floor.F7)) return mage;
+                    if(healer != null && !me.equals(healer)) return healer;
+                    if(bers != null && me.equals(healer)) return bers;
                     return -1;
                 }
                 return module.getFlP2().is("Custom") ? module.getFlP2Custom().getValue() : module.getFlP2().getIndex();
@@ -317,11 +317,13 @@ public class FastLeap extends Module {
 
     private static DungeonPlayer getClassPlayer() {
         Object yuh = getStageClass();
-        if(yuh instanceof String) {
-            return Dungeon.getPlayer((String) yuh);
-        } else {
-            return Dungeon.getClazz((int) yuh);
+        if (yuh instanceof DungeonPlayer dp) {
+            return dp;
         }
+        if (yuh instanceof String s) {
+            return Dungeon.getPlayer(s);
+        }
+        return Dungeon.getClazz((int) yuh);
     }
 
     private void modMessage(String message) {

@@ -202,7 +202,7 @@ public class AlignAura extends Module {
     }
 
     @SubscribeEvent
-    public void onChat(ChatEvent event) {
+    public void onChat(ChatEvent.Chat event) {
         if(mc.player == null || !Location.getArea().is(Island.Dungeon)) return;
         String message = ChatFormatting.stripFormatting(event.getMessage().getString()).trim();
         if(("[BOSS] Goldor: Who dares trespass into my domain?".equals(message))) {

@@ -91,7 +91,7 @@ public class AutoJax extends Module {
     }
 
     @SubscribeEvent
-    public void onChat(ChatEvent event) {
+    public void onChat(ChatEvent.Chat event) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
         Vec3 pos = player.position();

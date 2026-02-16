@@ -1,4 +1,4 @@
-package com.ricedotwho.rsa.mixins;
+package com.ricedotwho.rsa.mixins.accessor;
 
 import net.minecraft.client.player.LocalPlayer;
 import org.spongepowered.asm.mixin.Mixin;

@@ -3,6 +3,8 @@ package com.ricedotwho.rsa.module.impl.dungeon;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Shorts;
 import com.google.common.primitives.SignedBytes;
+import com.ricedotwho.rsa.component.impl.TickFreeze;
+import com.ricedotwho.rsa.event.impl.RawTickEvent;
 import com.ricedotwho.rsa.module.impl.dungeon.terminals.*;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.data.Colour;
@@ -37,6 +39,7 @@ import org.joml.Vector2d;
 import java.util.Arrays;
 import java.util.List;
 
+@Getter
 @ModuleInfo(aliases = "AutoTerms", id = "AutoTerms", category = Category.DUNGEONS)
 public class AutoTerms extends Module {
     private long lastClickTime = 0L;
@@ -45,7 +48,6 @@ public class AutoTerms extends Module {
     private Terminal terminal;
 
     private AbstractContainerMenu terminalContainer;
-    @Getter
     private final ClickedSlotsTracker clickedSlotsTracker;
     private final TerminalRenderer terminalRenderer;
 
@@ -56,6 +58,7 @@ public class AutoTerms extends Module {
     private final NumberSetting breakThreshold = new NumberSetting("Break Threshold", 200d, 800d, 500d, 10d);
 
     private final BooleanSetting melodySkip = new BooleanSetting("Melody Skip", true);
+    private final BooleanSetting melodySkipFirst = new BooleanSetting("Don't Skip First", true);
 
     private final GroupSetting invWalkGroup = new GroupSetting("Invwalk");
     private final BooleanSetting doInvwalk = new BooleanSetting("Enabled", false);
@@ -74,7 +77,8 @@ public class AutoTerms extends Module {
     private final NumberSetting gap = new NumberSetting("Gap", 0, 3, 1.5, 0.01);
     private final BooleanSetting textShadow = new BooleanSetting("Text Shadow", false);
 
-    private final NumberSetting melodyMoveDelay = new NumberSetting("Melody Move Delay", 0, 10, 6, 1);
+    private final ModeSetting moveDelayMode = new ModeSetting("Mode Delay", "Stop Inputs", List.of("Stop Inputs", "Freeze"));
+    private final NumberSetting melodyMoveDelay = new NumberSetting("Melody Move Delay", 0, 500, 300, 50);
 
     private final DragSetting termTitle = new DragSetting("Term Title", new Vector2d(10, 10), new Vector2d(150, 15));
     private final DragSetting clicksText = new DragSetting("Clicks Text", new Vector2d(10, 10), new Vector2d(150, 15));
@@ -92,6 +96,7 @@ public class AutoTerms extends Module {
                 delay,
                 breakThreshold,
                 melodySkip,
+                melodySkipFirst,
                 invWalkGroup,
                 gui,
                 termTitle,
@@ -110,12 +115,9 @@ public class AutoTerms extends Module {
                 oppositeColour,
                 gap,
                 textShadow,
+                moveDelayMode,
                 melodyMoveDelay
         );
-    }
-
-    public boolean isMelodySkip() {
-        return this.melodySkip.getValue();
     }
 
     @SubscribeEvent
@@ -135,9 +137,7 @@ public class AutoTerms extends Module {
            if (this.style.is("Items")) {
                gui.renderScaledGFX(event.getGfx(), () -> terminalRenderer.renderItems(event.getGfx(), this.terminal), width, height);
            } else {
-               gui.renderScaled(event.getGfx(), () -> {
-                   terminalRenderer.renderSolver(this.gap.getValue().floatValue(), this.terminal);
-               }, width, height);
+               gui.renderScaled(event.getGfx(), () -> terminalRenderer.renderSolver(this.gap.getValue().floatValue(), this.terminal), width, height);
            }
        } catch (Exception e) {
            throw new RuntimeException(e);
@@ -256,15 +256,24 @@ public class AutoTerms extends Module {
 
     @SubscribeEvent
     public void onTick(ClientTickEvent.Start event) {
-        if (isInTerm()) {
-            if (!(terminal instanceof Melody melody)) return;
-            if (melody.onTickStart(this)) this.melodyMoveCounter = this.melodyMoveDelay.getValue().intValue();
-            return;
+        if (!isInTerm()) {
+            firstClick = true;
+            this.clickedSlotsTracker.clear();
+            lastClickTime = System.currentTimeMillis();
         }
+    }
 
-        firstClick = true;
-        this.clickedSlotsTracker.clear();
-        lastClickTime = System.currentTimeMillis();
+    @SubscribeEvent
+    public void onRawTick(RawTickEvent event) {
+        if (isInTerm() && terminal instanceof Melody melody) {
+            if (melody.onTickStart(this)) {
+                if (this.moveDelayMode.is("Freeze")) {
+                    TickFreeze.freeze(this.melodyMoveDelay.getValue().longValue(), true);
+                } else {
+                    this.melodyMoveCounter = (this.melodyMoveDelay.getValue().intValue() / 50);
+                }
+            }
+        }
     }
 
     @SubscribeEvent

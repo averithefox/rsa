@@ -13,10 +13,11 @@
     "MixinPlayer"
   ],
   "client": [
-    "CameraMixin",
     "EntityRendererMixin",
-    "LocalPlayerAccessor",
+    "MixinCamera",
     "MixinClientPacketListener",
-    "MixinLevelRenderer"
+    "MixinDeltaTracker",
+    "MixinLevelRenderer",
+    "accessor.LocalPlayerAccessor"
   ]
 }

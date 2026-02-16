@@ -84,7 +84,7 @@ public class PadTimer extends Module {
     }
 
     @SubscribeEvent
-    public void onChat(ChatEvent event) {
+    public void onChat(ChatEvent.Chat event) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
         String unformatted = StringUtil.stripColor(event.getMessage().getString());

@@ -35,6 +35,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.ArrayList;
@@ -62,7 +63,8 @@ public class BreakNode extends Node implements Accessor {
     @Override
     public void calculate(UniqueRoom room) {
         super.calculate(room);
-        rotated = blocks.stream().map(pos -> RoomUtils.getRealPosition(pos, room.getMainRoom())).toList();
+        this.rotated = new ArrayList<>();
+        this.rotated = blocks.stream().map(pos -> RoomUtils.getRealPositionFixed(pos, room.getMainRoom())).toList();
     }
 
     @Override
@@ -149,11 +151,11 @@ public class BreakNode extends Node implements Accessor {
 
         Pos pos = new Pos(blockHitResult.getBlockPos());
 
-        Pos relPos = RoomUtils.getRelativePosition(pos, Map.getCurrentRoom().getUniqueRoom().getMainRoom());
+        Pos relPos = RoomUtils.getRelativePositionFixed(pos, Map.getCurrentRoom().getUniqueRoom().getMainRoom());
 
         if (blocks.contains(relPos)) {
             blocks.remove(relPos);
-            ChatUtils.chat(ChatFormatting.RED + "Removed " + relPos.floor().toChatString() + " from break node");
+            ChatUtils.chat(ChatFormatting.RED + "Removed " + relPos.toChatString() + " from break node");
         } else {
             this.blocks.add(relPos);
             ChatUtils.chat(ChatFormatting.GREEN + "Added " + relPos.toChatString() + " to break node!");

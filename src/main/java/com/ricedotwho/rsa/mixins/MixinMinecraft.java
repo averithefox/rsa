@@ -1,9 +1,11 @@
 package com.ricedotwho.rsa.mixins;
 
-import com.llamalad7.mixinextras.sugar.Local;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsa.component.impl.TickFreeze;
+import com.ricedotwho.rsa.event.impl.RawTickEvent;
 import com.ricedotwho.rsa.module.impl.player.CancelInteract;
+import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Overlay;
 import net.minecraft.client.gui.screens.Screen;
@@ -13,7 +15,6 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.profiling.Profiler;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -23,6 +24,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(value = Minecraft.class, priority = 600) // Low prio for SwapManager
 public abstract class MixinMinecraft {
@@ -40,8 +42,14 @@ public abstract class MixinMinecraft {
     @Unique
     private boolean blu = false;
 
-    @Inject(method = "tick", at = @At("HEAD"))
+    @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
     private void onTickStart(CallbackInfo ci) {
+        new RawTickEvent().post();
+        if (TickFreeze.isFrozen()) {
+            ci.cancel();
+            return;
+        }
+
         SwapManager.onPreTickStart(); // Must be called first, unless you have a good reason don't change the order
     }
 
