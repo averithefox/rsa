@@ -2,6 +2,7 @@ package com.ricedotwho.rsa;
 
 import com.ricedotwho.rsa.command.impl.BloodBlinkCommand;
 import com.ricedotwho.rsa.command.impl.RSADevCommand;
+import com.ricedotwho.rsa.module.impl.dungeon.puzzle.AutoTTT;
 import com.ricedotwho.rsa.module.impl.other.*;
 import com.ricedotwho.rsa.module.impl.dungeon.*;
 import com.ricedotwho.rsa.command.impl.RouteCommand;
@@ -83,6 +84,9 @@ public class RSA implements Addon {
                 TermAura.class,
                 Esp.class,
                 AlignAura.class,
+                AntiCheat.class,
+                FastLeap.class,
+                AutoTTT.class,
                 AntiCheat.class,
                 IceFill.class
         );

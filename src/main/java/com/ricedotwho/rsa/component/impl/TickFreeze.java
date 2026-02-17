@@ -45,7 +45,7 @@ public class TickFreeze extends ModComponent {
     }
 
     public static boolean isFrozen() {
-        if (frozen && System.currentTimeMillis() > end) {
+        if (frozen && end > 0 && System.currentTimeMillis() > end) {
             unFreeze();
         }
         return frozen;

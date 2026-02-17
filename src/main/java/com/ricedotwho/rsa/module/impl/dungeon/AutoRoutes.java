@@ -58,6 +58,7 @@ public class AutoRoutes extends Module implements Accessor {
     private final HashMap<String, List<Node>> redoMap = new HashMap<>();
 
     private final BooleanSetting teleportOnly = new BooleanSetting("Teleport Only", true);
+    @Getter private static final BooleanSetting centerOnly = new BooleanSetting("Center Only", false);
     private final BooleanSetting editMode = new BooleanSetting("Edit Mode", false);
     private final KeybindSetting triggerBind = new KeybindSetting("Trigger Bind", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, this::onTrigger));
     private final KeybindSetting addBlockBind = new KeybindSetting("Add Block Bind", new Keybind(GLFW.GLFW_KEY_SEMICOLON, true, this::addBlockToInNode));
@@ -109,6 +110,7 @@ public class AutoRoutes extends Module implements Accessor {
         this.registerProperty(
                 editMode,
                 teleportOnly,
+                centerOnly,
                 triggerBind,
                 addBlockBind,
                 render

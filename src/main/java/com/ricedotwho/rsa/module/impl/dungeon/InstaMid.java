@@ -1,15 +1,12 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
-import com.ricedotwho.rsa.component.impl.TickFreeze;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
-import com.ricedotwho.rsm.component.impl.task.TaskComponent;
 import com.ricedotwho.rsm.data.Phase7;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ChatEvent;
-import com.ricedotwho.rsm.event.impl.game.ServerTickEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
@@ -26,14 +23,14 @@ import net.minecraft.world.phys.Vec3;
 @ModuleInfo(aliases = "InstaMid", id = "InstaMid", category = Category.DUNGEONS)
 public class InstaMid extends Module {
 
-    private final NumberSetting ticks = new NumberSetting("Ticks", 100, 150, 128, 1);
+    private final NumberSetting millis = new NumberSetting("Millis", 6000, 7000, 6415, 5);
 
     private boolean startOnNextFlying = false;
     private int airTicks = 0;
 
     public InstaMid() {
         this.registerProperty(
-                ticks
+                millis
         );
     }
 
@@ -48,6 +45,7 @@ public class InstaMid extends Module {
         reset();
     }
 
+    @SubscribeEvent
     public void onPacketSend(PacketEvent.Send event) {
         if (!(event.getPacket() instanceof ServerboundMovePlayerPacket packet)
                 || !Location.getArea().is(Island.Dungeon)
@@ -85,10 +83,15 @@ public class InstaMid extends Module {
     private void startIMid() {
         startOnNextFlying = false;
         ChatUtils.chat("Attempting to InstaMid");
-        TaskComponent.onTick(0, () -> {
-                TickFreeze.freeze();
-                TaskComponent.onServerTick(this.ticks.getValue().intValue(), TickFreeze::unFreeze);
-        });
+        mc.doRunTask(this::freeze);
+    }
+
+    public void freeze() {
+        try {
+            Thread.sleep(this.millis.getValue().longValue());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private boolean isOnPlatform() {
