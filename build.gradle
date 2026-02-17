@@ -79,3 +79,35 @@ jar {
 		rename { "${it}_${inputs.properties.archivesName}"}
 	}
 }
+//
+//tasks.register<JavaExec>("runProguard") {
+//    group = "build"
+//    description = "Obfuscates the remapped jar with ProGuard"
+//
+//    dependsOn("remapJar")
+//
+//    mainClass.set("proguard.ProGuard")
+//    classpath = files("${rootDir}/tools/proguard-7.7.0/lib/proguard.jar")
+//
+//    var inputJar = tasks.named<RemapJarTask>("remapJar").get().archiveFile.get().asFile
+//    var outputJar = file("build/libs/${rsa_id}${extra_file_text}-obf.jar")
+//
+//    doFirst {
+//        var mappingDir = file("${buildDir}/proguard")
+//        if (!mappingDir.exists()) {
+//            mappingDir.mkdirs()
+//        }
+//    }
+//
+//    args = listOf(
+//        "-injars", inputJar.absolutePath,
+//        "-outjars", outputJar.absolutePath,
+//        "-libraryjars", System.getProperty("java.home"),
+//        "-verbose",
+//        "@${rootDir}/proguard-rules.pro"
+//    )
+//}
+//
+//tasks.named("build") {
+//    finalizedBy("runProguard")
+//}

@@ -2,7 +2,6 @@ package com.ricedotwho.rsa;
 
 import com.ricedotwho.rsa.command.impl.BloodBlinkCommand;
 import com.ricedotwho.rsa.command.impl.RSADevCommand;
-import com.ricedotwho.rsa.component.impl.TickFreeze;
 import com.ricedotwho.rsa.module.impl.other.*;
 import com.ricedotwho.rsa.module.impl.dungeon.*;
 import com.ricedotwho.rsa.command.impl.RouteCommand;
