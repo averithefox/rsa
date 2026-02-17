@@ -83,7 +83,8 @@ public class RSA implements Addon {
                 TermAura.class,
                 Esp.class,
                 AlignAura.class,
-                AntiCheat.class
+                AntiCheat.class,
+                IceFill.class
         );
     }
 
