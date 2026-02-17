@@ -2,12 +2,10 @@ package com.ricedotwho.rsa;
 
 import com.ricedotwho.rsa.command.impl.BloodBlinkCommand;
 import com.ricedotwho.rsa.command.impl.RSADevCommand;
-import com.ricedotwho.rsa.component.impl.TickFreeze;
 import com.ricedotwho.rsa.module.impl.other.*;
 import com.ricedotwho.rsa.module.impl.dungeon.*;
 import com.ricedotwho.rsa.command.impl.RouteCommand;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
-import com.ricedotwho.rsa.module.impl.movement.Ether;
 import com.ricedotwho.rsa.module.impl.player.CancelInteract;
 import com.ricedotwho.rsa.module.impl.render.EffectsAndRender;
 import com.ricedotwho.rsa.module.impl.render.Esp;
@@ -69,7 +67,6 @@ public class RSA implements Addon {
                 AutoJax.class,
                 PadTimer.class,
                 BloodBlink.class,
-                Ether.class,
                 AutoSS.class,
                 SecretAura.class,
                 EffectsAndRender.class,
@@ -86,8 +83,7 @@ public class RSA implements Addon {
                 TermAura.class,
                 Esp.class,
                 AlignAura.class,
-                AntiCheat.class,
-                TestingStuff.class
+                AntiCheat.class
         );
     }
 
