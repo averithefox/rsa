@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
+import com.google.common.math.DoubleMath;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationHandler;
@@ -7,11 +8,13 @@ import com.ricedotwho.rsm.component.impl.camera.ClientRotationProvider;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
+import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.utils.EtherUtils;
 import lombok.Getter;
+import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
@@ -60,12 +63,18 @@ public class IceFill extends com.ricedotwho.rsm.module.impl.dungeon.IceFill impl
 				waitTeleport = true;
 			}
 		} else isRotationActive = false;
-//		event.getInputConsumer().accept(new Input());
+	}
+
+	public void onPacketReceive(PacketEvent.Receive event) {
+		if (!autoEnabled.getValue()) return;
+		if (event.getPacket() instanceof ClientboundPlayerPositionPacket) {
+			waitTeleport = false;
+		}
 	}
 
 	private boolean velocityClean(Vec3 velocity, Pos nextDir) {
-		return (velocity.x == 0 && nextDir.x == 0) ||
-			(velocity.z == 0 && nextDir.z == 0);
+		return (DoubleMath.fuzzyEquals(velocity.x, 0, 1e-6) && DoubleMath.fuzzyEquals(nextDir.x, 0, 1e-6)) ||
+			(DoubleMath.fuzzyEquals(velocity.z, 0, 1e-6) && DoubleMath.fuzzyEquals(nextDir.z, 0, 1e-6));
 	}
 
 	private boolean inRange(Vec3 pos, Pos target) {
