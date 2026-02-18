@@ -1,18 +1,25 @@
 package com.ricedotwho.rsa.mixins;
 
 import com.ricedotwho.rsa.module.impl.dungeon.TermAura;
-import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.module.impl.render.HidePlayers;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.network.protocol.game.ServerboundInteractPacket;
 import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(EntityRenderer.class)
-public abstract class EntityRendererMixin {
+public abstract class MixinEntityRenderer {
     @Redirect(method = "extractRenderState", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;isInvisible()Z"))
     public boolean onGetInvisibility(Entity instance) {
         return !TermAura.getEntityVisibility(instance);
+    }
+
+    @Inject(method = "shouldRender", at = @At("HEAD"), cancellable = true)
+    private void onRender(Entity entity, Frustum frustum, double d, double e, double f, CallbackInfoReturnable<Boolean> cir) {
+        if (HidePlayers.shouldHide(entity)) cir.setReturnValue(false);
     }
 }

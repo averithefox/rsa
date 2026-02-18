@@ -8,12 +8,13 @@
   "mixins": [
     "MixinClientConnection",
     "MixinClipContext",
+    "MixinLivingEntity",
     "MixinMinecraft",
     "MixinMultiPlayerGameMode",
     "MixinPlayer"
   ],
   "client": [
-    "EntityRendererMixin",
+    "MixinEntityRenderer",
     "MixinClientPacketListener",
     "MixinDeltaTracker",
     "MixinLevelRenderer"

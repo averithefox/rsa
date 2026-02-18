@@ -23,9 +23,12 @@ import java.util.List;
 @ModuleInfo(aliases = "Cancel Interact", id = "CancelInteract", category = Category.PLAYER)
 public class CancelInteract extends Module {
 
+    private final BooleanSetting abilityOnly = new BooleanSetting("Ability Only", false);
+
     private static final List<Class<?>> WHITELIST = List.of(
             LeverBlock.class,
             SkullBlock.class,
+            CauldronBlock.class,
             ChestBlock.class
     );
 
@@ -37,7 +40,6 @@ public class CancelInteract extends Module {
     private static final List<Class<?>> BLACKLIST = List.of(
             HopperBlock.class,
             CraftingTableBlock.class,
-            CauldronBlock.class,
             LavaCauldronBlock.class,
             LayeredCauldronBlock.class
     );
@@ -52,15 +54,19 @@ public class CancelInteract extends Module {
     );
 
     public CancelInteract() {
-
+        registerProperty(abilityOnly);
     }
 
     public static boolean shouldCancelInteract(BlockHitResult hit, LocalPlayer player, ItemStack item) {
-        if (!RSM.getModule(CancelInteract.class).isEnabled()) return false;
+        CancelInteract module = RSM.getModule(CancelInteract.class);
+        if (!module.isEnabled()) return false;
         BlockState state = player.level().getBlockState(hit.getBlockPos());
         if (WHITELIST.stream().anyMatch(c -> c.isInstance(state.getBlock())) || WHITELIST_TAGS.stream().anyMatch(state::is)) return false;
         if ("ENDER_PEARL".equals(ItemUtils.getID(item))) return true;
-        return BLACKLIST_TAGS.stream().anyMatch(state::is)
-                || BLACKLIST.stream().anyMatch(c -> c.isInstance(state.getBlock()));
+
+        return (!module.getAbilityOnly().getValue()
+                || ItemUtils.isAbilityItem(mc.player.getInventory().getSelectedItem()))
+                && (BLACKLIST_TAGS.stream().anyMatch(state::is)
+                || BLACKLIST.stream().anyMatch(c -> c.isInstance(state.getBlock())));
     }
 }

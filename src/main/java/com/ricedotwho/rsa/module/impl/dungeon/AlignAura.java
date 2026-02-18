@@ -5,6 +5,7 @@ import com.ricedotwho.rsa.utils.InteractUtils;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
+import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.data.Phase7;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
@@ -50,7 +51,6 @@ public class AlignAura extends Module {
 
     private final long[] recentClicks = new long[25];
     private FrameData[] currentFrames = null;
-    private boolean inP3 = false;
 
     private static class FrameData {
         public ItemFrame entity;
@@ -100,7 +100,7 @@ public class AlignAura extends Module {
             int clicksNeeded = (solution[index] - frame.rotation + 8) % 8;
             if (clicksNeeded <= 0) continue;
 
-            if (!inP3 && (countFramesToSolve(solution) <= 1 || isFirst)) {
+            if (!Dungeon.isInP3() && (countFramesToSolve(solution) <= 1 || isFirst)) {
                 clicksNeeded--;
                 isFirst = false;
             }
@@ -202,18 +202,6 @@ public class AlignAura extends Module {
     }
 
     @SubscribeEvent
-    public void onChat(ChatEvent.Chat event) {
-        if(mc.player == null || !Location.getArea().is(Island.Dungeon)) return;
-        String message = ChatFormatting.stripFormatting(event.getMessage().getString()).trim();
-        if(("[BOSS] Goldor: Who dares trespass into my domain?".equals(message))) {
-            inP3 = true;
-        }
-        else if("The Core entrance is opening!".equals(message)) {
-            inP3 = false;
-        }
-    }
-
-    @SubscribeEvent
     public void onWorldLoad(WorldEvent.Load event) {
         reset();
     }
@@ -221,6 +209,5 @@ public class AlignAura extends Module {
     @Override
     public void reset() {
         currentFrames = null;
-        inP3 = false;
     }
 }
