@@ -146,10 +146,6 @@ public class BloodBlink extends Module {
         if (Location.getArea() != Island.Dungeon || Minecraft.getInstance().player == null) return;
         LocalPlayer player = Minecraft.getInstance().player;
 
-        if (this.isEnabled() && this.isBlinking() && Minecraft.getInstance().screen != null && Minecraft.getInstance().screen instanceof AbstractContainerScreen<?>) {
-            cancel();
-            return;
-        }
         if (serverTotalTickTimer <= 2) return;
 
         switch (state) {
@@ -405,7 +401,7 @@ public class BloodBlink extends Module {
     public void onPollInputs(InputPollEvent event) {
         if (!this.isEnabled() || !this.isBlinking()) return;
         Input input = event.getClientInput();
-        if (input.forward() || input.backward() || input.left() || input.right()) {
+        if (input.forward() && input.backward() && input.left() && input.right()) {
             this.cancel();
             return;
         }
