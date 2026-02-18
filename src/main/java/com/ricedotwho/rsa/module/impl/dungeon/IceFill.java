@@ -17,7 +17,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 
 @Getter
-@ModuleInfo(aliases = "IceFill", id = "IceFill", category = Category.DUNGEONS)
+@ModuleInfo(aliases = "IceFill", id = "IceFill", category = Category.DUNGEONS, isOverwrite = true)
 public class IceFill extends com.ricedotwho.rsm.module.impl.dungeon.IceFill implements ClientRotationProvider {
 	public final BooleanSetting autoEnabled = new BooleanSetting("Auto Ice Fill", false);
 	public final BooleanSetting autoRotate = new BooleanSetting("Rotate", false);
