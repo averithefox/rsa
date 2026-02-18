@@ -1,4 +1,4 @@
-package com.ricedotwho.rsa.module.impl.dungeon;
+package com.ricedotwho.rsa.module.impl.dungeon.boss;
 
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;

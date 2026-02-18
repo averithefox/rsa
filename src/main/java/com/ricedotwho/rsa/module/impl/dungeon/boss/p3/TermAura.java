@@ -1,6 +1,7 @@
-package com.ricedotwho.rsa.module.impl.dungeon;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3;
 
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.AutoTerms;
 import com.ricedotwho.rsa.utils.InteractUtils;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.location.Island;
@@ -111,7 +112,7 @@ public class TermAura extends Module {
 [22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at java.base/java.util.ArrayList.getFirst(ArrayList.java:439)
 [22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//com.ricedotwho.rsa.module.impl.dungeon.terminals.Solution.getNext(Solution.java:17)
 [22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//com.ricedotwho.rsa.module.impl.dungeon.terminals.StartsWith.getNextState(StartsWith.java:31)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//com.ricedotwho.rsa.module.impl.dungeon.AutoTerms.onReceivePacket(AutoTerms.java:220)
+[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.AutoTerms.onReceivePacket(AutoTerms.java:220)
 [22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
 [22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
 [22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//com.ricedotwho.rsm.event.api.EventBus.invoke(EventBus.java:100)

@@ -1,4 +1,4 @@
-package com.ricedotwho.rsa.module.impl.dungeon.terminals;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.terminals;
 
 import java.util.List;
 

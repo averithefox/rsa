@@ -1,9 +1,7 @@
-package com.ricedotwho.rsa.module.impl.dungeon.terminals;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.terminals;
 
-import com.ricedotwho.rsa.module.impl.dungeon.AutoTerms;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.AutoTerms;
 import com.ricedotwho.rsm.RSM;
-import com.ricedotwho.rsm.utils.ChatUtils;
-import net.minecraft.ChatFormatting;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -13,8 +11,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Melody extends Terminal {
 

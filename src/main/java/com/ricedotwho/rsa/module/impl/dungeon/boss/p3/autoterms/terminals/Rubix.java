@@ -1,6 +1,5 @@
-package com.ricedotwho.rsa.module.impl.dungeon.terminals;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.terminals;
 
-import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
@@ -10,8 +9,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 
 public class Rubix extends Terminal {

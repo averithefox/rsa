@@ -1,10 +1,9 @@
-package com.ricedotwho.rsa.module.impl.dungeon.terminals;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.terminals;
 
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 
 import java.util.HashMap;
-import java.util.List;
 
 public class ClickedSlotsTracker {
     public HashMap<Integer, Item> clickedSlots = new HashMap<>();

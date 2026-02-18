@@ -17,7 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import java.util.Arrays;
 
 @Getter
-@ModuleInfo(aliases = "Hide Players", id = "HidePlayers", category = Category.RENDER, isOverwrite = true)
+@ModuleInfo(aliases = "Hide", id = "HideEntity", category = Category.RENDER, isOverwrite = true)
 public class HidePlayers extends com.ricedotwho.rsm.module.impl.render.HidePlayers {
     private final ModeSetting hitThroughMode = new ModeSetting("Hit Through", "Off", Arrays.asList("Off", "Dungeon & Kuudra", "Always"));
 

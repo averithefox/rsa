@@ -2,6 +2,7 @@ package com.ricedotwho.rsa.component.impl.managers;
 
 import com.ricedotwho.rsa.IMixin.IMultiPlayerGameMode;
 import com.ricedotwho.rsa.RSA;
+import com.ricedotwho.rsm.data.Rotation;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
@@ -136,6 +137,14 @@ public class SwapManager {
 
     public static boolean sendAirC08(float yaw, float pitch, boolean syncSlots) {
         return sendAirC08(yaw, pitch, syncSlots, false);
+    }
+
+    public static boolean sendAirC08(Rotation rot, boolean syncSlots) {
+        return sendAirC08(rot.getYaw(), rot.getPitch(), syncSlots, false);
+    }
+
+    public static boolean sendAirC08(Rotation rot, boolean syncSlots, boolean swing) {
+        return sendAirC08(rot.getYaw(), rot.getPitch(), syncSlots, swing);
     }
 
     public static boolean sendBlockC08(BlockHitResult result, boolean swing, boolean syncSlot) {

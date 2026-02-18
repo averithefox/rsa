@@ -25,9 +25,10 @@ import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
+import com.ricedotwho.rsm.ui.clickgui.settings.group.DefaultGroupSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.group.GroupSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.ColourSetting;
-import com.ricedotwho.rsm.ui.clickgui.settings.impl.GroupSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
 import com.ricedotwho.rsm.utils.Accessor;
 import com.ricedotwho.rsm.utils.ChatUtils;
@@ -64,7 +65,7 @@ public class AutoRoutes extends Module implements Accessor {
     private final KeybindSetting addBlockBind = new KeybindSetting("Add Block Bind", new Keybind(GLFW.GLFW_KEY_SEMICOLON, true, this::addBlockToInNode));
 
     // uhh surely this won't cause issues...
-    private final GroupSetting render = new GroupSetting("Render");
+    private final DefaultGroupSetting render = new DefaultGroupSetting("Render", this);
     @Getter private static final BooleanSetting startDepth = new BooleanSetting("Start Depth", false);
     @Getter private static final BooleanSetting nodeDepth = new BooleanSetting("Node Depth", true);
     @Getter private static final ColourSetting startColour = new ColourSetting("Start", Colour.GREEN);

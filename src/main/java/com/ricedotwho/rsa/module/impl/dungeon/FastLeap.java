@@ -6,21 +6,17 @@ import com.google.common.primitives.SignedBytes;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
-import com.ricedotwho.rsa.module.impl.dungeon.terminals.SolutionClick;
-import com.ricedotwho.rsa.module.impl.dungeon.terminals.TerminalRenderer;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.EventComponent;
 import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
-import com.ricedotwho.rsm.component.impl.task.TaskComponent;
 import com.ricedotwho.rsm.data.DungeonClass;
 import com.ricedotwho.rsm.data.DungeonPlayer;
 import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.Phase7;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
-import com.ricedotwho.rsm.event.impl.client.MouseInputEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
@@ -147,7 +143,6 @@ public class FastLeap extends Module {
         // todo: queue leap
         if (EventComponent.isInTerminal()) return false;
 
-        ChatUtils.chat("Section: %s, Phase: %s", DungeonUtils.getP3Section(), DungeonUtils.getF7Phase());
         String leap = getLeap();
         if (leap == null || "NONE".equals(leap) || mc.player.getName().getString().equalsIgnoreCase(leap)) {
             module.modMessage(ChatFormatting.RED + "Couldn't find who to leap to! (" + leap + ")");
@@ -270,8 +265,6 @@ public class FastLeap extends Module {
 
         DungeonPlayer me = Dungeon.getMyPlayer();
 
-        ChatUtils.chat("me %s", me);
-
         switch (DungeonUtils.getF7Phase()) {
             case P1:
                 return module.getFlP1().is("Custom") ? module.getFlP1Custom().getValue() : module.getFlP1().getIndex();
@@ -310,7 +303,6 @@ public class FastLeap extends Module {
 
     private static DungeonPlayer getClassPlayer() {
         Object yuh = getStageClass();
-        ChatUtils.chat("StageClass %s", yuh);
         if (yuh instanceof DungeonPlayer dp) {
             return dp;
         }

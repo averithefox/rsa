@@ -7,6 +7,7 @@ import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.TimeEvent;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
+import com.ricedotwho.rsm.module.api.SubModuleInfo;
 import com.ricedotwho.rsm.module.impl.dungeon.puzzle.TicTacToe;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
@@ -24,7 +25,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 @Getter
-@ModuleInfo(aliases = "TTT", id = "TicTacToe", category = Category.DUNGEONS, isOverwrite = true)
+@SubModuleInfo(name = "TTT", alwaysDisabled = false)
 public class AutoTTT extends TicTacToe {
 
     private final BooleanSetting auto = new BooleanSetting("Auto", false);
@@ -33,8 +34,8 @@ public class AutoTTT extends TicTacToe {
 
     private long nextClick = 0;
 
-    public AutoTTT() {
-        super();
+    public AutoTTT(Puzzles puzzles) {
+        super(puzzles);
         this.registerProperty(
                 auto,
                 range,

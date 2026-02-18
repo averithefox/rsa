@@ -1,29 +1,27 @@
-package com.ricedotwho.rsa.module.impl.dungeon;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms;
 
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Shorts;
 import com.google.common.primitives.SignedBytes;
 import com.ricedotwho.rsa.component.impl.TickFreeze;
 import com.ricedotwho.rsa.event.impl.RawTickEvent;
-import com.ricedotwho.rsa.module.impl.dungeon.terminals.*;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.terminals.*;
 import com.ricedotwho.rsm.RSM;
-import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
-import com.ricedotwho.rsm.event.impl.render.Render2DEvent;
 import com.ricedotwho.rsm.event.impl.render.Render3DEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
+import com.ricedotwho.rsm.ui.clickgui.settings.group.GroupSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.*;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
-import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.core.NonNullList;
@@ -34,9 +32,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import org.joml.Vector2d;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Getter
@@ -49,7 +45,6 @@ public class AutoTerms extends Module {
 
     private AbstractContainerMenu terminalContainer;
     private final ClickedSlotsTracker clickedSlotsTracker;
-    private final TerminalRenderer terminalRenderer;
 
     private TerminalState predictedState = null;
 
@@ -60,88 +55,24 @@ public class AutoTerms extends Module {
     private final BooleanSetting melodySkip = new BooleanSetting("Melody Skip", true);
     private final BooleanSetting melodySkipFirst = new BooleanSetting("Don't Skip First", true);
 
-    private final GroupSetting invWalkGroup = new GroupSetting("Invwalk");
-    private final BooleanSetting doInvwalk = new BooleanSetting("Enabled", false);
-    private final ModeSetting style = new ModeSetting("Style", "Items", Arrays.asList("Solver", "Items"));
-
-    private final BooleanSetting renderTitles = new BooleanSetting("Render title thing", true);
-    private final BooleanSetting renderClicksLeft = new BooleanSetting("Render clicks left", true);
-    private final ColourSetting titleColour = new ColourSetting("Title Colour", new Colour(96,31,158));
-    private final ColourSetting remainingColour = new ColourSetting("Remaining Colour", new Colour(96,31,158));
-    private final ColourSetting clicksColour = new ColourSetting("Clicks Colour", new Colour(0, 191, 0));
-    @Getter private static final ColourSetting solutionColour = new ColourSetting("Solution Colour", new Colour(0, 150, 0));
-    @Getter private static final ColourSetting oppositeColour = new ColourSetting("Opposite Colour", new Colour(0, 0, 150));
-    @Getter private static final ColourSetting orderColour1 = new ColourSetting("Order Colour 1", new Colour(0, 150, 0));
-    @Getter private static final ColourSetting orderColour2 = new ColourSetting("Order Colour 2", new Colour(150, 150, 0));
-    @Getter private static final ColourSetting orderColour3 = new ColourSetting("Order Colour 3", new Colour(150, 0, 0));
-    private final NumberSetting gap = new NumberSetting("Gap", 0, 3, 1.5, 0.01);
-    private final BooleanSetting textShadow = new BooleanSetting("Text Shadow", false);
-
-    private final ModeSetting moveDelayMode = new ModeSetting("Mode Delay", "Stop Inputs", List.of("Stop Inputs", "Freeze"));
-    private final NumberSetting melodyMoveDelay = new NumberSetting("Melody Move Delay", 0, 500, 300, 50);
-
-    private final DragSetting termTitle = new DragSetting("Term Title", new Vector2d(10, 10), new Vector2d(150, 15));
-    private final DragSetting clicksText = new DragSetting("Clicks Text", new Vector2d(10, 10), new Vector2d(150, 15));
-    private final DragSetting gui = new DragSetting("Visualiser Gui", new Vector2d(551, 330), new Vector2d(144, 80));
-
-
-    private int melodyMoveCounter = 0;
+    private final GroupSetting<InvWalk> invWalkGroup = new GroupSetting<>("Invwalk", new InvWalk(this));
 
 
     public AutoTerms() {
         this.clickedSlotsTracker = new ClickedSlotsTracker();
-        this.terminalRenderer = new TerminalRenderer();
         registerProperty(
                 firstClickDelay,
                 delay,
                 breakThreshold,
                 melodySkip,
                 melodySkipFirst,
-                invWalkGroup,
-                gui,
-                termTitle,
-                clicksText
-        );
-
-        invWalkGroup.add(
-                doInvwalk,
-                style,
-                renderTitles,
-                renderClicksLeft,
-                titleColour,
-                remainingColour,
-                clicksColour,
-                solutionColour,
-                oppositeColour,
-                gap,
-                textShadow,
-                moveDelayMode,
-                melodyMoveDelay
+                invWalkGroup
         );
     }
 
     @SubscribeEvent
     public void onLoadWorld(WorldEvent.Load event) {
         close();
-    }
-
-    @SubscribeEvent
-    public void onRenderGui(Render2DEvent event) {
-        try {
-           if (!isInTerm() || !this.doInvwalk.getValue()) return;
-
-           float width = 9 * 16f;
-           int slots = TerminalRenderer.getGuiSlotCount(this.terminalContainer.getType());
-           float height = (float) (Math.floor(slots / 9f) * 16);
-
-           if (this.style.is("Items")) {
-               gui.renderScaledGFX(event.getGfx(), () -> terminalRenderer.renderItems(event.getGfx(), this.terminal), width, height);
-           } else {
-               gui.renderScaled(event.getGfx(), () -> terminalRenderer.renderSolver(this.gap.getValue().floatValue(), this.terminal), width, height);
-           }
-       } catch (Exception e) {
-           throw new RuntimeException(e);
-       }
     }
 
     @SubscribeEvent
@@ -240,10 +171,10 @@ public class AutoTerms extends Module {
     // This works for strafe but not for forwards and backwards for some reason
     @SubscribeEvent
     public void onPollInput(InputPollEvent event) {
-        if (this.melodyMoveCounter < 1) return;
+        if (this.invWalkGroup.getValue().melodyMoveCounter < 1) return;
 
         if (Minecraft.getInstance().screen == null && !this.isInTerm()) {
-            this.melodyMoveCounter = 0;
+            this.invWalkGroup.getValue().melodyMoveCounter = 0;
             return;
         }
 
@@ -251,7 +182,7 @@ public class AutoTerms extends Module {
         Input newInputs = new Input(false, false, false, false, false, oldInputs.shift(), false);
         event.getInputConsumer().accept(newInputs);
 
-        this.melodyMoveCounter--;
+        this.invWalkGroup.getValue().melodyMoveCounter--;
     }
 
     @SubscribeEvent
@@ -267,11 +198,7 @@ public class AutoTerms extends Module {
     public void onRawTick(RawTickEvent event) {
         if (isInTerm() && terminal instanceof Melody melody) {
             if (melody.onTickStart(this)) {
-                if (this.moveDelayMode.is("Freeze")) {
-                    TickFreeze.freeze(this.melodyMoveDelay.getValue().longValue(), true);
-                } else {
-                    this.melodyMoveCounter = (this.melodyMoveDelay.getValue().intValue() / 50);
-                }
+                this.invWalkGroup.getValue().onMelodyClick();
             }
         }
     }
@@ -297,9 +224,9 @@ public class AutoTerms extends Module {
 
             this.predictedState = predictionState;
             this.clickedWindow = false;
-            this.terminalRenderer.newWindow(terminalContainer);
+            this.invWalkGroup.getValue().getTerminalRenderer().newWindow(terminalContainer);
 
-            if (doInvwalk.getValue()) event.setCancelled(true);
+            if (invWalkGroup.getValue().isEnabled()) event.setCancelled(true);
             return;
         }
 
@@ -308,7 +235,7 @@ public class AutoTerms extends Module {
             terminalContainer.setItem(packet.getSlot(), packet.getStateId(), packet.getItem());
             terminal.loadSlot(packet);
 
-            if (doInvwalk.getValue()) event.setCancelled(true);
+            if (invWalkGroup.getValue().isEnabled()) event.setCancelled(true);
             return;
         }
 
@@ -319,24 +246,24 @@ public class AutoTerms extends Module {
             }
 
             this.close();
-            if (doInvwalk.getValue()) event.setCancelled(true);
+            if (invWalkGroup.getValue().isEnabled()) event.setCancelled(true);
             return;
         }
 
         if (isInTerm() && event.getPacket() instanceof ClientboundSetCursorItemPacket packet) {
-            if (doInvwalk.getValue()) event.setCancelled(true);
+            if (invWalkGroup.getValue().isEnabled()) event.setCancelled(true);
             return;
         }
 
         if (isInTerm() && event.getPacket() instanceof ClientboundContainerSetContentPacket packet) {
-            if (packet.containerId() != 0 && doInvwalk.getValue()) event.setCancelled(true);
+            if (packet.containerId() != 0 && invWalkGroup.getValue().isEnabled()) event.setCancelled(true);
             return;
         }
     }
 
     private void close() {
         this.terminal = null;
-        this.terminalRenderer.close();
+        this.invWalkGroup.getValue().getTerminalRenderer().close();
         this.terminalContainer = null;
         this.predictedState = null;
         this.firstClick = true;
@@ -356,7 +283,7 @@ public class AutoTerms extends Module {
         return RSM.getModule(AutoTerms.class).isInTerm();
     }
 
-    private boolean isInTerm() {
+    public boolean isInTerm() {
         return this.terminal != null && terminalContainer != null;
     }
 }

@@ -1,30 +1,35 @@
-package com.ricedotwho.rsa.module.impl.dungeon.terminals;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.terminals;
 
-import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
-import com.ricedotwho.rsa.module.impl.dungeon.AutoTerms;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.AutoTerms;
 import com.ricedotwho.rsm.RSM;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class StartsWith extends Terminal {
+public class Colors extends Terminal {
 
-    protected StartsWith(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
-        super(TerminalType.STARTSWITH, packet, menu);
+    protected Colors(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
+        super(TerminalType.COLORS, packet, menu);
     }
+
+    private static final Map<String, String> COLOR_REPLACEMENTS = Map.of(
+            "light gray", "silver",
+            "wool", "white",
+            "bone", "white",
+            "ink", "black",
+            "lapis", "blue",
+            "cocoa", "brown",
+            "dandelion", "yellow",
+            "rose", "red",
+            "cactus", "green"
+    );
 
     @Override
     public TerminalState getNextState() {
@@ -40,7 +45,7 @@ public class StartsWith extends Terminal {
             infos.add(hashInfo);
         }
 
-        return Terminal.getTerminalState(TerminalType.STARTSWITH, infos);
+        return Terminal.getTerminalState(TerminalType.COLORS, infos);
     }
 
     @Override
@@ -51,22 +56,22 @@ public class StartsWith extends Terminal {
             infos.add(new HashInfo(slot.getItem()));
         }
 
-        return Terminal.getTerminalState(TerminalType.STARTSWITH, infos);
+        return Terminal.getTerminalState(TerminalType.COLORS, infos);
     }
 
     @Override
     public void solve() {
         super.solve();
-        Pattern pattern = Pattern.compile("What starts with: '(\\w+)'?");
+        Pattern pattern = Pattern.compile("Select all the (.+) items!");
         Matcher matcher = pattern.matcher(this.getTitle());
 
         if (!matcher.find()) {
             return;
         }
 
-        String matchLetter = matcher.group(1).toLowerCase();
+        String color = matcher.group(1).toLowerCase();
 
-        List<SolutionClick> solutionClicks  = new ArrayList<>();
+        List<SolutionClick> solutionClicks = new ArrayList<>();
 
         for (Slot slot : this.terminalContainer.slots) {
             ItemStack stack = slot.getItem();
@@ -74,9 +79,9 @@ public class StartsWith extends Terminal {
             if (stack.isEmpty()) continue;
             if (RSM.getModule(AutoTerms.class).getClickedSlotsTracker().contains(slot)) continue; // Fuck you, isEnchanted check doesn;t work
 
-            String name = ChatFormatting.stripFormatting(stack.getHoverName().getString()).toLowerCase();
+            String fixedName = fixColorItemName(ChatFormatting.stripFormatting(stack.getHoverName().getString()).toLowerCase());
 
-            if (name.startsWith(matchLetter)) {
+            if (fixedName.startsWith(color)) {
                 solutionClicks.add(new SolutionClick(ClickType.CLONE, slot.index, 0));
             }
         }
@@ -85,8 +90,21 @@ public class StartsWith extends Terminal {
         this.solveState = SolveState.SOLVED;
     }
 
+    private String fixColorItemName(String itemName) {
+        for (Map.Entry<String, String> entry : COLOR_REPLACEMENTS.entrySet()) {
+            String from = entry.getKey();
+            String to = entry.getValue();
 
-    protected static StartsWith supply(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
-        return new StartsWith(packet, menu);
+            if (itemName.startsWith(from)) {
+                itemName = to + itemName.substring(from.length());
+            }
+        }
+        return itemName;
+    }
+
+
+
+    protected static Colors supply(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
+        return new Colors(packet, menu);
     }
 }

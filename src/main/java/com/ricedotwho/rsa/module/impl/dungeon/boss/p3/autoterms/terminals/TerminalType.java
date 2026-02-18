@@ -1,12 +1,10 @@
-package com.ricedotwho.rsa.module.impl.dungeon.terminals;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.terminals;
 
 import lombok.Getter;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
 import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.regex.Pattern;
 
 public enum TerminalType {
     NUMBERS(0, "Click in order!", 35, Numbers::supply),

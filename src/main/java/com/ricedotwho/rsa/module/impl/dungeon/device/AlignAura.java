@@ -1,4 +1,4 @@
-package com.ricedotwho.rsa.module.impl.dungeon;
+package com.ricedotwho.rsa.module.impl.dungeon.device;
 
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.utils.InteractUtils;
@@ -9,7 +9,6 @@ import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.data.Phase7;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
-import com.ricedotwho.rsm.event.impl.game.ChatEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
@@ -18,7 +17,6 @@ import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.module.impl.render.ClickGUI;
 import com.ricedotwho.rsm.utils.DungeonUtils;
 import lombok.Getter;
-import net.minecraft.ChatFormatting;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.phys.AABB;

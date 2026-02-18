@@ -1,6 +1,7 @@
-package com.ricedotwho.rsa.module.impl.dungeon.terminals;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.terminals;
 
-import com.ricedotwho.rsa.module.impl.dungeon.AutoTerms;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.AutoTerms;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.InvWalk;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.utils.render.render2d.NVGUtils;
 import net.minecraft.client.Minecraft;
@@ -115,27 +116,27 @@ public class TerminalRenderer {
         float gap = g + 16;
 
         switch (terminal.getType()) {
-            case COLORS, STARTSWITH, REDGREEN -> solution.clicks.forEach(click -> renderRect(gap, click.index(), AutoTerms.getSolutionColour().getValue()));
+            case COLORS, STARTSWITH, REDGREEN -> solution.clicks.forEach(click -> renderRect(gap, click.index(), InvWalk.getSolutionColour().getValue()));
             case NUMBERS -> renderOrder(gap, solution);
             case RUBIX -> renderRubix(gap, solution);
         }
     }
 
     private void renderOrder(float gap, Solution solution) {
-        renderRect(gap, solution.clicks.getFirst().index(), AutoTerms.getOrderColour1().getValue());
+        renderRect(gap, solution.clicks.getFirst().index(), InvWalk.getOrderColour1().getValue());
 
         if (solution.clicks.size() > 1) {
-            renderRect(gap, solution.clicks.get(1).index(), AutoTerms.getOrderColour2().getValue());
+            renderRect(gap, solution.clicks.get(1).index(), InvWalk.getOrderColour2().getValue());
         }
         if (solution.clicks.size() > 2) {
-            renderRect(gap, solution.clicks.get(2).index(), AutoTerms.getOrderColour3().getValue());
+            renderRect(gap, solution.clicks.get(2).index(), InvWalk.getOrderColour3().getValue());
         }
     }
 
     private void renderRubix(float gap, Solution solution) {
         solution.clicks.forEach(click -> {
             if (click instanceof RubixSolutionClick c) {
-                renderRect(gap, click.index(), c.button() == 0 ? AutoTerms.getSolutionColour().getValue() : AutoTerms.getOppositeColour().getValue());
+                renderRect(gap, click.index(), c.button() == 0 ? InvWalk.getSolutionColour().getValue() : InvWalk.getOppositeColour().getValue());
             }
         });
     }
