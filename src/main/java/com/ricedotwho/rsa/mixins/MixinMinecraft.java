@@ -60,7 +60,7 @@ public abstract class MixinMinecraft {
 
     @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/DebugScreenOverlay;showDebugScreen()Z"))
     public void onGetShowDebugScreen(CallbackInfo ci) { // Right before onHandleKeyBinds
-        if (this.overlay == null && (screen == null || (!(this.screen instanceof AbstractContainerScreen<?>) && Minecraft.getInstance().player != null))) {
+        if (this.overlay == null && Minecraft.getInstance().player != null) { // && (screen == null || (!(this.screen instanceof AbstractContainerScreen<?>)))
             Profiler.get().popPush("Keybindings");
             // Needed to still call the packet order
             this.handleKeybinds();
