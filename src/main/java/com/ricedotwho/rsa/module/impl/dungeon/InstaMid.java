@@ -70,6 +70,7 @@ public class InstaMid extends Module {
                 || !DungeonUtils.isPhase(Phase7.P4)
                 || !"[BOSS] Necron: You went further than any human before, congratulations.".equals(unformatted)
                 || !isOnPlatform()
+                || mc.player == null
         ) return;
 
         if (mc.player.onGround()) {
@@ -83,7 +84,8 @@ public class InstaMid extends Module {
     private void startIMid() {
         startOnNextFlying = false;
         ChatUtils.chat("Attempting to InstaMid");
-        mc.doRunTask(this::freeze);
+        //mc.doRunTask(this::freeze);
+        freeze();
     }
 
     public void freeze() {
