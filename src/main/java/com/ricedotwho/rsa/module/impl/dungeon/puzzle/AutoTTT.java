@@ -70,10 +70,7 @@ public class AutoTTT extends TicTacToe {
         BlockHitResult result = RotationUtils.collisionRayTrace(pos, blockAABB, eyePos, center);
         if (result == null) return;
 
-        PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
-            SwapManager.sendBlockC08(result.getLocation(), result.getDirection(), !mc.player.getLastSentInput().shift() , true);
-        });
-
+        PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> SwapManager.sendBlockC08(result.getLocation(), result.getDirection(), !mc.player.getLastSentInput().shift() , true));
         nextClick = System.currentTimeMillis() + cooldown.getValue().longValue();
     }
 }

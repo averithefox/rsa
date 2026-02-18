@@ -116,17 +116,6 @@ public class FastLeap extends Module {
         );
     }
 
-
-    @Override
-    public void onEnable() {
-        this.key.getValue().register();
-    }
-
-    @Override
-    public void onDisable() {
-        this.key.getValue().unregister();
-    }
-
     @Override
     public void reset() {
         toLeap = null;

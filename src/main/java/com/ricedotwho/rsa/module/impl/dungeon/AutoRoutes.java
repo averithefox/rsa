@@ -119,18 +119,6 @@ public class AutoRoutes extends Module implements Accessor {
         this.inNode = null;
     }
 
-    @Override
-    public void onEnable() {
-        this.triggerBind.getValue().register();
-        this.addBlockBind.getValue().register();
-    }
-
-    @Override
-    public void onDisable() {
-        this.triggerBind.getValue().unregister();
-        this.addBlockBind.getValue().unregister();
-    }
-
     @SubscribeEvent
     public void onWorldLoad(WorldEvent.Load event) {
         this.inNode = null;
