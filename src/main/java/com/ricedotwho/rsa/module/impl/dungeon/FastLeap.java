@@ -116,17 +116,6 @@ public class FastLeap extends Module {
         );
     }
 
-
-    @Override
-    public void onEnable() {
-        this.key.getValue().register();
-    }
-
-    @Override
-    public void onDisable() {
-        this.key.getValue().unregister();
-    }
-
     @Override
     public void reset() {
         toLeap = null;
@@ -152,11 +141,13 @@ public class FastLeap extends Module {
                 || openingGui
                 || !EventComponent.isInTerminal() && mc.screen != null
                 || module.container != null
+                || !Dungeon.isInBoss()
         ) return false;
 
         // todo: queue leap
         if (EventComponent.isInTerminal()) return false;
 
+        ChatUtils.chat("Section: %s, Phase: %s", DungeonUtils.getP3Section(), DungeonUtils.getF7Phase());
         String leap = getLeap();
         if (leap == null || "NONE".equals(leap) || mc.player.getName().getString().equalsIgnoreCase(leap)) {
             module.modMessage(ChatFormatting.RED + "Couldn't find who to leap to! (" + leap + ")");
@@ -279,6 +270,8 @@ public class FastLeap extends Module {
 
         DungeonPlayer me = Dungeon.getMyPlayer();
 
+        ChatUtils.chat("me %s", me);
+
         switch (DungeonUtils.getF7Phase()) {
             case P1:
                 return module.getFlP1().is("Custom") ? module.getFlP1Custom().getValue() : module.getFlP1().getIndex();
@@ -288,7 +281,7 @@ public class FastLeap extends Module {
                     DungeonPlayer healer = Dungeon.getClazz(DungeonClass.HEALER);
                     DungeonPlayer mage = Dungeon.getClazz(DungeonClass.MAGE);
                     DungeonPlayer bers = Dungeon.getClazz(DungeonClass.BERSERKER);
-                    if(me.getMyClass().equals(DungeonClass.TANK) && mage != null && Location.getFloor().equals(Floor.F7)) return mage;
+                    if(me.getDClass().equals(DungeonClass.TANK) && mage != null && Location.getFloor().equals(Floor.F7)) return mage;
                     if(healer != null && !me.equals(healer)) return healer;
                     if(bers != null && me.equals(healer)) return bers;
                     return -1;
@@ -306,9 +299,9 @@ public class FastLeap extends Module {
                 return module.getFlS4().is("Custom") ? module.getFlS4Custom().getValue() : module.getFlS4().getIndex();
             case P5:
                 if (me == null) return -1;
-                if (DungeonClass.HEALER.equals(me.getMyClass())) return module.getFlP5Orange().is("Custom") ? module.getFlP5OrangeCustom().getValue() : module.getFlP5Orange().getIndex();
-                if (DungeonClass.MAGE.equals(me.getMyClass())) return module.getFlP5Orange().is("Custom") ? module.getFlP5OrangeCustom().getValue() : module.getFlP5Orange().getIndex();
-                if (DungeonClass.TANK.equals(me.getMyClass())) return module.getFlP5Red().is("Custom") ? module.getFlP5RedCustom().getValue() : module.getFlP5Red().getIndex();
+                if (DungeonClass.HEALER.equals(me.getDClass())) return module.getFlP5Orange().is("Custom") ? module.getFlP5OrangeCustom().getValue() : module.getFlP5Orange().getIndex();
+                if (DungeonClass.MAGE.equals(me.getDClass())) return module.getFlP5Orange().is("Custom") ? module.getFlP5OrangeCustom().getValue() : module.getFlP5Orange().getIndex();
+                if (DungeonClass.TANK.equals(me.getDClass())) return module.getFlP5Red().is("Custom") ? module.getFlP5RedCustom().getValue() : module.getFlP5Red().getIndex();
                 return -1;
             default:
                 return -1;
@@ -317,6 +310,7 @@ public class FastLeap extends Module {
 
     private static DungeonPlayer getClassPlayer() {
         Object yuh = getStageClass();
+        ChatUtils.chat("StageClass %s", yuh);
         if (yuh instanceof DungeonPlayer dp) {
             return dp;
         }

@@ -96,21 +96,6 @@ public class CustomKeybinds extends Module {
         );
     }
 
-    @Override
-    public void onEnable() {
-
-    }
-
-    @Override
-    public void onDisable() {
-
-    }
-
-    @Override
-    public void reset() {
-
-    }
-
     @SubscribeEvent
     public void sendChat(Render2DEvent event){
         LocalPlayer player = Minecraft.getInstance().player;

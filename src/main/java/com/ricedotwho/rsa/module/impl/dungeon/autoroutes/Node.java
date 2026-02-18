@@ -2,6 +2,7 @@ package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
 
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
+import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.data.Colour;
@@ -82,6 +83,11 @@ public abstract class Node {
     }
 
     public boolean isInNode(Pos playerPos) {
+        if (AutoRoutes.getCenterOnly().getValue()) {
+            return this.realPos.x() == playerPos.x()
+                    && playerPos.y() >= this.realPos.y() && playerPos.y() <= this.realPos.y() + 0.05
+                    && this.realPos.z() == playerPos.z();
+        }
         return playerPos.squaredDistanceTo(this.realPos) <= r * r;
     }
 

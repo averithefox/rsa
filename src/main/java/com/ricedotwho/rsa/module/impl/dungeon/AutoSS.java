@@ -265,9 +265,4 @@ public class AutoSS extends Module {
         resetState();
     }
 
-    @Override
-    public void onDisable() {
-
-    }
-
 }
