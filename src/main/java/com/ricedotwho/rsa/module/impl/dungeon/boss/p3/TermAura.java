@@ -60,9 +60,11 @@ public class TermAura extends Module {
         double bestDistance = AURA_RANGE_SQ;
         ArmorStand bestCandidate = null;
 
-        AABB box = new AABB(eyePos, eyePos).inflate(AURA_RANGE, AURA_RANGE, AURA_RANGE);
+        Vec3 retardedPos = Minecraft.getInstance().player.position().add(0, -2, 0);
+
+        AABB box = new AABB(retardedPos, retardedPos).inflate(AURA_RANGE, AURA_RANGE, AURA_RANGE);
         for (ArmorStand stand : Minecraft.getInstance().level.getEntitiesOfClass(ArmorStand.class, box, TermAura::filterEntities)) {
-            double distance = stand.getBoundingBox().distanceToSqr(eyePos);
+            double distance = stand.position().distanceToSqr(retardedPos);
             if (distance <= bestDistance) {
                 bestCandidate = stand;
                 bestDistance = distance;
