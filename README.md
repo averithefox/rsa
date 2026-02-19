@@ -16,16 +16,16 @@ Clone RSM from github
 
 ## Step 2
 ```bash
-.\gradlew build
+./gradlew build
 ```
-If you're using IntelliJ just wait use the buttons.
+If you're using IntelliJ just use the buttons.
 
 After Building you want to save that copy of RSM. It should be found in the folder: rsmodern -> build -> libs -> rsm-#.#.#.jar
 This .jar will be used for RSA.
 
 ## Step 3
 ```bash
-.\gradlew publishToMavenLocal
+./gradlew publishToMavenLocal
 ```
 
 Now RSM forge is in ur local maven, you can access all its classes when you are coding RSA.
