@@ -3,102 +3,124 @@ package com.ricedotwho.rsa.module.impl.dungeon;
 import com.google.common.math.DoubleMath;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
-import com.ricedotwho.rsm.component.impl.camera.ClientRotationHandler;
-import com.ricedotwho.rsm.component.impl.camera.ClientRotationProvider;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
-import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
+import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
+import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
 import lombok.Getter;
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
-import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @ModuleInfo(aliases = "IceFill", id = "IceFill", category = Category.DUNGEONS, isOverwrite = true)
-public class IceFill extends com.ricedotwho.rsm.module.impl.dungeon.IceFill implements ClientRotationProvider {
+public class IceFill extends com.ricedotwho.rsm.module.impl.dungeon.IceFill {
 	public final BooleanSetting autoEnabled = new BooleanSetting("Auto Ice Fill", false);
-	public final BooleanSetting autoRotate = new BooleanSetting("Rotate", false);
+	public final NumberSetting autoDelay = new NumberSetting("Delay", 0, 8, 0, 1);
 
-	boolean waitTeleport = false;
-	private boolean isRotationActive = false;
+	List<Pos> autoPath = null;
+	int autoIndex = -1;
+	int autoTicks = 0;
 
 	public IceFill() {
 		super();
-		this.registerProperty(autoEnabled, autoRotate);
+		this.registerProperty(autoEnabled, autoDelay);
 	}
 
 	@SubscribeEvent
-	public void onInputPoll(InputPollEvent event) {
-		if (!autoEnabled.getValue()) return;
-		assert mc.player != null;
-		if (this.path == null || mc.player.getMainHandItem().getItem() != Items.DIAMOND_SHOVEL) {
-			isRotationActive = false;
+	public void onClientTickStart(ClientTickEvent.Start event) {
+		if (!this.autoEnabled.getValue()) return;
+		if (this.path == null) this.autoPath = null;
+		if (autoIndex < 0) return;
+		if (this.autoPath == null) {
+			autoIndex = -1;
 			return;
 		}
-		if (waitTeleport) return;
-		int index = this.findIndex(mc.player.position());
-		if (index != -1) {
-			if (index >= this.path.size() - 1) return;
-			isRotationActive = true;
-			ClientRotationHandler.registerProvider(this);
-			Pos current = this.path.get(index);
-			Pos nextDir = getDirection(current, this.path.get(index + 1));
-			float yaw = EtherUtils.getYawAndPitch(nextDir.x, nextDir.y, nextDir.z)[0];
-			float pitch = 90;
-			ClientRotationHandler.setYaw(yaw);
-			ClientRotationHandler.setPitch(pitch);
-			if (velocityClean(mc.player.getDeltaMovement(), nextDir) || index == 0) {
-				event.getInputConsumer().accept(new Input(true, false, false, false, false, false, false));
-			} else {
-				PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
-					if (!SwapManager.checkClientItem(Items.DIAMOND_SHOVEL) || !SwapManager.checkServerItem(Items.DIAMOND_SHOVEL)) return;
-					SwapManager.sendAirC08(yaw, pitch, false, false);
-				});
-				waitTeleport = true;
-			}
-		} else isRotationActive = false;
+		int delay = this.autoDelay.getValue().intValue();
+		if (delay < 1) return;
+		assert mc.player != null;
+		if (mc.player.getMainHandItem().getItem() != Items.DIAMOND_SHOVEL) return;
+		++autoTicks;
+		if (autoTicks < delay) return;
+		autoTicks = 0;
+		if (++autoIndex >= this.autoPath.size() - 1) return;
+		doTeleport(autoIndex);
 	}
 
+	@SubscribeEvent
 	public void onPacketReceive(PacketEvent.Receive event) {
-		if (!autoEnabled.getValue()) return;
-		if (event.getPacket() instanceof ClientboundPlayerPositionPacket) {
-			waitTeleport = false;
+		if (!this.autoEnabled.getValue()) return;
+		if (!(event.getPacket() instanceof ClientboundPlayerPositionPacket packet)) return;
+		if (this.path == null) {
+			this.autoPath = null;
+			return;
 		}
+		if (this.autoPath == null) this.buildAutoPath();
+		assert mc.player != null;
+		if (mc.player.getMainHandItem().getItem() != Items.DIAMOND_SHOVEL) return;
+		int index = this.findIndex(packet.change().position());
+		int delay = this.autoDelay.getValue().intValue();
+		if (index < 0 || index >= this.autoPath.size() - 1) {
+			autoIndex = -1;
+			return;
+		} else if (autoIndex < 0) {
+			autoIndex = index;
+			autoTicks = 0;
+			if (delay > 0) doTeleport(index);
+		}
+		if (delay < 1) doTeleport(index);
 	}
 
-	private boolean velocityClean(Vec3 velocity, Pos nextDir) {
-		return (DoubleMath.fuzzyEquals(velocity.x, 0, 1e-6) && DoubleMath.fuzzyEquals(nextDir.x, 0, 1e-6)) ||
-			(DoubleMath.fuzzyEquals(velocity.z, 0, 1e-6) && DoubleMath.fuzzyEquals(nextDir.z, 0, 1e-6));
+	private void doTeleport(int index) {
+		Pos cur = this.autoPath.get(index);
+		Pos next = this.autoPath.get(index + 1);
+		Pos diff = next.subtract(cur);
+		float yaw = EtherUtils.getYawAndPitch(diff.x, diff.y, diff.z)[0];
+		float pitch = diff.y > 0 ? 14 : 48;
+		PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
+			if (!SwapManager.checkClientItem(Items.DIAMOND_SHOVEL) || !SwapManager.checkServerItem(Items.DIAMOND_SHOVEL)) return;
+			SwapManager.sendAirC08(yaw, pitch, false, false);
+		});
 	}
 
-	private boolean inRange(Vec3 pos, Pos target) {
-		return pos.x > target.x - 0.5 && pos.x < target.x + 0.5 &&
-			pos.y == target.y &&
-			pos.z > target.z - 0.5 && pos.z < target.z + 0.5;
+	private void buildAutoPath() {
+		this.autoPath = new ArrayList<>();
+		for (int i = 0; i < this.path.size(); ++i) {
+			Pos cur = this.path.get(i);
+			if (i == this.path.size() - 1) {
+				this.autoPath.add(cur);
+				continue;
+			}
+			Pos next = this.path.get(i + 1);
+			Pos diff = next.subtract(cur);
+			Pos dir = new Pos(diff.x, 0, diff.z).normalize();
+			if (!DoubleMath.fuzzyEquals(diff.y, 0, 1e-6)) {
+				this.autoPath.add(cur);
+			} else if (!DoubleMath.fuzzyEquals(diff.x, 0, 1e-6)) {
+				for (int j = 0; j < Math.abs(diff.x); ++j) {
+					this.autoPath.add(cur.add(dir.multiply(j)));
+				}
+			} else if (!DoubleMath.fuzzyEquals(diff.z, 0, 1e-6)) {
+				for (int j = 0; j < Math.abs(diff.z); ++j) {
+					this.autoPath.add(cur.add(dir.multiply(j)));
+				}
+			}
+		}
 	}
 
 	private int findIndex(Vec3 pos) {
-		int sz = this.path.size();
-		for (int i = 0; i < sz; ++i) {
-			if (inRange(pos, this.path.get(i))) return i;
+		for (int i = 0; i < this.autoPath.size(); ++i) {
+			if (this.autoPath.get(i).squaredDistanceTo(pos) < 1e-6) return i;
 		}
 		return -1;
-	}
-
-	private Pos getDirection(Pos pos1, Pos pos2) {
-		Pos dir = pos2.subtract(pos1);
-		dir.y = 0;
-		return dir.normalize();
-	}
-
-	@Override
-	public boolean isActive() {
-		return isRotationActive;
 	}
 }
