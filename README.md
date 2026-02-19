@@ -42,3 +42,9 @@ Once you've done that go the "mods" folder and drop RSM, and Fabric-Api into it.
 
 ## Step 5.
 Reload Gradle and attempt to launch your game. If it gives you an error, then report the error. Otherwise, If you loaded up fine then you should be able to code away!
+
+
+# End
+### Each time you update your RSM / RSA version(for the rsa version its only if both need to be updated) you need to pull.
+
+### Then redo Steps 1-3 and redrag your rsm.jar into the mods folder in your RSA project for the errors in rsa to go away.
