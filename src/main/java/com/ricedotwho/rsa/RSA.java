@@ -98,6 +98,9 @@ public class RSA implements Addon {
                 AlignAura.class,
                 AntiCheat.class,
                 FastLeap.class,
+                AutoTTT.class,
+                AntiCheat.class,
+                IceFill.class,
                 Puzzles.class,
                 HidePlayers.class,
                 Auto4.class
