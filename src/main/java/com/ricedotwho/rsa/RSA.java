@@ -1,6 +1,7 @@
 package com.ricedotwho.rsa;
 
 import com.ricedotwho.rsa.command.impl.BloodBlinkCommand;
+import com.ricedotwho.rsa.command.impl.DynamicRouteCommand;
 import com.ricedotwho.rsa.command.impl.RSADevCommand;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.InstaMid;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.PadTimer;
@@ -75,6 +76,7 @@ public class RSA implements Addon {
         return List.of(
                 DungeonBreaker.class,
                 AutoRoutes.class,
+                DynamicRoutes.class,
                 AutoJax.class,
                 PadTimer.class,
                 BloodBlink.class,
@@ -111,6 +113,7 @@ public class RSA implements Addon {
     public List<Class<? extends Command>> getCommands() {
         return List.of(
                 RouteCommand.class,
+                DynamicRouteCommand.class,
                 BloodBlinkCommand.class,
                 RSADevCommand.class
         );

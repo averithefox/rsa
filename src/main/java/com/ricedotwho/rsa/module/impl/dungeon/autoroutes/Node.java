@@ -12,7 +12,7 @@ import lombok.Setter;
 
 public abstract class Node {
     @Expose
-    private final Pos localPos;
+    protected final Pos localPos;
     @Expose
     private final float r;
     @Expose
@@ -29,7 +29,7 @@ public abstract class Node {
     private int lastTickTime;
 
     @Getter
-    private Pos realPos;
+    protected Pos realPos;
 
     public Node(Pos localPos) {
         this(localPos, null);

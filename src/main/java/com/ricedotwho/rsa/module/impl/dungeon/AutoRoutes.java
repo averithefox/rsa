@@ -58,7 +58,6 @@ public class AutoRoutes extends Module implements Accessor {
     private final HashMap<RoomData, List<Node>> activeNodes = new HashMap<>();
     private final HashMap<String, List<Node>> redoMap = new HashMap<>();
 
-    private final BooleanSetting teleportOnly = new BooleanSetting("Teleport Only", true);
     @Getter private static final BooleanSetting centerOnly = new BooleanSetting("Center Only", false);
     private final BooleanSetting editMode = new BooleanSetting("Edit Mode", false);
     private final KeybindSetting triggerBind = new KeybindSetting("Trigger Bind", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, this::onTrigger));
@@ -110,7 +109,6 @@ public class AutoRoutes extends Module implements Accessor {
     public AutoRoutes() {
         this.registerProperty(
                 editMode,
-                teleportOnly,
                 centerOnly,
                 triggerBind,
                 addBlockBind,
@@ -153,7 +151,7 @@ public class AutoRoutes extends Module implements Accessor {
         if (!Location.getArea().is(Island.Dungeon)) return;
         tickTime++;
 
-        if (teleportOnly.getValue() && !this.receivedS08 && this.inNode == null || hasGuiOpen()) return;
+        if (hasGuiOpen()) return;
         if (this.editMode.getValue() || Map.getCurrentRoom() == null || Minecraft.getInstance().player == null) return;
 
         Room currentRoom = Map.getCurrentRoom();
@@ -334,13 +332,6 @@ public class AutoRoutes extends Module implements Accessor {
             if (!this.inNode.hasAwaits() || !this.inNode.getAwaitManager().hasAwait(AwaitSecrets.class)) return; // Move earlier
             this.inNode.getAwaitManager().consume(AwaitSecrets.class, 1);
         }
-
-        if (teleportOnly.getValue() && event.getPacket() instanceof ClientboundPlayerPositionPacket S08) {
-            //ChatUtils.chat("S08 : " + S08.change().position());
-            this.receivedS08 = true; // Maybe should check if the S08 is in a node in the first place but it shouldn't really matter
-        }
-
-
     }
 
     private void trySetInNode(Node node) {

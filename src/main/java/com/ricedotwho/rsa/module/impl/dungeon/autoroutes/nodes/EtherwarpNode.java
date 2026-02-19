@@ -30,9 +30,9 @@ import net.minecraft.world.phys.Vec3;
 
 public class EtherwarpNode extends Node {
     @Expose
-    private final Pos localTargetPos;
+    protected final Pos localTargetPos;
     @Getter
-    private Pos realTargetPos;
+    protected Pos realTargetPos;
 
     public EtherwarpNode(Pos localPos, Pos localTargetPos, AwaitManager awaits, boolean start) {
         super(localPos, awaits, start);

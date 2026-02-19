@@ -103,6 +103,7 @@ public class Auto4 extends Module {
                 break;
             case 1:
                 boolean f1 = this.done.contains(index - 1), f2 = this.done.contains(index + 1);
+                // This if statement is a crime against humanity -Hyper
                 if (f1 && !f2) {
                     target.selfAdd(-0.5, 1, 0);
                 } else if (f2 && !f1) {
