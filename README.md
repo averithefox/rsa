@@ -1,6 +1,44 @@
-# how to use:  
-clone rsm 
-.\gradlew build (if ur using intellij just make a gradle configuration or smth, personally my java is fucked and uses like a new version and fails)  
-.\gradlew publishToMavenLocal  
-now rsm forge is in ur local maven, u can access all its classes and do wtv with ur addon
+# How to setup:  
 
+## Prerequisites (what i use)
+### Project Structure 
+1: ms-21 (Or JDK-25)
+
+2: Language level -> SDK default
+
+### Gradle JVM
+ms-21 (Or JDK-25) 
+## .
+
+
+## Step 1
+Clone RSM from github
+
+## Step 2
+```bash
+.\gradlew build
+```
+If you're using IntelliJ just wait use the buttons.
+
+After Building you want to save that copy of RSM. It should be found in the folder: rsmodern -> build -> libs -> rsm-#.#.#.jar
+This .jar will be used for RSA.
+
+## Step 3
+```bash
+.\gradlew publishToMavenLocal
+```
+
+Now RSM forge is in ur local maven, you can access all its classes when you are coding RSA.
+
+
+## Step 4
+Copy RSA from github
+
+### In RSA Project.
+
+Once gradle configures, Redo the Prerequisites in RSA the same way you have it in RSM.
+
+Once you've done that go the "mods" folder and drop RSM, and Fabric-Api into it. (rsamodern -> run -> mods)
+
+## Step 5.
+Reload Gradle and attempt to launch your game. If it gives you an error, then report the error. Otherwise, If you loaded up fine then you should be able to code away!
