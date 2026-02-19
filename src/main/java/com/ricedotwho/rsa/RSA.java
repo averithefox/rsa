@@ -28,6 +28,7 @@ import com.ricedotwho.rsm.addon.Addon;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.component.api.ModComponent;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
+import com.ricedotwho.rsm.component.impl.map.map.Puzzle;
 import com.ricedotwho.rsm.module.Module;
 import lombok.Getter;
 import net.fabricmc.loader.api.FabricLoader;
@@ -96,9 +97,7 @@ public class RSA implements Addon {
                 TermAura.class,
                 Esp.class,
                 AlignAura.class,
-                AntiCheat.class,
                 FastLeap.class,
-                AutoTTT.class,
                 AntiCheat.class,
                 IceFill.class,
                 Puzzles.class,

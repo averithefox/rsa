@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsa.component.impl.pathfinding.PathNode;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.DynamicRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
@@ -60,6 +61,12 @@ public class DynamicEtherwarpNode extends EtherwarpNode {
     @Override
     public Colour getColour() {
         return DynamicRoutes.getNodeColor().getValue();
+    }
+
+    public static DynamicEtherwarpNode fromPathNode(PathNode node, float yaw, float pitch) {
+        Pos nodePos = new Pos(node.getPos().getBottomCenter()).selfAdd(0d, 1d, 0d);
+        Vec3 target = EtherUtils.rayTraceBlock(61, yaw, pitch, nodePos.add(0d, EtherUtils.SNEAK_EYE_HEIGHT, 0d).asVec3());
+        return new DynamicEtherwarpNode(nodePos, new Pos(target));
     }
 
     public static DynamicEtherwarpNode supply(UniqueRoom fullRoom, LocalPlayer player) {

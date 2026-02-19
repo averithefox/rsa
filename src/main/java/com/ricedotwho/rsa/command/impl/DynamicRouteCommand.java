@@ -11,12 +11,14 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import com.ricedotwho.rsa.component.impl.pathfinding.*;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.DynamicRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.*;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitEWRaytrace;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.DynamicEtherwarpNode;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.UseNode;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
@@ -26,11 +28,19 @@ import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.EtherUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
+import net.minecraft.commands.arguments.coordinates.WorldCoordinate;
+import net.minecraft.commands.arguments.coordinates.WorldCoordinates;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.phys.Vec3;
 
+import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -51,9 +61,58 @@ public class DynamicRouteCommand extends Command {
                 .then(literal("clear")
                         .executes(DynamicRouteCommand::clearNodes)
                 )
+                .then(literal("path")
+                        .then(argument("pos", BlockPosArgument.blockPos())
+                                .executes((ctx) -> path(ctx, ctx.getArgument("pos", WorldCoordinates.class)))
+                        )
+                )
+                .then(literal("cp")
+                        .executes(DynamicRouteCommand::copyBlockPosLook)
+                )
                 .then(literal("remove")
                         .executes(DynamicRouteCommand::removeNode)
                 );
+    }
+
+    private static int copyBlockPosLook(CommandContext<ClientSuggestionProvider> ctx) {
+        Vec3 pos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
+        float yaw = Minecraft.getInstance().gameRenderer.getMainCamera().getYRot();
+        float pitch = Minecraft.getInstance().gameRenderer.getMainCamera().getXRot();
+
+        Vec3 vec = EtherUtils.rayTraceBlock(61, yaw, pitch, pos);
+        Vec3 viewVector = vec.subtract(pos).normalize();
+        Vec3 vec2 = viewVector.scale(EtherUtils.EPSILON).add(vec);
+        BlockPos ether = BlockPos.containing(vec2);
+
+        String s = ether.getX() + " " + ether.getY() + " " + ether.getZ();
+        Minecraft.getInstance().keyboardHandler.setClipboard(s);
+        ChatUtils.chat("Copied " + s);
+        return 1;
+    }
+
+    private static int path(CommandContext<ClientSuggestionProvider> ctx, WorldCoordinates pos) {
+        if (Minecraft.getInstance().player == null) return 0;
+        BlockPos blockPos = BlockPos.containing(pos.x().value(), pos.y().value(), pos.z().value());
+        EtherwarpPathfinder pathfinder = new EtherwarpPathfinder(PathfindingCalculationContext.simple(BlockPos.containing(Minecraft.getInstance().player.position().subtract(0, EtherUtils.EPSILON, 0d)), 16), new GoalXYZ(blockPos));
+
+        Thread thread = new Thread(() -> {
+            Path path = pathfinder.calculate();
+            if (path == null) return;
+            PathNode node = path.getEndNode();
+            PathNode last = null;
+            DynamicRoutes dr = RSM.getModule(DynamicRoutes.class);
+
+            while (node != null) {
+                if (last != null) {
+                    dr.addNode(DynamicEtherwarpNode.fromPathNode(node, last.getYaw(), last.getPitch()));
+                }
+                last = node;
+                node = node.getParent();
+            }
+
+        });
+        thread.start();
+        return 1;
     }
 
 
