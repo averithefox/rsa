@@ -17,6 +17,7 @@ import com.ricedotwho.rsa.module.impl.other.*;
 import com.ricedotwho.rsa.module.impl.dungeon.*;
 import com.ricedotwho.rsa.command.impl.RouteCommand;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
+import com.ricedotwho.rsa.module.impl.player.BonzoHelper;
 import com.ricedotwho.rsa.module.impl.player.CancelInteract;
 import com.ricedotwho.rsa.module.impl.render.EffectsAndRender;
 import com.ricedotwho.rsa.module.impl.render.Esp;
@@ -100,7 +101,8 @@ public class RSA implements Addon {
                 AntiCheat.class,
                 Puzzles.class,
                 HidePlayers.class,
-                Auto4.class
+                Auto4.class,
+                BonzoHelper.class
         );
     }
 
