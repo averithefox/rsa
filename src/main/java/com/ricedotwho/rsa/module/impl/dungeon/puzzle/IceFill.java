@@ -1,4 +1,4 @@
-package com.ricedotwho.rsa.module.impl.dungeon;
+package com.ricedotwho.rsa.module.impl.dungeon.puzzle;
 
 import com.google.common.math.DoubleMath;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
@@ -7,8 +7,7 @@ import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
-import com.ricedotwho.rsm.module.api.Category;
-import com.ricedotwho.rsm.module.api.ModuleInfo;
+import com.ricedotwho.rsm.module.api.SubModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.EtherUtils;
@@ -21,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@ModuleInfo(aliases = "IceFill", id = "IceFill", category = Category.DUNGEONS, isOverwrite = true)
+@SubModuleInfo(name = "IceFill", alwaysDisabled = false)
 public class IceFill extends com.ricedotwho.rsm.module.impl.dungeon.puzzle.IceFill {
 	public final BooleanSetting autoEnabled = new BooleanSetting("Auto Ice Fill", false);
 	public final NumberSetting autoDelay = new NumberSetting("Delay", 0, 8, 0, 1);
@@ -30,8 +29,8 @@ public class IceFill extends com.ricedotwho.rsm.module.impl.dungeon.puzzle.IceFi
 	int autoIndex = -1;
 	int autoTicks = 0;
 
-	public IceFill() {
-		super();
+	public IceFill(Puzzles module) {
+		super(module);
 		this.registerProperty(autoEnabled, autoDelay);
 	}
 

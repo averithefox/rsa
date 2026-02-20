@@ -11,7 +11,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.TermAura;
 import com.ricedotwho.rsa.module.impl.dungeon.device.AlignAura;
 import com.ricedotwho.rsa.module.impl.dungeon.device.Auto4;
 import com.ricedotwho.rsa.module.impl.dungeon.device.AutoSS;
-import com.ricedotwho.rsa.module.impl.dungeon.puzzle.AutoTTT;
+import com.ricedotwho.rsa.module.impl.dungeon.puzzle.IceFill;
 import com.ricedotwho.rsa.module.impl.dungeon.puzzle.Puzzles;
 import com.ricedotwho.rsa.module.impl.other.*;
 import com.ricedotwho.rsa.module.impl.dungeon.*;
@@ -28,7 +28,6 @@ import com.ricedotwho.rsm.addon.Addon;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.component.api.ModComponent;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
-import com.ricedotwho.rsm.component.impl.map.map.Puzzle;
 import com.ricedotwho.rsm.module.Module;
 import lombok.Getter;
 import net.fabricmc.loader.api.FabricLoader;
@@ -99,7 +98,6 @@ public class RSA implements Addon {
                 AlignAura.class,
                 FastLeap.class,
                 AntiCheat.class,
-                IceFill.class,
                 Puzzles.class,
                 HidePlayers.class,
                 Auto4.class
