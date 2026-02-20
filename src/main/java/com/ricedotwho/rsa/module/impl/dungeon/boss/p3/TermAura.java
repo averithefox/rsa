@@ -17,6 +17,7 @@ import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.DungeonUtils;
+import com.ricedotwho.rsm.utils.MathUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -76,7 +77,7 @@ public class TermAura extends Module {
         ChatUtils.chat(bestDistance);
 
 
-        Vec3 vec3 = clamp(bestCandidate.getBoundingBox(), eyePos).subtract(bestCandidate.getX(), bestCandidate.getY(), bestCandidate.getZ());
+        Vec3 vec3 = MathUtils.clamp(bestCandidate.getBoundingBox(), eyePos).subtract(bestCandidate.getX(), bestCandidate.getY(), bestCandidate.getZ());
 //        Minecraft.getInstance().getConnection().send(ServerboundInteractPacket.createInteractionPacket(bestCandidate, Minecraft.getInstance().player.isShiftKeyDown(), InteractionHand.MAIN_HAND, vec3));
 
         // so this should be how vailla does it, can't check if there's flags bcs of reach flagging hitboxes, and grim ignores armourstands for PacketOrderC
@@ -93,14 +94,6 @@ public class TermAura extends Module {
 
     private boolean locationCheck() {
         return forceSkyblock.getValue() || (Location.getArea().is(Island.Dungeon) && Dungeon.isInBoss() && DungeonUtils.isPhase(Phase7.P3));
-    }
-
-    private Vec3 clamp(AABB aabb, Vec3 vec3) {
-        return new Vec3(clamp(vec3.x, aabb.minX, aabb.maxX), clamp(vec3.y, aabb.minY, aabb.maxY), clamp(vec3.z, aabb.minZ, aabb.maxZ));
-    }
-
-    private double clamp(double d, double min, double max) {
-        return Math.min(max, Math.max(d, min));
     }
 
 

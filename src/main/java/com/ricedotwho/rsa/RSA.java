@@ -1,13 +1,12 @@
 package com.ricedotwho.rsa;
 
-import com.ricedotwho.rsa.command.impl.BloodBlinkCommand;
-import com.ricedotwho.rsa.command.impl.DynamicRouteCommand;
-import com.ricedotwho.rsa.command.impl.RSADevCommand;
+import com.ricedotwho.rsa.command.impl.*;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.InstaMid;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.PadTimer;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.AutoTerms;
 import com.ricedotwho.rsa.module.impl.dungeon.FastLeap;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.TermAura;
+import com.ricedotwho.rsa.module.impl.dungeon.croesus.AutoCroesus;
 import com.ricedotwho.rsa.module.impl.dungeon.device.AlignAura;
 import com.ricedotwho.rsa.module.impl.dungeon.device.Auto4;
 import com.ricedotwho.rsa.module.impl.dungeon.device.AutoSS;
@@ -15,7 +14,6 @@ import com.ricedotwho.rsa.module.impl.dungeon.puzzle.IceFill;
 import com.ricedotwho.rsa.module.impl.dungeon.puzzle.Puzzles;
 import com.ricedotwho.rsa.module.impl.other.*;
 import com.ricedotwho.rsa.module.impl.dungeon.*;
-import com.ricedotwho.rsa.command.impl.RouteCommand;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
 import com.ricedotwho.rsa.module.impl.player.BonzoHelper;
 import com.ricedotwho.rsa.module.impl.player.CancelInteract;
@@ -102,7 +100,8 @@ public class RSA implements Addon {
                 Puzzles.class,
                 HidePlayers.class,
                 Auto4.class,
-                BonzoHelper.class
+                BonzoHelper.class,
+                AutoCroesus.class
         );
     }
 
@@ -117,7 +116,8 @@ public class RSA implements Addon {
                 RouteCommand.class,
                 DynamicRouteCommand.class,
                 BloodBlinkCommand.class,
-                RSADevCommand.class
+                RSADevCommand.class,
+                AutoCroesusCommand.class
         );
     }
 

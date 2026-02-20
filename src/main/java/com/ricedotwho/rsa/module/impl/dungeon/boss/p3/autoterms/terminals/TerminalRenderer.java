@@ -3,6 +3,7 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.terminals;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.AutoTerms;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.InvWalk;
 import com.ricedotwho.rsm.data.Colour;
+import com.ricedotwho.rsm.utils.Utils;
 import com.ricedotwho.rsm.utils.render.render2d.NVGUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -31,7 +32,7 @@ public class TerminalRenderer {
     public void renderItems(GuiGraphics guiGraphics, Terminal terminal) {
         if (terminalContainer == null || terminalContainer.slots.isEmpty()) return;
 
-        int slotCount = getGuiSlotCount(this.terminalContainer.getType());
+        int slotCount = Utils.getGuiSlotCount(this.terminalContainer.getType());
 
         boolean bl = terminal instanceof StartsWith || terminal instanceof Colors;
         if (bl && terminal.isSolved())
@@ -55,7 +56,7 @@ public class TerminalRenderer {
 
         overrides.clear();
         List<Slot> slots = this.terminalContainer.slots;
-        int slotCount = getGuiSlotCount(this.terminalContainer.getType());
+        int slotCount = Utils.getGuiSlotCount(this.terminalContainer.getType());
 
         for (int i = 0; i < slotCount; i++) {
             if (i >= slots.size()) break;
@@ -92,17 +93,6 @@ public class TerminalRenderer {
 
     public void close() {
         this.terminalContainer = null;
-    }
-
-
-    public static int getGuiSlotCount(MenuType<?> menuType) {
-        if (menuType == MenuType.GENERIC_9x1) return 9;
-        if (menuType == MenuType.GENERIC_9x2) return 18;
-        if (menuType == MenuType.GENERIC_9x3) return 27;
-        if (menuType == MenuType.GENERIC_9x4) return 36;
-        if (menuType == MenuType.GENERIC_9x5) return 45;
-        if (menuType == MenuType.GENERIC_9x6) return 54;
-        return -1;
     }
 
     public void renderSolver(float g, Terminal terminal) {

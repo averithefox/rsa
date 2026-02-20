@@ -10,6 +10,7 @@ import com.ricedotwho.rsm.module.SubModule;
 import com.ricedotwho.rsm.module.api.SubModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.*;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.Utils;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Input;
@@ -82,7 +83,7 @@ public class InvWalk extends SubModule<AutoTerms> {
             if (!module.isInTerm()) return;
 
             float width = 9 * 16f;
-            int slots = TerminalRenderer.getGuiSlotCount(module.getTerminalContainer().getType());
+            int slots = Utils.getGuiSlotCount(module.getTerminalContainer().getType());
             float height = (float) (Math.floor(slots / 9f) * 16);
 
             if (this.style.is("Items")) {

@@ -9,7 +9,7 @@ import com.ricedotwho.rsm.command.api.CommandInfo;
 import com.ricedotwho.rsm.component.impl.task.TaskComponent;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 
-@CommandInfo(name = "rdev", description = "Handles creating autoroutes")
+@CommandInfo(name = "rdev", description = "Developer")
 public class RSADevCommand extends Command {
 
     @Override

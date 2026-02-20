@@ -363,7 +363,7 @@ public class AutoRoutes extends Module implements Accessor {
 
     private void addBlockToInNode() {
         Room currentRoom = Map.getCurrentRoom();
-        if (!Location.getArea().is(Island.Dungeon) || currentRoom == null || this.activeNodes.isEmpty() || mc.player == null) return;
+        if (!Location.getArea().is(Island.Dungeon) || currentRoom == null || this.activeNodes.isEmpty() || mc.player == null || !this.activeNodes.containsKey(currentRoom.getData())) return;
         Pos playerPos = new Pos(mc.player.position());
         Optional<BreakNode> opt = this.activeNodes.get(currentRoom.getData())
                 .stream().filter(n -> n.isInNode(playerPos) && n instanceof BreakNode).map(n -> (BreakNode) n).findFirst();
