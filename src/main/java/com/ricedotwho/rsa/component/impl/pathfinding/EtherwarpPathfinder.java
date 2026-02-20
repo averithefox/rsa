@@ -188,7 +188,6 @@ public class EtherwarpPathfinder {
         }
     }
 
-    // Todo : Remove hashcode error check if it works
     public synchronized PathNode getNodeAt(BlockPos pos, long hashcode, PathNode parent) {
         PathNode node = cache.get(hashcode);
         if (node == null) {
@@ -196,10 +195,10 @@ public class EtherwarpPathfinder {
             cache.put(hashcode, node);
         }
 
-        if (!node.getPos().equals(pos)) {
-            ChatUtils.chat("HASHCODE ERROR!");
-            ChatUtils.chat("Hash1 : " + hashcode + ", Hash2 " + node.hashCode() + " pos 1 : " + pos + " pos 2 : " + node.getPos());
-        }
+//        if (!node.getPos().equals(pos)) {
+//            ChatUtils.chat("HASHCODE ERROR!");
+//            ChatUtils.chat("Hash1 : " + hashcode + ", Hash2 " + node.hashCode() + " pos 1 : " + pos + " pos 2 : " + node.getPos());
+//        }
 
         return node;
     }
@@ -207,7 +206,9 @@ public class EtherwarpPathfinder {
 
     private void consumeRaycastBlocks(PathNode parent, TriConsumer<PathNode, Float, Float> consumer) {
         HashSet<Integer> blockPosCache = new HashSet<>();
-        Vec3 eyePos = new Vec3(parent.getPos().getX() + 0.5, parent.getPos().getY() + 1 + EtherUtils.SNEAK_EYE_HEIGHT, parent.getPos().getZ() + 0.5);
+        // The first node might be wrong, because the player isin't actually at +0.05 offset
+        // This might break since we aren't using vec3 anymore for DynEtherNode
+        Vec3 eyePos = new Vec3(parent.getPos().getX() + 0.5, parent.getPos().getY() + 1.05 + EtherUtils.SNEAK_EYE_HEIGHT, parent.getPos().getZ() + 0.5);
 
         for (float pitch = -90f; pitch <= 90f; pitch += context.pitchStep()) {
             float pitchRadians = (float) Math.toRadians(pitch);

@@ -31,20 +31,63 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 
-public class DynamicEtherwarpNode extends EtherwarpNode {
+public class DynamicEtherwarpNode extends Node {
+    private final float yaw;
+    private final float pitch;
+    private Vec3 target;
 
-    public DynamicEtherwarpNode(Pos localPos, Pos localTargetPos, AwaitManager awaits, boolean start) {
-        super(localPos, localTargetPos, null, false);
+    public DynamicEtherwarpNode(Pos localPos, float yaw, float pitch, AwaitManager awaits, boolean start) {
+        super(localPos, null, false);
+        this.yaw = yaw;
+        this.pitch = pitch;
     }
 
-    public DynamicEtherwarpNode(Pos localPos, Pos localTargetPos) {
-        super(localPos, localTargetPos, null, false);
+    public DynamicEtherwarpNode(Pos localPos, float yaw, float pitch) {
+        this(localPos, yaw, pitch, null, false);
+    }
+
+    @Override
+    public boolean run(Pos playerPos) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) return cancel();
+
+        KeyMapping.releaseAll();
+
+        if (!SwapManager.reserveSwap(Items.DIAMOND_SHOVEL)) return cancel();
+
+        if (!Minecraft.getInstance().player.getLastSentInput().shift()) {
+            return cancel();
+        }
+
+        Pos playerCopy = playerPos.add(0.0d, EtherUtils.SNEAK_EYE_HEIGHT, 0.0d);
+
+        boolean swap = SwapManager.isDesynced();
+        PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
+            if ((swap && !SwapManager.checkClientItem(Items.DIAMOND_SHOVEL)) || (!swap && !SwapManager.checkServerItem(Items.DIAMOND_SHOVEL))) {
+                // Swap didn't work??? It got swapped back? WTF
+                ChatUtils.chat("Big fuck up! : " + swap + ", " + Minecraft.getInstance().player.getInventory().getItem(SwapManager.getServerSlot()).getItem());
+                return;
+            }
+
+            if (!SwapManager.sendAirC08(this.yaw, this.pitch, swap, false)) {
+                ChatUtils.chat("Failed to send dyn ether C08!");
+                return;
+            }
+        });
+
+        BlockPos etherPos = EtherUtils.fastGetEtherFromOrigin(playerCopy.asVec3(), this.yaw, this.pitch, 61);
+        if (etherPos == null) return false;
+
+        playerPos.x = etherPos.getX() + 0.5d;
+        playerPos.y = etherPos.getY() + 1.05d; // Fuck you hypixel for the 0.05d
+        playerPos.z = etherPos.getZ() + 0.5d;
+        return true;
     }
 
     @Override
     public void calculate(UniqueRoom room) {
         this.realPos = this.localPos;
-        this.realTargetPos = this.localTargetPos;
+        this.target = EtherUtils.rayTraceBlock(61, yaw, pitch, this.localPos.add(0d, EtherUtils.SNEAK_EYE_HEIGHT + 0.05, 0d).asVec3());
     }
 
     @Override
@@ -59,22 +102,28 @@ public class DynamicEtherwarpNode extends EtherwarpNode {
     }
 
     @Override
+    public void render(boolean depth) {
+        Vec3 playerRealPos = this.getRealPos().asVec3();
+        Colour colour = this.getColour();
+        Renderer3D.addTask(new Ring(playerRealPos, depth, this.getRadius(), colour));
+        Renderer3D.addTask(new Line(playerRealPos, this.target, colour, colour, true));
+    }
+
+
+    @Override
     public Colour getColour() {
         return DynamicRoutes.getNodeColor().getValue();
     }
 
     public static DynamicEtherwarpNode fromPathNode(PathNode node, float yaw, float pitch) {
         Pos nodePos = new Pos(node.getPos().getBottomCenter()).selfAdd(0d, 1d, 0d);
-        Vec3 target = EtherUtils.rayTraceBlock(61, yaw, pitch, nodePos.add(0d, EtherUtils.SNEAK_EYE_HEIGHT, 0d).asVec3());
-        return new DynamicEtherwarpNode(nodePos, new Pos(target));
+        return new DynamicEtherwarpNode(nodePos, yaw, pitch);
     }
 
     public static DynamicEtherwarpNode supply(UniqueRoom fullRoom, LocalPlayer player) {
-        Vec3 target = EtherUtils.rayTraceBlock(61, player.getYRot(), player.getXRot(), player.position().add(0d, player.getEyeHeight(Pose.CROUCHING), 0d));
-        if (target == null) return null;
+        // Won't work properly when adding manually because not 0.05 blocks off of ground
         Room mainRoom = fullRoom.getMainRoom();
         Pos playerRelative = RoomUtils.getRelativePosition(new Pos(player.position()), mainRoom);
-        Pos targetRelative = RoomUtils.getRelativePosition(new Pos(target), mainRoom);
-        return new DynamicEtherwarpNode(playerRelative, targetRelative);
+        return new DynamicEtherwarpNode(playerRelative, player.getYRot(), player.getXRot());
     }
 }
