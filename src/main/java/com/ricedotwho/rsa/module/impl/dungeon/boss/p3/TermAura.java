@@ -52,7 +52,7 @@ public class TermAura extends Module {
 
     private void rapeArmorstands() {
         if (Minecraft.getInstance().player == null || Minecraft.getInstance().level == null || Minecraft.getInstance().getConnection() == null) return;
-        if (System.currentTimeMillis() - lastClick < delay.getValue()) return;
+        if (System.currentTimeMillis() - lastClick < delay.getValue().longValue()) return;
         if (!locationCheck()) return;
         if (AutoTerms.isInTerminal() || Minecraft.getInstance().screen instanceof AbstractContainerScreen<?>) return;
 

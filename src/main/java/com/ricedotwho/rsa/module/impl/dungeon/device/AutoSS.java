@@ -67,7 +67,6 @@ public class AutoSS extends Module {
     private final List<Vec3> allButtons = new ArrayList<>();
     private Vec3 clickedButton;
 
-
     public AutoSS() {
         this.registerProperty(
                 resetKey,
@@ -110,7 +109,7 @@ public class AutoSS extends Module {
     @SubscribeEvent
     public void onRender(Render3DEvent.Last event) {
         if (!areaCheck()) return;
-        if (System.currentTimeMillis() - lastClickTime + 1 < clickDelay.getValue()) return;
+        if (System.currentTimeMillis() - lastClickTime + 1 < clickDelay.getValue().longValue()) return;
         if (Minecraft.getInstance().level == null || Minecraft.getInstance().player == null) return;
         LocalPlayer player = Minecraft.getInstance().player;
 
@@ -159,7 +158,7 @@ public class AutoSS extends Module {
         if (Minecraft.getInstance().player == null || Minecraft.getInstance().level == null) return;
         ClientLevel level = Minecraft.getInstance().level;
 
-        if (System.currentTimeMillis() - lastClickTime > clickDelay.getValue()) clickedButton = null;
+        if (System.currentTimeMillis() - lastClickTime > clickDelay.getValue().longValue()) clickedButton = null;
         if (Minecraft.getInstance().player.distanceToSqr(START_BUTTON) >= 1600) return;
 
         if (clickedButton != null) {

@@ -99,12 +99,13 @@ public class AutoTerms extends Module {
             this.predictedState = null;
         }
 
+        // todo: DO NOT DO THIS ON RENDER!
 
-        if (firstClick && (System.currentTimeMillis() - lastClickTime < firstClickDelay.getValue())) return;
+        if (firstClick && (System.currentTimeMillis() - lastClickTime < firstClickDelay.getValue().longValue())) return;
 
-        if (System.currentTimeMillis() - lastClickTime < delay.getValue()) return;
+        if (System.currentTimeMillis() - lastClickTime < delay.getValue().longValue()) return;
 
-        if (System.currentTimeMillis() - lastClickTime > breakThreshold.getValue()) {
+        if (System.currentTimeMillis() - lastClickTime > breakThreshold.getValue().longValue()) {
             clickedWindow = false;
         }
 

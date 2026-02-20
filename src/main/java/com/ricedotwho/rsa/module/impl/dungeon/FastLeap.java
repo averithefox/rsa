@@ -132,7 +132,7 @@ public class FastLeap extends Module {
                 || !Location.getArea().is(Island.Dungeon)
                 || mc.player == null || mc.level == null
                 || !Utils.equalsOneOf(ItemUtils.getID(mc.player.getInventory().getSelectedItem()), "SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP")
-                || (System.currentTimeMillis() - module.lastUsed) < module.cooldown.getValue()
+                || (System.currentTimeMillis() - lastUsed) < module.cooldown.getValue().longValue()
                 || module.windowOpen
                 || openingGui
                 || !EventComponent.isInTerminal() && mc.screen != null

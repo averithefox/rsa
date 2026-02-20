@@ -451,7 +451,7 @@ public class BloodBlink extends Module {
 
         if (packet instanceof ClientboundSetTimePacket timePacket) {
             long time = timePacket.gameTime();
-            this.serverTickTimer = (int) (time + deathTickOffset.getValue()) % 40;
+            this.serverTickTimer = (int) (time + deathTickOffset.getValue().intValue()) % 40;
         }
 
         if (packet instanceof ClientboundPlayerPositionPacket s08) {
@@ -512,7 +512,7 @@ public class BloodBlink extends Module {
     private void findTargetRoom() {
         // Blood will already be set if the mode is Blood
         if (this.mode.is("InstaClear")) {
-            if (roomPriority.size() < this.priority.getValue()) {
+            if (roomPriority.size() < this.priority.getValue().intValue()) {
                 ChatUtils.chat("No room found with priority %s to InstaClear!", this.priority.getValue());
                 return;
             }

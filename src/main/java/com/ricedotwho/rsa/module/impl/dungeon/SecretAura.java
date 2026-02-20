@@ -144,7 +144,7 @@ public class SecretAura extends Module {
             if (!isValidBlock(block) && (block != Blocks.PLAYER_HEAD || !isValidSkull(blockPos, level))) continue;
             if (Dungeon.isInBoss() && block == Blocks.PLAYER_HEAD) continue;
 
-            if (!clickedBlocks.containsKey(hash) && delay.getValue() > 0) {
+            if (!clickedBlocks.containsKey(hash) && delay.getValue().longValue() > 0) {
                 clickedBlocks.put(hash, System.currentTimeMillis() + delay.getValue().longValue());
                 continue;
             }

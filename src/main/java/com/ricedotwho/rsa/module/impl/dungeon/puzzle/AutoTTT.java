@@ -56,7 +56,7 @@ public class AutoTTT extends TicTacToe {
         Vec3 eyePos = mc.player.position().add(0.0d, mc.player.getLastSentInput().shift() ? EtherUtils.SNEAK_EYE_HEIGHT : Minecraft.getInstance().player.getEyeHeight(Pose.STANDING), 0.0d);
         BlockPos best = getBestMove();
         double dist = eyePos.distanceToSqr(best.getX(), best.getY(), best.getZ());
-        double range = getRange().getValue();
+        double range = getRange().getValue().doubleValue();
         if (dist > range * range) return;
         clickButton(best, eyePos);
     }

@@ -11,7 +11,6 @@ import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
 import lombok.Getter;
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
@@ -23,7 +22,7 @@ import java.util.List;
 
 @Getter
 @ModuleInfo(aliases = "IceFill", id = "IceFill", category = Category.DUNGEONS, isOverwrite = true)
-public class IceFill extends com.ricedotwho.rsm.module.impl.dungeon.IceFill {
+public class IceFill extends com.ricedotwho.rsm.module.impl.dungeon.puzzle.IceFill {
 	public final BooleanSetting autoEnabled = new BooleanSetting("Auto Ice Fill", false);
 	public final NumberSetting autoDelay = new NumberSetting("Delay", 0, 8, 0, 1);
 
