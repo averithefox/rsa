@@ -87,7 +87,16 @@ public class DynamicEtherwarpNode extends Node {
     @Override
     public void calculate(UniqueRoom room) {
         this.realPos = this.localPos;
-        this.target = EtherUtils.rayTraceBlock(61, yaw, pitch, this.localPos.add(0d, EtherUtils.SNEAK_EYE_HEIGHT + 0.05, 0d).asVec3());
+        Vec3 origin = this.localPos.add(0d, EtherUtils.SNEAK_EYE_HEIGHT + 0.05, 0d).asVec3();
+        this.target = EtherUtils.rayTraceBlock(61, yaw, pitch, origin);
+        if (this.target == null) {
+            BlockPos pos = EtherUtils.fastGetEtherFromOrigin(origin, yaw, pitch, 61);
+            if (pos == null) {
+                this.target = Vec3.ZERO; // I give up atp
+                return;
+            }
+            this.target = pos.getCenter(); // Close enough and we don't really care
+        }
     }
 
     @Override
@@ -103,10 +112,10 @@ public class DynamicEtherwarpNode extends Node {
 
     @Override
     public void render(boolean depth) {
-        Vec3 playerRealPos = this.getRealPos().asVec3();
+        Vec3 position = this.getRealPos().asVec3();
         Colour colour = this.getColour();
-        Renderer3D.addTask(new Ring(playerRealPos, depth, this.getRadius(), colour));
-        Renderer3D.addTask(new Line(playerRealPos, this.target, colour, colour, true));
+        Renderer3D.addTask(new Ring(position, depth, this.getRadius(), colour));
+        Renderer3D.addTask(new Line(position, this.target, colour, colour, true));
     }
 
 
@@ -115,8 +124,8 @@ public class DynamicEtherwarpNode extends Node {
         return DynamicRoutes.getNodeColor().getValue();
     }
 
-    public static DynamicEtherwarpNode fromPathNode(PathNode node, float yaw, float pitch) {
-        Pos nodePos = new Pos(node.getPos().getBottomCenter()).selfAdd(0d, 1d, 0d);
+    public static DynamicEtherwarpNode fromBlockPos(BlockPos pos, float yaw, float pitch) {
+        Pos nodePos = new Pos(pos.getBottomCenter()).selfAdd(0d, 1d, 0d);
         return new DynamicEtherwarpNode(nodePos, yaw, pitch);
     }
 

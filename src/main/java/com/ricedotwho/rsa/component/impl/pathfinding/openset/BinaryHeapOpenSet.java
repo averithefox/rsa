@@ -18,6 +18,7 @@
 package com.ricedotwho.rsa.component.impl.pathfinding.openset;
 
 import com.ricedotwho.rsa.component.impl.pathfinding.PathNode;
+import com.ricedotwho.rsa.component.impl.pathfinding.PathfindingCalculationContext;
 
 import java.util.Arrays;
 
@@ -38,13 +39,16 @@ public final class BinaryHeapOpenSet implements IOpenSet {
      */
     private int size;
 
-    public BinaryHeapOpenSet() {
-        this(INITIAL_CAPACITY);
+    private final float nodeCost;
+
+    public BinaryHeapOpenSet(float nodeCost) {
+        this(INITIAL_CAPACITY, nodeCost);
     }
 
-    public BinaryHeapOpenSet(int size) {
+    public BinaryHeapOpenSet(int size, float nodeCost) {
         this.size = 0;
         this.array = new PathNode[size];
+        this.nodeCost = nodeCost;
     }
 
     public int size() {
@@ -66,9 +70,9 @@ public final class BinaryHeapOpenSet implements IOpenSet {
     public final void update(PathNode val) {
         int index = val.heapPosition;
         int parentInd = index >>> 1;
-        double cost = val.getCost();
+        double cost = val.getCost(this.nodeCost);
         PathNode parentNode = array[parentInd];
-        while (index > 1 && parentNode.getCost() > cost) {
+        while (index > 1 && parentNode.getCost(this.nodeCost) > cost) {
             array[index] = parentNode;
             array[parentInd] = val;
             val.heapPosition = parentInd;
@@ -101,13 +105,13 @@ public final class BinaryHeapOpenSet implements IOpenSet {
         }
         int index = 1;
         int smallerChild = 2;
-        double cost = val.getCost();
+        double cost = val.getCost(nodeCost);
         do {
             PathNode smallerChildNode = array[smallerChild];
-            double smallerChildCost = smallerChildNode.getCost();
+            double smallerChildCost = smallerChildNode.getCost(nodeCost);
             if (smallerChild < size) {
                 PathNode rightChildNode = array[smallerChild + 1];
-                double rightChildCost = rightChildNode.getCost();
+                double rightChildCost = rightChildNode.getCost(nodeCost);
                 if (smallerChildCost > rightChildCost) {
                     smallerChild++;
                     smallerChildCost = rightChildCost;

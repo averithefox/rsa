@@ -1,8 +1,13 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
+import com.ricedotwho.rsa.component.impl.pathfinding.EtherwarpPathfinder;
+import com.ricedotwho.rsa.component.impl.pathfinding.Goal;
+import com.ricedotwho.rsa.component.impl.pathfinding.Path;
+import com.ricedotwho.rsa.component.impl.pathfinding.PathfindingCalculationContext;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.DynamicEtherwarpNode;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.EtherwarpNode;
+import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.map.RoomRotation;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
@@ -19,10 +24,15 @@ import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.group.DefaultGroupSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.ColourSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
+import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.EtherUtils;
+import com.sun.jna.platform.linux.Udev;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec3;
 
@@ -36,6 +46,7 @@ public class DynamicRoutes extends Module {
     private final List<Node> nodes = new ArrayList<>();
 
     private static final BooleanSetting centerOnly = new BooleanSetting("Center Only", false);
+    private final BooleanSetting oneUse = new BooleanSetting("Delete After Use", true);
     private final BooleanSetting editMode = new BooleanSetting("Edit Mode", false);
 
     private final DefaultGroupSetting render = new DefaultGroupSetting("Render", this);
@@ -43,6 +54,17 @@ public class DynamicRoutes extends Module {
 
     @Getter
     private static final ColourSetting nodeColor = new ColourSetting("Color", Colour.ORANGE);
+
+    private final DefaultGroupSetting pathfinder = new DefaultGroupSetting("Pathfinding", this);
+    private final NumberSetting heuristicThreshold = new NumberSetting("Heuristic Threshold", 0.1, 5, 0.5, 0.1);
+    private final NumberSetting threadCount = new NumberSetting("Thead Count", 1d, 64d, 8d, 1d);
+    private final NumberSetting nodeCost = new NumberSetting("Node Cost", 1d, 10000d, 500d, 1d);
+    private final NumberSetting yawStep = new NumberSetting("Yaw Step", 0.1d, 10d, 4d, 0.1d);
+    private final NumberSetting pitchStep = new NumberSetting("Pitch Step", 0.1d, 10d, 2d, 0.1d);
+
+    private EtherwarpPathfinder currentPathfinder;
+    private Thread pathfinderThread;
+
 
     private int tickTime = 0;
 
@@ -53,9 +75,12 @@ public class DynamicRoutes extends Module {
         this.registerProperty(
                 editMode,
                 centerOnly,
-                render
+                oneUse,
+                render,
+                pathfinder
         );
         render.add(nodeDepth, nodeColor);
+        pathfinder.add(threadCount, heuristicThreshold, nodeCost, yawStep, pitchStep);
 
         EMPTY_UNIQUE = UniqueRoom.emptyUnique();
     }
@@ -83,7 +108,6 @@ public class DynamicRoutes extends Module {
 
         Pos playerPos = new Pos(Minecraft.getInstance().player.position());
 
-
         nodes.forEach(n -> n.updateNodeState(playerPos, tickTime));
 
         while (true) {
@@ -98,6 +122,39 @@ public class DynamicRoutes extends Module {
 
         Input newInputs = new Input(oldInputs.forward(), oldInputs.backward(), oldInputs.left(), oldInputs.right(), oldInputs.jump(), true, oldInputs.sprint());
         event.getInputConsumer().accept(newInputs);
+    }
+
+    public void executePath(BlockPos startPos, Goal goal) {
+        PathfindingCalculationContext ctx = new PathfindingCalculationContext(startPos, this.threadCount.getValue().intValue(), this.yawStep.getValue().floatValue(), this.pitchStep.getValue().floatValue(), this.nodeCost.getValue().floatValue(), this.heuristicThreshold.getValue().floatValue());
+        executePath(new EtherwarpPathfinder(ctx, goal));
+    }
+
+    public void executePath(EtherwarpPathfinder pathfinder) {
+        if (this.currentPathfinder != null) {
+            ChatUtils.chat("Pathfinder already active!");
+            return;
+        }
+
+        this.currentPathfinder = pathfinder;
+        this.pathfinderThread = new Thread(() -> {
+            Path path = pathfinder.calculate();
+            if (path == null) return;
+
+            path.consumeNodes(this::addNode, DynamicEtherwarpNode::fromBlockPos);
+            this.currentPathfinder = null;
+        });
+        this.pathfinderThread.start();
+    }
+
+    public boolean isPathing() {
+        return this.currentPathfinder != null;
+    }
+
+    public boolean cancelPathing() {
+        if (this.currentPathfinder == null) return false;
+        this.currentPathfinder.cancel();
+        this.currentPathfinder = null;
+        return true;
     }
 
     private boolean hasGuiOpen() {
@@ -130,7 +187,6 @@ public class DynamicRoutes extends Module {
 
     public boolean addNode(LocalPlayer player) {
        Node node = DynamicEtherwarpNode.supply(EMPTY_UNIQUE, player);
-       if (node == null) return false;
 
        addNode(node);
        return true;
@@ -143,14 +199,21 @@ public class DynamicRoutes extends Module {
 
     public boolean handleQueue(Pos playerPos, List<Node> nodes) {
         // Don't need to sort, they should all be EWs
-        List<Node> activeNodes = nodes.stream().filter(n -> !n.isTriggered() && !n.hasRanThisTick(tickTime) && n.isInNode(playerPos)).toList(); // .sorted(Comparator.comparingInt(n -> ((Node) n).getPriority()).reversed())
-        if (activeNodes.isEmpty()) return false;
+        // .sorted(Comparator.comparingInt(n -> ((Node) n).getPriority()).reversed())
 
-        this.isRouting = true;
+        for (int i = 0; i < nodes.size(); i++) {
+            Node node = nodes.get(i);
+            if (node.isTriggered() || node.hasRanThisTick(tickTime) || !node.isInNode(playerPos)) continue;
 
-        Node node = activeNodes.getFirst();
+            this.isRouting = true;
 
-        node.preTrigger(tickTime);
-        return node.run(playerPos);
+            node.preTrigger(tickTime);
+            boolean bl = node.run(playerPos);
+            if (bl && this.oneUse.getValue()) {
+                nodes.remove(i);
+            }
+            return bl;
+        }
+        return false;
     }
 }

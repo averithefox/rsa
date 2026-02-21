@@ -15,7 +15,6 @@ import java.util.List;
 import static java.lang.Math.cos;
 
 public class EtherwarpPathfinder {
-    public static final float NODE_COST = 100f;
     public final static double MIN_IMPROVEMENT = 1d;
 
     private final Goal goal;
@@ -35,7 +34,7 @@ public class EtherwarpPathfinder {
         this.goal = goal;
         this.context = context;
         this.cache = new HashMap<>();
-        this.nodes = new BinaryHeapOpenSet();
+        this.nodes = new BinaryHeapOpenSet(context.newNodeCost());
         this.processing = new HashSet<>();
     }
 
@@ -79,12 +78,13 @@ public class EtherwarpPathfinder {
 
     private void checkNode(PathNode checkNode) {
         if (checkNode == null) return;
+        double moveCost = checkNode.getMoveCost(context.newNodeCost());
         if (goal.test(checkNode.getPos())) {
             ChatUtils.chat("Found valid route length " + checkNode.getIndex());
-            if (!isComplete() || checkNode.getMoveCost() < getBestNodeMoveCost()) setBestNode(checkNode);
+            if (!isComplete() || moveCost < getBestNodeMoveCost()) setBestNode(checkNode);
         }
 
-        if (isComplete() && checkNode.getMoveCost() >= getBestNodeMoveCost()) {
+        if (isComplete() && moveCost >= getBestNodeMoveCost()) {
             finishNode(checkNode);
             return;
         }
@@ -94,10 +94,10 @@ public class EtherwarpPathfinder {
             return;
         }
 
-        double newCost = checkNode.getMoveCost() + NODE_COST;
+        double newCost = moveCost + context.newNodeCost();
 
         consumeRaycastBlocks(checkNode, (neighborNode, yaw, pitch) -> {
-            if (!neighborNode.hasBeenScanned() || neighborNode.getMoveCost() - newCost > MIN_IMPROVEMENT) {
+            if (!neighborNode.hasBeenScanned() || neighborNode.getMoveCost(context.newNodeCost()) - newCost > MIN_IMPROVEMENT) {
                 neighborNode.updateParent(checkNode);
                 neighborNode.setYaw(yaw);
                 neighborNode.setPitch(pitch);
@@ -110,7 +110,7 @@ public class EtherwarpPathfinder {
                     insertNodes(neighborNode);
                 }
                 if (!isComplete() && getBestNodeHeuristic() - neighborNode.getHeuristicCost() > MIN_IMPROVEMENT) {
-                    if (neighborNode.getMoveCost() < getBestNodeMoveCost())
+                    if (neighborNode.getMoveCost(context.newNodeCost()) < getBestNodeMoveCost())
                         setBestNode(neighborNode);
                 }
 
@@ -119,7 +119,9 @@ public class EtherwarpPathfinder {
         finishNode(checkNode);
     }
 
-
+    public void cancel() {
+        this.solved = true;
+    }
 
     private synchronized void updateNodes(PathNode node) {
         nodes.update(node);
@@ -159,7 +161,7 @@ public class EtherwarpPathfinder {
     }
 
     private synchronized double getBestNodeMoveCost() {
-        return bestNode.getMoveCost();
+        return bestNode.getMoveCost(context.newNodeCost());
     }
 
     private synchronized double getBestNodeHeuristic() {
@@ -168,7 +170,7 @@ public class EtherwarpPathfinder {
 
     private synchronized void setBestNode(PathNode node) {
         if (this.solved) {
-            if (node.getMoveCost() < bestNode.getMoveCost()) {
+            if (node.getMoveCost(context.newNodeCost()) < bestNode.getMoveCost(context.newNodeCost())) {
                 bestNode = node;
                 bestCachedPath = new CachedPath(node);
             }
@@ -183,7 +185,7 @@ public class EtherwarpPathfinder {
         }
 
         if (bestNode.getHeuristicCost() - node.getHeuristicCost() > MIN_IMPROVEMENT) {
-            if (bestNode.getMoveCost() < getBestNodeMoveCost())
+            if (bestNode.getMoveCost(context.newNodeCost()) < getBestNodeMoveCost())
                 this.bestNode = node;
         }
     }

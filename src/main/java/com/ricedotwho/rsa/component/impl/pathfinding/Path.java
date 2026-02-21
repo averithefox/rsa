@@ -1,6 +1,12 @@
 package com.ricedotwho.rsa.component.impl.pathfinding;
 
+import com.mojang.datafixers.util.Function3;
+import com.ricedotwho.rsa.module.impl.dungeon.DynamicRoutes;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.DynamicEtherwarpNode;
+import com.ricedotwho.rsm.RSM;
 import net.minecraft.core.BlockPos;
+
+import java.util.function.Consumer;
 
 public class Path {
     private final BlockPos start;
@@ -35,6 +41,20 @@ public class Path {
             node = node.getParent();
         }
         return count;
+    }
+
+    public<T> void consumeNodes(Consumer<T> consumer, Function3<BlockPos, Float, Float, T> provider) {
+        PathNode node = this.getEndNode();
+        PathNode last = null;
+
+        while (node != null) {
+            if (last != null) {
+                consumer.accept(provider.apply(node.getPos(), last.getYaw(), last.getPitch()));
+            }
+            last = node;
+            node = node.getParent();
+        }
+
     }
 
     public Goal getGoal() {

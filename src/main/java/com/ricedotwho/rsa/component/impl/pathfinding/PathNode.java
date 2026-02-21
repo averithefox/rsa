@@ -81,12 +81,12 @@ public class PathNode {
     }
 
 
-    public synchronized double getCost() {
-        return getMoveCost() + heuristicCost;
+    public synchronized double getCost(float nodeCost) {
+        return getMoveCost(nodeCost) + heuristicCost;
     }
 
-    public synchronized double getMoveCost() {
-        return index * EtherwarpPathfinder.NODE_COST;
+    public synchronized double getMoveCost(float nodeCost) {
+        return index * nodeCost;
     }
 
     public synchronized void updateParent(PathNode parent) {

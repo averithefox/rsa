@@ -61,6 +61,9 @@ public class DynamicRouteCommand extends Command {
                 .then(literal("clear")
                         .executes(DynamicRouteCommand::clearNodes)
                 )
+                .then(literal("stop")
+                        .executes(DynamicRouteCommand::stopPathing)
+                )
                 .then(literal("path")
                         .then(argument("pos", BlockPosArgument.blockPos())
                                 .executes((ctx) -> path(ctx, ctx.getArgument("pos", WorldCoordinates.class)))
@@ -74,6 +77,16 @@ public class DynamicRouteCommand extends Command {
                 );
     }
 
+    private static int stopPathing(CommandContext<ClientSuggestionProvider> ctx) {
+        boolean bl = RSM.getModule(DynamicRoutes.class).cancelPathing();
+        if (bl) {
+            ChatUtils.chat("Cancelled pathing!");
+            return 1;
+        }
+
+        ChatUtils.chat("No pathing active!");
+        return 0;
+    }
     private static int copyBlockPosLook(CommandContext<ClientSuggestionProvider> ctx) {
         Vec3 pos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
         float yaw = Minecraft.getInstance().gameRenderer.getMainCamera().getYRot();
@@ -93,25 +106,8 @@ public class DynamicRouteCommand extends Command {
     private static int path(CommandContext<ClientSuggestionProvider> ctx, WorldCoordinates pos) {
         if (Minecraft.getInstance().player == null) return 0;
         BlockPos blockPos = BlockPos.containing(pos.x().value(), pos.y().value(), pos.z().value());
-        EtherwarpPathfinder pathfinder = new EtherwarpPathfinder(PathfindingCalculationContext.simple(BlockPos.containing(Minecraft.getInstance().player.position().subtract(0, EtherUtils.EPSILON, 0d)), 16), new GoalXYZ(blockPos));
-
-        Thread thread = new Thread(() -> {
-            Path path = pathfinder.calculate();
-            if (path == null) return;
-            PathNode node = path.getEndNode();
-            PathNode last = null;
-            DynamicRoutes dr = RSM.getModule(DynamicRoutes.class);
-
-            while (node != null) {
-                if (last != null) {
-                    dr.addNode(DynamicEtherwarpNode.fromPathNode(node, last.getYaw(), last.getPitch()));
-                }
-                last = node;
-                node = node.getParent();
-            }
-
-        });
-        thread.start();
+        BlockPos startPos = BlockPos.containing(Minecraft.getInstance().player.position().subtract(0, EtherUtils.EPSILON, 0d));
+        RSM.getModule(DynamicRoutes.class).executePath(startPos, new GoalXYZ(blockPos));
         return 1;
     }
 

@@ -29,7 +29,12 @@ import com.ricedotwho.rsa.component.impl.pathfinding.PathNode;
  */
 class LinkedListOpenSet implements IOpenSet {
 
+    private final float nodeCost;
     private Node first = null;
+
+    public LinkedListOpenSet(float nodeCost) {
+        this.nodeCost = nodeCost;
+    }
 
     @Override
     public boolean isEmpty() {
@@ -61,11 +66,11 @@ class LinkedListOpenSet implements IOpenSet {
             return n.val;
         }
         Node previous = first;
-        double bestValue = first.val.getCost();
+        double bestValue = first.val.getCost(this.nodeCost);
         Node bestNode = first;
         Node beforeBest = null;
         while (current != null) {
-            double comp = current.val.getCost();
+            double comp = current.val.getCost(this.nodeCost);
             if (comp < bestValue) {
                 bestValue = comp;
                 bestNode = current;
