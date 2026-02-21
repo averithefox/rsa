@@ -38,6 +38,7 @@ import net.minecraft.commands.arguments.coordinates.WorldCoordinates;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
+import org.lwjgl.util.freetype.FreeType;
 
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
@@ -67,6 +68,11 @@ public class DynamicRouteCommand extends Command {
                 .then(literal("path")
                         .then(argument("pos", BlockPosArgument.blockPos())
                                 .executes((ctx) -> path(ctx, ctx.getArgument("pos", WorldCoordinates.class)))
+                        )
+                )
+                .then(literal("roomfind")
+                        .then(argument("pos", BlockPosArgument.blockPos())
+                                .executes((ctx) -> dungeonPath(ctx, ctx.getArgument("pos", WorldCoordinates.class)))
                         )
                 )
                 .then(literal("cp")
@@ -108,6 +114,20 @@ public class DynamicRouteCommand extends Command {
         BlockPos blockPos = BlockPos.containing(pos.x().value(), pos.y().value(), pos.z().value());
         BlockPos startPos = BlockPos.containing(Minecraft.getInstance().player.position().subtract(0, EtherUtils.EPSILON, 0d));
         RSM.getModule(DynamicRoutes.class).executePath(startPos, new GoalXYZ(blockPos));
+        return 1;
+    }
+
+    private static int dungeonPath(CommandContext<ClientSuggestionProvider> ctx, WorldCoordinates pos) {
+        if (Minecraft.getInstance().player == null) return 0;
+        BlockPos blockPos = BlockPos.containing(pos.x().value(), pos.y().value(), pos.z().value());
+        BlockPos startPos = BlockPos.containing(Minecraft.getInstance().player.position().subtract(0, EtherUtils.EPSILON, 0d));
+        GoalDungeonXYZ goal = GoalDungeonXYZ.create(blockPos);
+        if (goal == null) {
+            ChatUtils.chat("Failed to create goal!");
+            return 0;
+        }
+
+        RSM.getModule(DynamicRoutes.class).executePath(startPos, goal);
         return 1;
     }
 
