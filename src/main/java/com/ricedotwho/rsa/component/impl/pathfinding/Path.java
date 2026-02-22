@@ -1,6 +1,6 @@
 package com.ricedotwho.rsa.component.impl.pathfinding;
 
-import com.mojang.datafixers.util.Function3;
+import com.mojang.datafixers.util.Function4;
 import com.ricedotwho.rsa.module.impl.dungeon.DynamicRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.DynamicEtherwarpNode;
 import com.ricedotwho.rsm.RSM;
@@ -43,13 +43,15 @@ public class Path {
         return count;
     }
 
-    public<T> void consumeNodes(Consumer<T> consumer, Function3<BlockPos, Float, Float, T> provider) {
+    public<T> void consumeNodes(Consumer<T> consumer, Function4<BlockPos, Float, Float, Boolean, T> provider) {
         PathNode node = this.getEndNode();
         PathNode last = null;
+        boolean isLast = true;
 
         while (node != null) {
             if (last != null) {
-                consumer.accept(provider.apply(node.getPos(), last.getYaw(), last.getPitch()));
+                consumer.accept(provider.apply(node.getPos(), last.getYaw(), last.getPitch(), isLast));
+                isLast = false;
             }
             last = node;
             node = node.getParent();

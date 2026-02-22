@@ -37,6 +37,7 @@ import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 @ModuleInfo(aliases = "Dynamicroutes", id = "Dynamicroutes", category = Category.MOVEMENT)
 public class DynamicRoutes extends Module {
@@ -64,6 +65,7 @@ public class DynamicRoutes extends Module {
 
     private EtherwarpPathfinder currentPathfinder;
     private Thread pathfinderThread;
+    private final List<Goal> pathQueue;
 
 
     private int tickTime = 0;
@@ -79,6 +81,7 @@ public class DynamicRoutes extends Module {
                 render,
                 pathfinder
         );
+        this.pathQueue = new ArrayList<>();
         render.add(nodeDepth, nodeColor);
         pathfinder.add(threadCount, heuristicThreshold, nodeCost, yawStep, pitchStep);
 
@@ -124,12 +127,25 @@ public class DynamicRoutes extends Module {
         event.getInputConsumer().accept(newInputs);
     }
 
-    public void executePath(BlockPos startPos, Goal goal) {
-        PathfindingCalculationContext ctx = new PathfindingCalculationContext(startPos, this.threadCount.getValue().intValue(), this.yawStep.getValue().floatValue(), this.pitchStep.getValue().floatValue(), this.nodeCost.getValue().floatValue(), this.heuristicThreshold.getValue().floatValue());
-        executePath(new EtherwarpPathfinder(ctx, goal));
+    public void pathGoals(BlockPos startPos, List<? extends Goal> goals) {
+        if ((!pathQueue.isEmpty()) || goals.isEmpty()) return;
+        this.pathQueue.addAll(goals);
+        pathNextQueued(startPos);
     }
 
-    public void executePath(EtherwarpPathfinder pathfinder) {
+    private void pathNextQueued(BlockPos pos) {
+        if (pathQueue.isEmpty()) return;
+        Goal goal = pathQueue.removeFirst();
+        PathfindingCalculationContext ctx = new PathfindingCalculationContext(pos.mutable(), this.threadCount.getValue().intValue(), this.yawStep.getValue().floatValue(), this.pitchStep.getValue().floatValue(), this.nodeCost.getValue().floatValue(), this.heuristicThreshold.getValue().floatValue());
+        executePath(new EtherwarpPathfinder(ctx, goal), (path) -> this.pathNextQueued(path.getEndNode().getPos()));
+    }
+
+    public void executePath(BlockPos startPos, Goal goal) {
+        PathfindingCalculationContext ctx = new PathfindingCalculationContext(startPos.mutable(), this.threadCount.getValue().intValue(), this.yawStep.getValue().floatValue(), this.pitchStep.getValue().floatValue(), this.nodeCost.getValue().floatValue(), this.heuristicThreshold.getValue().floatValue());
+        executePath(new EtherwarpPathfinder(ctx, goal), null);
+    }
+
+    public void executePath(EtherwarpPathfinder pathfinder, Consumer<Path> callback) {
         if (this.currentPathfinder != null) {
             ChatUtils.chat("Pathfinder already active!");
             return;
@@ -142,15 +158,18 @@ public class DynamicRoutes extends Module {
 
             path.consumeNodes(this::addNode, DynamicEtherwarpNode::fromBlockPos);
             this.currentPathfinder = null;
+            if (callback != null) callback.accept(path);
         });
         this.pathfinderThread.start();
     }
+
 
     public boolean isPathing() {
         return this.currentPathfinder != null;
     }
 
     public boolean cancelPathing() {
+        this.pathQueue.clear();
         if (this.currentPathfinder == null) return false;
         this.currentPathfinder.cancel();
         this.currentPathfinder = null;

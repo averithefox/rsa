@@ -26,8 +26,12 @@ import com.ricedotwho.rsm.command.api.CommandInfo;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.Map;
+import com.ricedotwho.rsm.component.impl.map.handler.DungeonInfo;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
+import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
+import com.ricedotwho.rsm.component.impl.map.utils.ScanUtils;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.DungeonUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
@@ -68,6 +72,20 @@ public class DynamicRouteCommand extends Command {
                 .then(literal("path")
                         .then(argument("pos", BlockPosArgument.blockPos())
                                 .executes((ctx) -> path(ctx, ctx.getArgument("pos", WorldCoordinates.class)))
+                        )
+                )
+                .then(literal("roompath")
+                        .then(argument("room", StringArgumentType.greedyString())
+                                .executes((ctx) -> dungeonRoomPath(ctx, ctx.getArgument("room", String.class)))
+                        )
+                )
+                .then(literal("insta")
+                        .then(argument("room1", StringArgumentType.string())
+                                .then(argument("room2", StringArgumentType.string())
+                                        .then(argument("room3", StringArgumentType.string())
+                                                .executes((ctx) -> insta(ctx, ctx.getArgument("room1", String.class), ctx.getArgument("room2", String.class), ctx.getArgument("room3", String.class)))
+                                        )
+                                )
                         )
                 )
                 .then(literal("roomfind")
@@ -114,6 +132,52 @@ public class DynamicRouteCommand extends Command {
         BlockPos blockPos = BlockPos.containing(pos.x().value(), pos.y().value(), pos.z().value());
         BlockPos startPos = BlockPos.containing(Minecraft.getInstance().player.position().subtract(0, EtherUtils.EPSILON, 0d));
         RSM.getModule(DynamicRoutes.class).executePath(startPos, new GoalXYZ(blockPos));
+        return 1;
+    }
+
+
+
+    private static int insta(CommandContext<ClientSuggestionProvider> ctx, String... roomNames) {
+        if (Minecraft.getInstance().player == null) return 0;
+        BlockPos startPos = BlockPos.containing(Minecraft.getInstance().player.position().subtract(0, EtherUtils.EPSILON, 0d));
+
+
+        List<GoalDungeonRoom> goals = new ArrayList<>();
+
+        for (String s : roomNames) {
+            UniqueRoom uniqueRoom = DungeonInfo.getRoomByName(s);
+            if (uniqueRoom == null || uniqueRoom.getTiles().isEmpty()) {
+                ChatUtils.chat("Room not loaded!");
+            }
+
+            GoalDungeonRoom goal = GoalDungeonRoom.create(uniqueRoom);
+            if (goal == null) {
+                ChatUtils.chat("Failed to create goal!");
+                return 0;
+            }
+            goals.add(goal);
+        }
+
+        RSM.getModule(DynamicRoutes.class).pathGoals(startPos, goals);
+        return 1;
+    }
+
+    private static int dungeonRoomPath(CommandContext<ClientSuggestionProvider> ctx, String uniqueRoomName) {
+        if (Minecraft.getInstance().player == null) return 0;
+
+        UniqueRoom uniqueRoom = DungeonInfo.getRoomByName(uniqueRoomName);
+        if (uniqueRoom == null || uniqueRoom.getTiles().isEmpty()) {
+            ChatUtils.chat("Room not loaded!");
+        }
+
+        BlockPos startPos = BlockPos.containing(Minecraft.getInstance().player.position().subtract(0, EtherUtils.EPSILON, 0d));
+        GoalDungeonRoom goal = GoalDungeonRoom.create(uniqueRoom);
+        if (goal == null) {
+            ChatUtils.chat("Failed to create goal!");
+            return 0;
+        }
+
+        RSM.getModule(DynamicRoutes.class).executePath(startPos, goal);
         return 1;
     }
 
