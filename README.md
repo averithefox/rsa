@@ -28,7 +28,7 @@ This .jar will be used for RSA.
 ./gradlew publishToMavenLocal
 ```
 
-Now RSM forge is in ur local maven, you can access all its classes when you are coding RSA.
+Now RSM forge is in your local maven, you can access all its classes when you are coding RSA.
 
 
 ## Step 4
