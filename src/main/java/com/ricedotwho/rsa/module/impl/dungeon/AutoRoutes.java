@@ -129,6 +129,7 @@ public class AutoRoutes extends Module implements Accessor {
 
     @SubscribeEvent
     public void onRoomEnter(DungeonEvent.ChangeRoom event) {
+        if(event.unique == null || event.room == null || event.oldRoom == null) return;
         Room room = event.getRoom();
         this.inNode = null;
         if (activeNodes.containsKey(room.getData())) return;
