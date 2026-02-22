@@ -7,7 +7,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.croesus.CroesusLoader;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
-import com.ricedotwho.rsm.utils.hyapi.PriceData;
+import com.ricedotwho.rsm.utils.api.PriceData;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 
 @CommandInfo(name = "autocroesus", aliases = "ac", description = "Configuring and starting AutoCroesus")
