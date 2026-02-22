@@ -4,9 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
+import com.ricedotwho.rsm.component.impl.map.handler.DungeonInfo;
 import com.ricedotwho.rsm.component.impl.map.handler.DungeonScanner;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.map.RoomRotation;
@@ -18,12 +20,14 @@ import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
+import com.ricedotwho.rsm.event.impl.game.ChatEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.event.impl.game.DungeonEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
+import com.ricedotwho.rsm.module.impl.render.ClickGUI;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.ModeSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
@@ -71,8 +75,9 @@ public class BloodBlink extends Module {
     private int serverTotalTickTimer = 0;
     private int state = 0;
     private boolean isLower = false;
-
+    private int ticksTillStart = -67;
     public boolean forceNextSneak = false;
+    private boolean explored = false;
 
     // Room priorities
     private final List<Entry> roomPriority = new ArrayList<>(5);
@@ -84,6 +89,7 @@ public class BloodBlink extends Module {
     private final BooleanSetting waitForGround = new BooleanSetting("Wait For Ground", false);
     private final BooleanSetting auto = new BooleanSetting("Auto Blink", true);
     private final NumberSetting deathTickOffset = new NumberSetting("Death Tick Offset", 0.0d, 20.0d, 0.0d, 1.0d);
+    private final NumberSetting earlyExit = new NumberSetting("Early Exit", 0, 20, 0, 1);
 
     private final ModeSetting mode = new ModeSetting("Mode", "Blood", List.of("Blood", "InstaClear"));
     // each party member must have a different prio!
@@ -94,6 +100,7 @@ public class BloodBlink extends Module {
                 waitForGround,
                 auto,
                 deathTickOffset,
+                earlyExit,
                 mode,
                 priority
         );
@@ -120,8 +127,9 @@ public class BloodBlink extends Module {
         this.startRoom = null;
         this.serverTickTimer = -1;
         this.serverTotalTickTimer = 0;
+        this.ticksTillStart = -67;
         resetState();
-
+        roomPriority.clear();
         state = -1;
     }
 
@@ -129,6 +137,7 @@ public class BloodBlink extends Module {
         state = -1;
         this.isLower = false;
         this.forceNextSneak = false;
+        explored = false;
     }
 
 
@@ -143,8 +152,8 @@ public class BloodBlink extends Module {
 
     @SubscribeEvent
     public void onTickStart(ClientTickEvent.Start event) {
-        if (Location.getArea() != Island.Dungeon || Minecraft.getInstance().player == null) return;
-        LocalPlayer player = Minecraft.getInstance().player;
+        if (Location.getArea() != Island.Dungeon || mc.player == null) return;
+        LocalPlayer player = mc.player;
 
         if (serverTotalTickTimer <= 2) return;
 
@@ -163,10 +172,8 @@ public class BloodBlink extends Module {
                     break;
                 }
 
-                if (Minecraft.getInstance().player == null || Minecraft.getInstance().level == null) break;
+                if (mc.level == null) break;
                 forceNextSneak = true; // Must be setup for etherwarp
-
-
 
                 if (waitForGround.getValue() && !player.onGround()) break;
                 if (startRoom == null) {
@@ -176,19 +183,18 @@ public class BloodBlink extends Module {
                 if (startRoom.getUniqueRoom().getRotation() == RoomRotation.UNKNOWN) break;
 
                 PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
-                    if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) return;
-                    if (!Minecraft.getInstance().player.getLastSentInput().shift()) return;
+                    if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL) || !player.getLastSentInput().shift() || startRoom == null) return;
 
                     Pos slab = RoomUtils.getRealPosition(SLAB_BLOCK_OFFSET, startRoom);
 
 
-                    Block block = Minecraft.getInstance().level.getBlockState(slab.asBlockPos()).getBlock();
+                    Block block = mc.level.getBlockState(slab.asBlockPos()).getBlock();
                     if (block == Blocks.AIR) {
                         isLower = true;
                         slab.selfAdd(0.0, -1.0, 0.0);
                     }
 
-                    float[] angles = EtherUtils.getYawAndPitch(slab.asVec3(), true, Minecraft.getInstance().player, true);
+                    float[] angles = EtherUtils.getYawAndPitch(slab.asVec3(), true, player, true);
                     SwapManager.sendAirC08(angles[0], angles[1], true, false);
                     state = 2;
                 });
@@ -227,6 +233,7 @@ public class BloodBlink extends Module {
 
                         aotv0(8, playerYaw, -90f); // Upped by 1
                         aotv0(Math.round(Mth.sqrt(deltaX * deltaX + deltaZ * deltaZ) / 12f), angles[0], 0.0f);
+                        explored = true;
                         state = 10;
                     });
                 }
@@ -239,19 +246,10 @@ public class BloodBlink extends Module {
             }
 
             case 11: {
-                if (Minecraft.getInstance().player == null || Minecraft.getInstance().level == null) break;
+                if (mc.level == null) break;
                 forceNextSneak = true; // Must be setup for etherwarp
 
                 if (waitForGround.getValue() && !player.onGround()) break;
-
-                findTargetRoom();
-
-                if (targetRoom == null) {
-                    // Still null, we didn't find it
-                    ChatUtils.chat("Could not find target room!");
-                    state = 31;
-                    break;
-                }
 
                 if (startRoom == null) {
                     startRoom = ScanUtils.getRoomFromPos(player.getBlockX(), player.getBlockZ());
@@ -259,19 +257,29 @@ public class BloodBlink extends Module {
                 if (startRoom == null) break;
                 if (startRoom.getUniqueRoom().getRotation() == RoomRotation.UNKNOWN) break;
 
+                if (explored) {
+                    if (targetRoom == null) findTargetRoom();
+
+                    if (targetRoom == null) {
+                        // Still null, we didn't find it
+                        ChatUtils.chat("Could not find target room!");
+                        state = 31;
+                        break;
+                    }
+                }
+
                 PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
-                    if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) return;
-                    if (!Minecraft.getInstance().player.getLastSentInput().shift()) return;
+                    if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL) || !player.getLastSentInput().shift() || startRoom == null) return;
 
                     Pos slab = RoomUtils.getRealPosition(SLAB_BLOCK_OFFSET, startRoom);
 
-                    Block block = Minecraft.getInstance().level.getBlockState(slab.asBlockPos()).getBlock();
+                    Block block = mc.level.getBlockState(slab.asBlockPos()).getBlock();
                     if (block == Blocks.AIR) {
                         isLower = true;
                         slab.selfAdd(0.0, -1.0, 0.0);
                     }
 
-                    float[] angles = EtherUtils.getYawAndPitch(slab.asVec3(), true, Minecraft.getInstance().player, true);
+                    float[] angles = EtherUtils.getYawAndPitch(slab.asVec3(), true, player, true);
                     SwapManager.sendAirC08(angles[0], angles[1], true, false);
                     state = 13;
                 });
@@ -297,7 +305,8 @@ public class BloodBlink extends Module {
             case 17: {
                 SwapManager.swapItem(Items.DIAMOND_SHOVEL);
 
-                if (Dungeon.isStarted() && (serverTickTimer % 40) < 35) {
+                //todo: this is slow, it should try tp before the dungeon starts for high ping players (me), in theory we should be able to get 0.05s opens
+                if ((ticksTillStart != -67 && ticksTillStart <= 0 || Dungeon.isStarted()) && (serverTickTimer % 40) < 35) {
                     PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
                         if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) return;
 
@@ -307,7 +316,7 @@ public class BloodBlink extends Module {
                         aotv0(4, dir.toYRot(), 0f);
                         aotv0(10, playerYaw, 90f);
 
-                        Vec3 playerPos = Minecraft.getInstance().player.position().add(fastRotateVec(dir, 0, 0d, -48d)); // We don't care about the Y
+                        Vec3 playerPos = player.position().add(fastRotateVec(dir, 0, 0d, -48d)); // We don't care about the Y
 
                         float deltaX = (float) ((targetRoom.getX() + 0.5d) - playerPos.x());
                         float deltaZ = (float) ((targetRoom.getZ() + 0.5d) - playerPos.z());
@@ -432,11 +441,14 @@ public class BloodBlink extends Module {
                 this.targetRoom = event.getRoom();
                 ChatUtils.chat("Found blood at : " + targetRoom.getX() + ", " + targetRoom.getZ());
             }
-        } else if (rooms.contains(event.getRoom().getData().name())) {
-            addRoom(new Entry(
-                    event.getRoom().getUniqueRoom(),
-                    rooms.indexOf(event.getRoom().getData().name()))
-            );
+        }
+    }
+
+    @SubscribeEvent
+    public void onChat(ChatEvent.Chat event) {
+        if (Location.getArea() != Island.Dungeon || Minecraft.getInstance().player == null) return;
+        if (event.getMessage().getString().equals("Starting in 1 second.")) {
+            ticksTillStart = Math.max(20 - this.earlyExit.getValue().intValue(), 0);
         }
     }
 
@@ -446,6 +458,7 @@ public class BloodBlink extends Module {
         if (serverTickTimer > -1 && packet instanceof ClientboundPingPacket) {
             serverTickTimer++;
             serverTotalTickTimer++;
+            if (ticksTillStart != -67) ticksTillStart--;
             return;
         }
 
@@ -485,10 +498,9 @@ public class BloodBlink extends Module {
 
                 case 30: {
                     Vec3 pos = s08.change().position();
-                    // TODO: change this to the target room bottom!
-                    if (!isInRoom(Mth.floor(pos.x()), Mth.floor(pos.z()), targetRoom) || pos.y < 65d || pos.y > 73d) break; // 66 bedrock block blood, this stops aotv S08s from getting considered as pearls
+                    if (!isInRoom(Mth.floor(pos.x()), Mth.floor(pos.z()), targetRoom) || pos.y < targetRoom.getBottom() - 1 || pos.y > targetRoom.getBottom() + 7) break; // 66 bedrock block blood, this stops aotv S08s from getting considered as pearls
                     //System.out.println("Found pearl S08!");
-                    if (pos.y <= 67.0)
+                    if (pos.y <= targetRoom.getBottom() + 1)
                         state = 29;
                     else
                         state = 31;
@@ -511,17 +523,33 @@ public class BloodBlink extends Module {
 
     private void findTargetRoom() {
         // Blood will already be set if the mode is Blood
-        if (this.mode.is("InstaClear")) {
-            if (roomPriority.size() < this.priority.getValue().intValue()) {
-                ChatUtils.chat("No room found with priority %s to InstaClear!", this.priority.getValue());
-                return;
+        if (!this.mode.is("InstaClear")) return;
+
+        DungeonInfo.getUniqueRooms().forEach(room -> {
+            if (!room.isOnBloodRush() && rooms.contains(room.getName())) {
+                addRoom(new Entry(
+                        room,
+                        rooms.indexOf(room.getName()))
+                );
             }
-            this.targetRoom = this.roomPriority.get(this.priority.getValue().intValue()).room().getMainRoom();
+        });
+
+        if (roomPriority.size() < this.priority.getValue().intValue()) {
+            ChatUtils.chat("No room found with priority %s to InstaClear!", this.priority.getValue());
+            return;
+        }
+
+        this.targetRoom = this.roomPriority.get(this.priority.getValue().intValue() - 1).room().getMainRoom();
+        if (this.targetRoom != null) {
+            ChatUtils.chat("Found a room to insta: \"%s\"", this.targetRoom.getData().name());
+            if (RSM.getModule(ClickGUI.class).getDevInfo().getValue()) {
+                ChatUtils.chat("InstaClear candidates: %s", this.roomPriority.stream().map(r -> r.room().getName()).toList());
+            }
         }
     }
 
     private void addRoom(Entry e) {
-        if (this.roomPriority.stream().anyMatch(e1 -> e1.room().getName().equals(e.room().getName()))) return;
+        if (e.room().isOnBloodRush() || this.roomPriority.stream().anyMatch(e1 -> e1.room().getName().equals(e.room().getName()))) return;
         int i = 0;
         while (i < this.roomPriority.size() && this.roomPriority.get(i).priority() <= e.priority()) {
             i++;

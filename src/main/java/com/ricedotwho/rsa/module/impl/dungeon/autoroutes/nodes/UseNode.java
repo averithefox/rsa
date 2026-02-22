@@ -49,7 +49,7 @@ public class UseNode extends Node {
     @Override
     public void calculate(UniqueRoom room) {
         super.calculate(room);
-        this.realRotationVector = RoomUtils.getRealPosition(this.localRotationVector, room.getMainRoom());
+        this.realRotationVector = RoomUtils.rotateRealFixed(this.localRotationVector, room.getRotation());
     }
 
     @Override
@@ -120,7 +120,7 @@ public class UseNode extends Node {
     public static UseNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits, boolean start) {
         Room mainRoom = fullRoom.getMainRoom();
         Pos playerRelative = RoomUtils.getRelativePosition(new Pos(player.position()), mainRoom);
-        Pos targetRelative = RoomUtils.getRelativePosition(new Pos(player.getViewVector(1f)), mainRoom);
+        Pos targetRelative = RoomUtils.rotateRelativeFixed(new Pos(player.getViewVector(1f)), fullRoom.getRotation());
         String itemID = ItemUtils.getID(Minecraft.getInstance().player.getInventory().getSelectedItem());
         if (itemID.isBlank()) return null;
         return new UseNode(playerRelative, targetRelative, itemID, false, awaits, start);

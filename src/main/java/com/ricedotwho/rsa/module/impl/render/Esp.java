@@ -52,12 +52,12 @@ public class Esp extends Module {
     private final DefaultGroupSetting colours = new DefaultGroupSetting("Colours", this);
 
     private final ColourSetting
-            starredFill = new ColourSetting("Star Fill", new Colour(0xFFD600FF)),
-            starredOutline = new ColourSetting("Star Outline", new Colour(0x1A790091)),
-            bloodFill = new ColourSetting("Blood Fill", new Colour(0xFFFF0000)),
-            bloodOutline = new ColourSetting("Blood Outline", new Colour(0x1A720000)),
-            witherFill = new ColourSetting("Wither Fill", new Colour(0xFF0066FF)),
-            witherOutline = new ColourSetting("Wither Outline", new Colour(0x1A003688));
+            starredFill = new ColourSetting("Star Fill", new Colour(0x1A790091)),
+            starredOutline = new ColourSetting("Star Outline", new Colour(0xFFD600FF)),
+            bloodFill = new ColourSetting("Blood Fill", new Colour(0x1A720000)),
+            bloodOutline = new ColourSetting("Blood Outline", new Colour(0xFFFF0000)),
+            witherFill = new ColourSetting("Wither Fill", new Colour(0x1A003688)),
+            witherOutline = new ColourSetting("Wither Outline", new Colour(0xFF0066FF));
 
     // Tracked entities
     private final Set<Integer> starredMobs = new HashSet<>();
