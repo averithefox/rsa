@@ -85,7 +85,6 @@ public class RSA implements Addon {
                 PresetWaypoints.class,
                 CustomKeybinds.class,
                 AutoGfs.class,
-                SessionLogin.class,
                 AutoTerms.class,
                 InstaMid.class,
                 SecretHitboxes.class,

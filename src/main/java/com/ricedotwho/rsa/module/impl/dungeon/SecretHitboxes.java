@@ -91,7 +91,7 @@ public class SecretHitboxes extends Module {
         Block block = state.getBlock();
 
         return switch (block) {
-            case SkullBlock ignored when SecretAura.isValidSkull(pos, mc.level) -> Shapes.block();
+            case SkullBlock ignored when SecretAura.isValidSkull(pos, mc.level) -> module.essence.getValue() ? Shapes.block() : null;
             case LeverBlock ignored -> switch (isLamps(pos) ? module.preDevLevers.getValue() : module.levers.getValue()) {
                 case "Full" -> Shapes.block();
                 case "Half" ->

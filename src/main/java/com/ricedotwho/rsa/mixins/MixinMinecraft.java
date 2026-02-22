@@ -5,8 +5,10 @@ import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.component.impl.TickFreeze;
 import com.ricedotwho.rsa.event.impl.RawTickEvent;
 import com.ricedotwho.rsa.module.impl.player.CancelInteract;
+import com.ricedotwho.rsa.screen.SessionLoginScreen;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.User;
 import net.minecraft.client.gui.screens.Overlay;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -108,5 +110,11 @@ public abstract class MixinMinecraft {
         }
 
         return gameMode.useItemOn(player, hand, hit);
+    }
+
+    @Inject(at = @At("RETURN"), method = "getUser", cancellable = true)
+    private void onGetSSID(CallbackInfoReturnable<User> cir) {
+        if (SessionLoginScreen.getUser() != null)
+            cir.setReturnValue(SessionLoginScreen.getUser());
     }
 }

@@ -14,9 +14,10 @@
     "MixinPlayer"
   ],
   "client": [
-    "MixinEntityRenderer",
     "MixinClientPacketListener",
     "MixinDeltaTracker",
-    "MixinLevelRenderer"
+    "MixinEntityRenderer",
+    "MixinLevelRenderer",
+    "MixinTitleScreen"
   ]
 }

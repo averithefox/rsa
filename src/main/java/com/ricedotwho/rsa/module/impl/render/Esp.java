@@ -5,11 +5,18 @@ import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
+import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.event.impl.render.Render3DEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
+import com.ricedotwho.rsm.ui.clickgui.settings.group.DefaultGroupSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.ColourSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.ModeSetting;
+import com.ricedotwho.rsm.utils.render.render3d.type.FilledBox;
+import com.ricedotwho.rsm.utils.render.render3d.type.FilledOutlineBox;
+import com.ricedotwho.rsm.utils.render.render3d.type.OutlineBox;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -32,25 +39,33 @@ import java.util.*;
 public class Esp extends Module {
 
     //basically 1:1 Ported from Hyper's esp
+
+    private final ModeSetting renderMode = new ModeSetting("Mode", "Filled Outline", List.of("Filled Outline", "Filled", "Outline"));
+
     private final BooleanSetting
-            drawBoxes = new BooleanSetting("Draw Boxes", true, () -> true),
-            drawFilledBox = new BooleanSetting("Draw Filled", true, () -> true),
-            showStarredMobs = new BooleanSetting("Starred Mobs", true, () -> true),
-            onlyShowInCurrentRoom = new BooleanSetting("Current Room Only", true, () -> true),
-            drawBloodMobs = new BooleanSetting("Blood Mobs", true, () -> true),
-            withers = new BooleanSetting("Withers", true, () -> true),
-            debugVault = new BooleanSetting("Debug: Vault", false, () -> true);
+            showStarredMobs = new BooleanSetting("Starred Mobs", true),
+            onlyShowInCurrentRoom = new BooleanSetting("Current Room Only", true),
+            drawBloodMobs = new BooleanSetting("Blood Mobs", true),
+            withers = new BooleanSetting("Withers", true),
+            depth = new BooleanSetting("Depth", false);
+
+    private final DefaultGroupSetting colours = new DefaultGroupSetting("Colours", this);
+
+    private final ColourSetting
+            starredFill = new ColourSetting("Star Fill", new Colour(0xFFD600FF)),
+            starredOutline = new ColourSetting("Star Outline", new Colour(0x1A790091)),
+            bloodFill = new ColourSetting("Blood Fill", new Colour(0xFFFF0000)),
+            bloodOutline = new ColourSetting("Blood Outline", new Colour(0x1A720000)),
+            witherFill = new ColourSetting("Wither Fill", new Colour(0xFF0066FF)),
+            witherOutline = new ColourSetting("Wither Outline", new Colour(0x1A003688));
 
     // Tracked entities
     private final Set<Integer> starredMobs = new HashSet<>();
     private final Set<Integer> bloodMobs = new HashSet<>();
     private final Set<Integer> bloodNames = new HashSet<>();
-    private final Set<Integer> vaultStands = new HashSet<>();
     
     private int wither = -1;
     private double witherDistance = Double.MAX_VALUE;
-    private int tick = 0;
-    
     public float updateInterval = 10;
 
     public Esp() {
@@ -79,14 +94,15 @@ public class Esp extends Module {
         addName("Spirit Bear");
         
         this.registerProperty(
-                drawBoxes,
-                drawFilledBox,
+                renderMode,
                 showStarredMobs,
                 onlyShowInCurrentRoom,
                 drawBloodMobs,
                 withers,
-                debugVault
+                colours
         );
+
+        colours.add(starredFill, starredOutline, bloodFill, bloodOutline, witherFill, witherOutline);
     }
     
     private void addName(String name) {
@@ -97,7 +113,6 @@ public class Esp extends Module {
     public void onEnable() {
         starredMobs.clear();
         bloodMobs.clear();
-        tick = 0;
     }
 
     @Override
@@ -113,44 +128,42 @@ public class Esp extends Module {
         bloodMobs.clear();
         wither = -1;
         witherDistance = Double.MAX_VALUE;
-        tick = 0;
     }
 
     @SubscribeEvent
     public void onRender3dEvent(Render3DEvent.Extract event) {
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null) return;
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) return;
+        if (mc.player == null || mc.level == null) return;
         
         if (!(Location.getArea() == Island.Dungeon)) return;
-
-        // Update tracked entities
-        tick++;
-        if (tick % updateInterval == 0) {
-            updateTrackedEntities(level);
-        }
 
         float partialTicks = event.getContext().tickCounter().getGameTimeDeltaPartialTick(false);
 
         // Render starred mobs
         if (showStarredMobs.getValue() && !starredMobs.isEmpty()) {
-            handleRender(starredMobs, 0xFFD600FF, 0x1A790091, partialTicks);
+            handleRender(starredMobs, this.getStarredOutline().getValue(), this.getStarredFill().getValue(), partialTicks);
         }
 
         // Render blood mobs
         if (drawBloodMobs.getValue() && !bloodMobs.isEmpty()) {
-            handleRender(bloodMobs, 0xFFFF0000, 0x1A720000, partialTicks);
+            handleRender(bloodMobs, this.getBloodOutline().getValue(), this.getBloodFill().getValue(), partialTicks);
         }
 
         // Render wither
         if (withers.getValue() && wither != -1) {
-            Entity entity = level.getEntity(wither);
+            Entity entity = mc.level.getEntity(wither);
             if (entity != null) {
-                renderEntityBox(entity, 0xFF0066FF, 0x1A003688, partialTicks);
+                renderEntityBox(entity, this.getWitherOutline().getValue(), this.getWitherFill().getValue(), partialTicks);
             } else {
                 wither = -1;
             }
+        }
+    }
+
+    @SubscribeEvent
+    public void onTick(ClientTickEvent.Start event) {
+        if (mc.level == null || mc.player == null) return;
+        if (event.getTime() % updateInterval == 0) {
+            updateTrackedEntities(mc.level);
         }
     }
 
@@ -209,10 +222,9 @@ public class Esp extends Module {
             }
 
             // Withers
-            if (withers.getValue() && entity instanceof WitherBoss && !entity.isInvisible()) {
+            if (withers.getValue() && entity instanceof WitherBoss e && !entity.isInvisible()) {
                 LocalPlayer Player = Minecraft.getInstance().player;
-                float maxHealth = getSBMaxHealth((LivingEntity) entity);
-                if (maxHealth > 400f) {
+                if (e.getMaxHealth() != 300f) {
                     if (wither == -1) {
                         wither = entity.getId();
                         continue;
@@ -228,7 +240,7 @@ public class Esp extends Module {
         }
     }
 
-    private void handleRender(Set<Integer> entityIds, int outlineColor, int fillColor, float partialTicks) {
+    private void handleRender(Set<Integer> entityIds, Colour outlineColor, Colour fillColor, float partialTicks) {
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null) return;
 
@@ -245,13 +257,13 @@ public class Esp extends Module {
         toRemove.forEach(entityIds::remove);
     }
 
-    private void renderEntityBox(Entity entity, int outlineColor, int fillColor, float partialTicks) {
+    private void renderEntityBox(Entity entity, Colour outline, Colour fill, float partialTicks) {
         Vec3 interpolatedPos = entity.getPosition(partialTicks);
         
         float width = entity.getBbWidth();
         float height = entity.getBbHeight();
 
-        AABB boundingBox = new AABB(
+        AABB aabb = new AABB(
                 interpolatedPos.x - width / 2,
                 interpolatedPos.y,
                 interpolatedPos.z - width / 2,
@@ -260,11 +272,10 @@ public class Esp extends Module {
                 interpolatedPos.z + width / 2
         );
 
-        if (drawFilledBox.getValue()) {
-            Renderer3D.addTask(new com.ricedotwho.rsm.utils.render.render3d.type.FilledBox(boundingBox, new Colour(fillColor), false));
-        }
-        if (drawBoxes.getValue()) {
-            Renderer3D.addTask(new com.ricedotwho.rsm.utils.render.render3d.type.OutlineBox(boundingBox, new Colour(outlineColor), false));
+        switch (this.renderMode.getIndex()) {
+            case 0 -> Renderer3D.addTask(new FilledOutlineBox(aabb, fill, outline, this.getDepth().getValue()));
+            case 1 -> Renderer3D.addTask(new FilledBox(aabb, fill, this.getDepth().getValue()));
+            default -> Renderer3D.addTask(new OutlineBox(aabb, outline, this.getDepth().getValue()));
         }
     }
 
