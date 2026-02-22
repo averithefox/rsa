@@ -17,7 +17,7 @@ import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.MultiBoolSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.*;
-import com.ricedotwho.rsm.utils.hyapi.PriceData;
+import com.ricedotwho.rsm.utils.api.PriceData;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.NonNullList;
