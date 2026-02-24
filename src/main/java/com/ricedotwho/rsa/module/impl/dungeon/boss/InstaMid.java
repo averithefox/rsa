@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss;
 
+import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
@@ -49,7 +50,7 @@ public class InstaMid extends Module {
     public void onPacketSend(PacketEvent.Send event) {
         if (!(event.getPacket() instanceof ServerboundMovePlayerPacket packet)
                 || !Location.getArea().is(Island.Dungeon)
-                || !Dungeon.isInBoss()
+                || !(Location.getFloor() == Floor.F7 || Location.getFloor() == Floor.M7)
                 || !DungeonUtils.isPhase(Phase7.P4)
                 || !startOnNextFlying
                 || packet.isOnGround()
@@ -66,7 +67,7 @@ public class InstaMid extends Module {
     public void onChat(ChatEvent.Chat event) {
         String unformatted = ChatFormatting.stripFormatting(event.getMessage().getString());
         if (!Location.getArea().is(Island.Dungeon)
-                || !Dungeon.isInBoss()
+                || !(Location.getFloor() == Floor.F7 || Location.getFloor() == Floor.M7)
                 || !DungeonUtils.isPhase(Phase7.P4)
                 || !"[BOSS] Necron: You went further than any human before, congratulations.".equals(unformatted)
                 || !isOnPlatform()
