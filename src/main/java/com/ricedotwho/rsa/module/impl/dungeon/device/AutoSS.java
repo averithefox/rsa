@@ -9,6 +9,7 @@ import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Keybind;
+import com.ricedotwho.rsm.data.Phase7;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.game.ChatEvent;
 import com.ricedotwho.rsm.event.impl.render.Render3DEvent;
@@ -22,6 +23,7 @@ import com.ricedotwho.rsm.ui.clickgui.settings.impl.ColourSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.DungeonUtils;
 import com.ricedotwho.rsm.utils.render.render3d.type.FilledOutlineBox;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
@@ -45,7 +47,7 @@ import java.util.List;
 public class AutoSS extends Module {
     private static final Vec3 START_BUTTON = new Vec3(110.875, 121.5, 91.5);
     private static final BlockPos DETECT = new BlockPos(110, 123, 92);
-    private static final AABB DEVICE_AABB = new AABB(START_BUTTON.subtract(-40d, -40d, -40d), START_BUTTON.add(40d, 40d, 40d));
+    //private static final AABB DEVICE_AABB = new AABB(START_BUTTON.subtract(-40d, -40d, -40d), START_BUTTON.add(40d, 40d, 40d));
 
     KeybindSetting resetKey = new KeybindSetting("Reset SS Key", new Keybind(GLFW.GLFW_KEY_K, false, null), this::SSR);
     BooleanSetting sendChat = new BooleanSetting("Send SSR Chat Message", true);
@@ -149,7 +151,7 @@ public class AutoSS extends Module {
 
     private boolean areaCheck() {
         if (forceSkyblock.getValue()) return true;
-        return Location.getArea().is(Island.Dungeon) && Dungeon.isInBoss() && (Location.getFloor() == Floor.F7 || Location.getFloor() == Floor.M7);
+        return Location.getArea().is(Island.Dungeon) && (Location.getFloor() == Floor.F7 || Location.getFloor() == Floor.M7) && DungeonUtils.isPhase(Phase7.P3); // && Dungeon.isInBoss() broke shit when rejoins
     }
 
     @SubscribeEvent

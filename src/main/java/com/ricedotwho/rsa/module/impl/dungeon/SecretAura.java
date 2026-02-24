@@ -2,11 +2,13 @@ package com.ricedotwho.rsa.module.impl.dungeon;
 
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.data.Keybind;
+import com.ricedotwho.rsm.data.Phase7;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
@@ -16,6 +18,7 @@ import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.*;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.DungeonUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
 import com.ricedotwho.rsm.utils.RotationUtils;
 import it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap;
@@ -33,16 +36,18 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LeverBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Getter
 @ModuleInfo(aliases = "Secrets", id = "Secrets", category = Category.DUNGEONS, hasKeybind = true)
@@ -55,16 +60,19 @@ public class SecretAura extends Module {
 
     private static final String REDSTONE_KEY_ID = "fed95410-aba1-39df-9b95-1d4f361eb66e";
     private static final String WITHER_ESSENCE_ID = "e0f3e929-869e-3dca-9504-54c666ee6f23";
+    private final HashSet<Integer> BOSS_LEVERS = new HashSet<>();
+    private final HashSet<Integer> LIGHTS_DEV = new HashSet<>();
 
 
-    private final ModeSetting type = new ModeSetting("Type", "Triggerbot", List.of("Triggerbot", "Aura"));
-    private final MultiSetting bigHitboxes = new MultiSetting("Hitboxes", new ArrayList<>(), List.of("Big Buttons", "Big Levers", "Big Skulls"));
+    private final ModeSetting type = new ModeSetting("Type", "Aura", List.of("Aura", "Triggerbot", "None"));
     private final NumberSetting delay = new NumberSetting("Click Delay", 100, 4000, 150, 50);
     private final NumberSetting reclick = new NumberSetting("Re-Click Delay", 200, 10000, 500, 50);
     private final NumberSetting swapSlot = new NumberSetting("Swap Slot Index", 0, 7, 0, 1);
+    private final BooleanSetting invWalk = new BooleanSetting("In inventory", true);
     private final BooleanSetting inBoss = new BooleanSetting("In Boss", true);
     private final BooleanSetting autoClose = new BooleanSetting("Auto Close GUI", false);
     private final BooleanSetting forceSkyblock = new BooleanSetting("Force Skyblock", false);
+
 
     private boolean hasRedstoneKey = false;
     private final Int2LongOpenHashMap clickedBlocks = new Int2LongOpenHashMap(5);
@@ -75,20 +83,37 @@ public class SecretAura extends Module {
     public SecretAura() {
         this.registerProperty(
                 type,
-                bigHitboxes,
                 delay,
                 reclick,
                 swapSlot,
+                invWalk,
                 inBoss,
                 autoClose,
                 forceSkyblock
         );
+
+        this.BOSS_LEVERS.add(new BlockPos(106, 124, 113).hashCode()); //S1 Lever 1
+        this.BOSS_LEVERS.add(new BlockPos(94, 124, 113).hashCode()); //S1 Lever 2
+        this.BOSS_LEVERS.add(new BlockPos(23, 132, 138).hashCode()); //S2 Top Lever
+        this.BOSS_LEVERS.add(new BlockPos(27, 124, 127).hashCode()); //S2 Bottom Lever
+        this.BOSS_LEVERS.add(new BlockPos(2, 122, 55).hashCode()); //S3 Lever 1
+        this.BOSS_LEVERS.add(new BlockPos(14, 122, 55).hashCode()); //S3 Lever 2
+        this.BOSS_LEVERS.add(new BlockPos(84, 121, 34).hashCode()); //S4 Bottom Lever
+        this.BOSS_LEVERS.add(new BlockPos(86, 128, 46).hashCode()); //S4 Top Lever
+
+        this.LIGHTS_DEV.add(new BlockPos(58, 133, 142).hashCode()); //Lights bottom right
+        this.LIGHTS_DEV.add(new BlockPos(58, 136, 142).hashCode()); //Lights top right
+        this.LIGHTS_DEV.add(new BlockPos(62, 136, 142).hashCode()); //Lights top left
+        this.LIGHTS_DEV.add(new BlockPos(62, 133, 142).hashCode()); //Lights bottom left
+        this.LIGHTS_DEV.add(new BlockPos(60, 135, 142).hashCode()); //Lights middle top
+        this.LIGHTS_DEV.add(new BlockPos(60, 134, 142).hashCode()); //Lights middle bottom
     }
 
 
     @SubscribeEvent
     public void onWorldLoad(WorldEvent.Load event) {
         this.clear();
+        this.clickBlockCooldown = 20;
     }
 
     @SubscribeEvent
@@ -122,31 +147,60 @@ public class SecretAura extends Module {
 
     @SubscribeEvent
     public void onTickStart(ClientTickEvent.Start event) {
-        if (Minecraft.getInstance().player == null || Minecraft.getInstance().level == null || Minecraft.getInstance().screen instanceof AbstractContainerScreen<?>) return;
+        if (Minecraft.getInstance().player == null || Minecraft.getInstance().level == null || type.is("None")) return;
         if (!forceSkyblock.getValue() && (!Location.getArea().is(Island.Dungeon) || isRoomDisabled())) return;
         if (!forceSkyblock.getValue() && Dungeon.isInBoss() && !inBoss.getValue()) return;
+        if (!invWalk.getValue() && Minecraft.getInstance().screen instanceof AbstractContainerScreen<?>) return;
+
         ClientLevel level = Minecraft.getInstance().level;
 
-        boolean sneaking = Minecraft.getInstance().player.getLastSentInput().shift();
+        Iterable<BlockPos> positions;
 
+        boolean sneaking = Minecraft.getInstance().player.getLastSentInput().shift();
         Vec3 eyePos = Minecraft.getInstance().player.position().add(0.0d, sneaking ? EtherUtils.SNEAK_EYE_HEIGHT : Minecraft.getInstance().player.getEyeHeight(Pose.STANDING), 0.0d);
         Vec3 flooredEyePos = eyePos.subtract(0.5d, 0.5d, 0.5d);
+
+        if (type.is("Aura")) {
+            AABB box = new AABB(eyePos, eyePos).inflate(CHEST_RANGE, CHEST_RANGE, CHEST_RANGE);
+            positions = BlockPos.betweenClosed(box);
+        } else {
+            // Triggerbot
+            if (!(Minecraft.getInstance().hitResult instanceof BlockHitResult blockHitResult)) return;
+            positions = Collections.singleton(blockHitResult.getBlockPos());
+        }
+
+        boolean bl = forceSkyblock.getValue() || (Location.getArea().is(Island.Dungeon) && (Location.getFloor() == Floor.F7 || Location.getFloor() == Floor.M7) && DungeonUtils.isPhase(Phase7.P3));
 
         double bestDistance = Double.MAX_VALUE;
         BlockPos bestCandidate = null;
 
-        AABB box = new AABB(eyePos, eyePos).inflate(CHEST_RANGE, CHEST_RANGE, CHEST_RANGE);
-        for (BlockPos blockPos : BlockPos.betweenClosed(box)) {
+        for (BlockPos blockPos : positions) {
             int hash = getBlockPosHash(blockPos);
             if (blocksDone.contains(hash)) continue;
 
-            Block block = level.getBlockState(blockPos).getBlock();
+            BlockState blockState = level.getBlockState(blockPos);
+            Block block = blockState.getBlock();
+            long delay = this.delay.getValue().longValue();
+            if (bl) {
+                if (Dungeon.isInBoss() && block != Blocks.LEVER) continue;
+                if (block == Blocks.LEVER) {
+                    // Either we aren't in boss or we rejoined boss
+                    if (checkF7BossBlock(blockPos, blockState)) {
+                        if (!inBoss.getValue()) continue;
+                        delay = 0; // No lever delay in boss
+                    } else if (checkLightsDev(blockPos)) continue;
+                }
+            }
+
             if (!isValidBlock(block) && (block != Blocks.PLAYER_HEAD || !isValidSkull(blockPos, level))) continue;
             if (Dungeon.isInBoss() && block == Blocks.PLAYER_HEAD) continue;
 
-            if (!clickedBlocks.containsKey(hash) && delay.getValue().longValue() > 0) {
-                clickedBlocks.put(hash, System.currentTimeMillis() + delay.getValue().longValue());
-                continue;
+            if (!clickedBlocks.containsKey(hash)) {
+                if (delay > 0) {
+                    clickedBlocks.put(hash, System.currentTimeMillis() + delay);
+                    continue;
+                }
+                clickedBlocks.put(hash, System.currentTimeMillis());
             }
 
             long nextClickTime = clickedBlocks.get(hash);
@@ -162,10 +216,11 @@ public class SecretAura extends Module {
         }
 
         // Don't return earlier so we can register than we have seen the clicked blocks
-        if (bestCandidate == null || clickBlockCooldown > 0) return;
+        if (bestCandidate == null) return; // || clickBlockCooldown > 0
 
         BlockState blockState = level.getBlockState(bestCandidate);
-        if ((blockState.getBlock() == Blocks.PLAYER_HEAD || Minecraft.getInstance().player.getInventory().getSelectedSlot() == 8) && !SwapManager.swapSlot(swapSlot.getValue().intValue())) return;
+        Block block = blockState.getBlock();
+        if ((block == Blocks.PLAYER_HEAD || Minecraft.getInstance().player.getInventory().getSelectedSlot() == 8) && !SwapManager.swapSlot(swapSlot.getValue().intValue())) return;
 
         clickedBlocks.put(getBlockPosHash(bestCandidate), System.currentTimeMillis() + reclick.getValue().longValue()); // re-click delay
 
@@ -174,12 +229,19 @@ public class SecretAura extends Module {
         Vec3 center = new Vec3((blockAABB.minX + blockAABB.maxX) * 0.5 + bestCandidate.getX(), (blockAABB.minY + blockAABB.maxY) * 0.5 + bestCandidate.getY(), (blockAABB.minZ + blockAABB.maxZ) * 0.5 + bestCandidate.getZ());
         BlockHitResult result = RotationUtils.collisionRayTrace(bestCandidate, blockAABB, eyePos, center);
         if (result == null) return;
-        //ChatUtils.chat(Math.sqrt(bestDistance));
 
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
-            SwapManager.sendBlockC08(result.getLocation(), result.getDirection(), false, true);
-            //ChatUtils.chat("Sent aura C08!");
+            SwapManager.sendBlockC08(result.getLocation(), result.getDirection(), block != Blocks.PLAYER_HEAD, true);
         });
+    }
+
+    private boolean checkLightsDev(BlockPos pos) {
+        return pos.getZ() == 142 && pos.getY() <= 136 && pos.getY() >= 133 && pos.getX() >= 58 && pos.getX() <= 62;
+    }
+
+    // Only pass in LeverBlock here, otherwise it will crash
+    private boolean checkF7BossBlock(BlockPos pos, BlockState block) {
+        return this.BOSS_LEVERS.contains(pos.hashCode()) || (this.LIGHTS_DEV.contains(pos.hashCode()) && !block.getValue(LeverBlock.POWERED));
     }
 
     private boolean isValidBlock(Block block) {
@@ -202,7 +264,8 @@ public class SecretAura extends Module {
 
 
     private boolean isRoomDisabled() {
-        if (!Location.getArea().is(Island.Dungeon) || Dungeon.isInBoss() || Map.getCurrentRoom() == null) return false;
+        if (!Location.getArea().is(Island.Dungeon) || Dungeon.isInBoss()) return false;
+        if (Location.getArea().is(Island.Dungeon) && Map.getCurrentRoom() == null) return true; // So it doesn't break when leaping into room, might need to remove this
         return switch (Map.getCurrentRoom().getData().name()) {
             case "Water Board", "Three Weirdos" -> true;
             default -> false;
@@ -220,7 +283,6 @@ public class SecretAura extends Module {
 
     private void clear() {
         blocksDone.clear();
-        this.clickBlockCooldown = 20;
         hasRedstoneKey = false;
     }
 

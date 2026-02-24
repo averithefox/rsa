@@ -35,17 +35,24 @@ public class DynamicEtherwarpNode extends Node {
     private final float yaw;
     private final float pitch;
     private final boolean await;
+    private final int priority;
     private Vec3 target;
 
-    public DynamicEtherwarpNode(Pos localPos, float yaw, float pitch, boolean await, AwaitManager awaits, boolean start) {
+    public DynamicEtherwarpNode(Pos localPos, float yaw, float pitch, boolean await, int priority, AwaitManager awaits, boolean start) {
         super(localPos, null, false);
         this.yaw = yaw;
         this.pitch = pitch;
         this.await = await;
+        this.priority = priority;
     }
 
-    public DynamicEtherwarpNode(Pos localPos, float yaw, float pitch, boolean await) {
-        this(localPos, yaw, pitch, await, null, false);
+    public DynamicEtherwarpNode(Pos localPos, float yaw, float pitch, boolean await, int priority) {
+        this(localPos, yaw, pitch, await, priority, null, false);
+    }
+
+    @Override
+    public boolean shouldAwait() {
+        return this.await;
     }
 
     @Override
@@ -83,7 +90,7 @@ public class DynamicEtherwarpNode extends Node {
         playerPos.x = etherPos.getX() + 0.5d;
         playerPos.y = etherPos.getY() + 1.05d; // Fuck you hypixel for the 0.05d
         playerPos.z = etherPos.getZ() + 0.5d;
-        return !await;
+        return true;
     }
 
     @Override
@@ -99,6 +106,11 @@ public class DynamicEtherwarpNode extends Node {
             }
             this.target = pos.getCenter(); // Close enough and we don't really care
         }
+    }
+
+    @Override
+    public int getPriority() {
+        return this.priority;
     }
 
     @Override
@@ -126,15 +138,15 @@ public class DynamicEtherwarpNode extends Node {
         return DynamicRoutes.getNodeColor().getValue();
     }
 
-    public static DynamicEtherwarpNode fromBlockPos(BlockPos pos, float yaw, float pitch, boolean await) {
+    public static DynamicEtherwarpNode fromBlockPos(BlockPos pos, float yaw, float pitch, boolean await, int priority) {
         Pos nodePos = new Pos(pos.getBottomCenter()).selfAdd(0d, 1d, 0d);
-        return new DynamicEtherwarpNode(nodePos, yaw, pitch, await);
+        return new DynamicEtherwarpNode(nodePos, yaw, pitch, await, Integer.MAX_VALUE - priority);
     }
 
     public static DynamicEtherwarpNode supply(UniqueRoom fullRoom, LocalPlayer player) {
         // Won't work properly when adding manually because not 0.05 blocks off of ground
         Room mainRoom = fullRoom.getMainRoom();
         Pos playerRelative = RoomUtils.getRelativePosition(new Pos(player.position()), mainRoom);
-        return new DynamicEtherwarpNode(playerRelative, player.getYRot(), player.getXRot(), false);
+        return new DynamicEtherwarpNode(playerRelative, player.getYRot(), player.getXRot(), false, 0);
     }
 }

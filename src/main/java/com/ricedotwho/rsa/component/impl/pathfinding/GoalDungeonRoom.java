@@ -17,14 +17,14 @@ import java.util.List;
 public class GoalDungeonRoom implements Goal {
     private static final float MAX = 100000000f;
     private final UniqueRoom endRoom;
-    private final HashMap<Integer, RoomCandidate> rooms;
+    private final HashMap<String, RoomCandidate> rooms;
 
     public GoalDungeonRoom(UniqueRoom endRoom, List<RoomCandidate> rooms) {
         this.endRoom = endRoom;
         this.rooms = new HashMap<>(rooms.size());
         for (int i = 0; i < rooms.size(); i++) {
             RoomCandidate candidate = rooms.get(i);
-            this.rooms.put(candidate.getCore(), candidate);
+            this.rooms.put(candidate.getName(), candidate);
         }
     }
 
@@ -51,14 +51,14 @@ public class GoalDungeonRoom implements Goal {
         Room current = ScanUtils.getRoomFromPos(x, z);
         if (current == null || current.getUniqueRoom() == null) return false;
         if (current.getUniqueRoom() != this.endRoom) return false;
-        return Mth.abs(current.getX() - x) <= 14f && Mth.abs(current.getZ() - z) <= 14f; // So it doesn't fucking teleport out of bounds // 28 x 28 instead of 32 x 32
+        return current.getRoofHeight() > y && Mth.abs(current.getX() - x) <= 14f && Mth.abs(current.getZ() - z) <= 14f; // So it doesn't fucking teleport out of bounds // 28 x 28 instead of 32 x 32
     }
 
     @Override
     public double heuristic(int x, int y, int z) {
         Room room = ScanUtils.getRoomFromPos(x, z);
         if (room == null || room.getUniqueRoom() == null || room.getUniqueRoom().getMainRoom() == null) return MAX;
-        RoomCandidate candidate = rooms.get(room.getUniqueRoom().getMainRoom().getCore());
+        RoomCandidate candidate = rooms.get(room.getData().name());
         if (candidate == null) return MAX;
         boolean bl = candidate.getNextDoorRoom() != null;
         if (bl) {

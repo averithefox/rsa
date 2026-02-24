@@ -19,14 +19,14 @@ public class GoalDungeonXYZ implements Goal {
     public static final float ROOM_COST = 100000f;
     private static final float MAX = 100000000f;
     private final BlockPos endPos;
-    private final HashMap<Integer, RoomCandidate> rooms;
+    private final HashMap<String, RoomCandidate> rooms;
 
     public GoalDungeonXYZ(BlockPos endPos, List<RoomCandidate> rooms) {
         this.endPos = endPos;
         this.rooms = new HashMap<>(rooms.size());
         for (int i = 0; i < rooms.size(); i++) {
             RoomCandidate candidate = rooms.get(i);
-            this.rooms.put(candidate.getCore(), candidate);
+            this.rooms.put(candidate.getName(), candidate);
         }
     }
 
@@ -60,7 +60,7 @@ public class GoalDungeonXYZ implements Goal {
     public double heuristic(int x, int y, int z) {
         Room room = ScanUtils.getRoomFromPos(x, z);
         if (room == null || room.getUniqueRoom() == null || room.getUniqueRoom().getMainRoom() == null) return MAX;
-        RoomCandidate candidate = rooms.get(room.getUniqueRoom().getMainRoom().getCore());
+        RoomCandidate candidate = rooms.get(room.getData().name());
         if (candidate == null) return MAX;
         int endX;
         int endY;

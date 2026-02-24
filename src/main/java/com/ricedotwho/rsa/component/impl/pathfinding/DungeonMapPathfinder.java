@@ -1,10 +1,7 @@
 package com.ricedotwho.rsa.component.impl.pathfinding;
 
 import com.ricedotwho.rsm.component.impl.map.handler.DungeonInfo;
-import com.ricedotwho.rsm.component.impl.map.map.Door;
-import com.ricedotwho.rsm.component.impl.map.map.Room;
-import com.ricedotwho.rsm.component.impl.map.map.Tile;
-import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
+import com.ricedotwho.rsm.component.impl.map.map.*;
 import com.ricedotwho.rsm.data.Pair;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
@@ -141,6 +138,9 @@ public class DungeonMapPathfinder {
                             //ChatUtils.chat("No door found!");
                             continue;
                         }
+
+                        //if (door.getType() == DoorType.BLOOD || door.getType() == DoorType.WITHER) continue;
+
                         //ChatUtils.chat("Found door at : " + door.getX() + ", " + door.getZ());
                         //ChatUtils.chat(door.getType());
                     }

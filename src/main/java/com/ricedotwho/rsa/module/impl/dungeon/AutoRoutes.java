@@ -343,13 +343,22 @@ public class AutoRoutes extends Module implements Accessor {
     }
 
     public boolean handleQueue(Pos playerPos, List<Node> nodes) {
-        List<Node> activeNodes = nodes.stream().filter(n -> !n.isTriggered() && !n.hasRanThisTick(tickTime) && n.isInNode(playerPos)).sorted(Comparator.comparingInt(n -> ((Node) n).getPriority()).reversed()).toList();
+        List<Node> activeNodes = new ArrayList<>();
+
+        for (int i = 0; i < nodes.size(); i++) {
+            Node node = nodes.get(i);
+            if (!node.isInNode(playerPos)) continue;
+            this.isRouting = true;
+            if (node.isTriggered() || node.hasRanThisTick(tickTime)) continue;
+            activeNodes.add(node);
+        }
+
         if (activeNodes.isEmpty()) {
             this.inNode = null;
             return false;
         }
 
-        this.isRouting = true;
+        activeNodes.sort(Comparator.comparingInt(n -> ((Node) n).getPriority()).reversed());
 
         Node node = activeNodes.getFirst();
         trySetInNode(node);

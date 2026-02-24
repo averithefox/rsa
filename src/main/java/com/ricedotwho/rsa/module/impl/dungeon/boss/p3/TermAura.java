@@ -4,6 +4,7 @@ import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.AutoTerms;
 import com.ricedotwho.rsa.utils.InteractUtils;
 import com.ricedotwho.rsm.RSM;
+import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
@@ -74,13 +75,13 @@ public class TermAura extends Module {
         }
 
         if (bestCandidate == null) return;
-        ChatUtils.chat(bestDistance);
+        //ChatUtils.chat(bestDistance);
 
 
         Vec3 vec3 = MathUtils.clamp(bestCandidate.getBoundingBox(), eyePos).subtract(bestCandidate.getX(), bestCandidate.getY(), bestCandidate.getZ());
 //        Minecraft.getInstance().getConnection().send(ServerboundInteractPacket.createInteractionPacket(bestCandidate, Minecraft.getInstance().player.isShiftKeyDown(), InteractionHand.MAIN_HAND, vec3));
 
-        // so this should be how vailla does it, can't check if there's flags bcs of reach flagging hitboxes, and grim ignores armourstands for PacketOrderC
+        // so this should be how vanilla does it, can't check if there's flags bcs of reach flagging hitboxes, and grim ignores armourstands for PacketOrderC
         InteractUtils.interactOnEntity(bestCandidate, vec3);
 
         lastClick = System.currentTimeMillis();
@@ -93,7 +94,7 @@ public class TermAura extends Module {
     }
 
     private boolean locationCheck() {
-        return forceSkyblock.getValue() || (Location.getArea().is(Island.Dungeon) && Dungeon.isInBoss() && DungeonUtils.isPhase(Phase7.P3));
+        return forceSkyblock.getValue() || (Location.getArea().is(Island.Dungeon) && (Location.getFloor() == Floor.F7 || Location.getFloor() == Floor.M7) && DungeonUtils.isPhase(Phase7.P3)); // && Dungeon.isInBoss() broke shit on rejoin
     }
 
 
@@ -104,69 +105,3 @@ public class TermAura extends Module {
         return name.getString().equals("Inactive Terminal");
     }
 }
-/*
- [STDERR]: java.util.NoSuchElementException
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at java.base/java.util.ArrayList.getFirst(ArrayList.java:439)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//com.ricedotwho.rsa.module.impl.dungeon.terminals.Solution.getNext(Solution.java:17)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//com.ricedotwho.rsa.module.impl.dungeon.terminals.StartsWith.getNextState(StartsWith.java:31)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.AutoTerms.onReceivePacket(AutoTerms.java:220)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//com.ricedotwho.rsm.event.api.EventBus.invoke(EventBus.java:100)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//com.ricedotwho.rsm.event.api.EventBus.post(EventBus.java:88)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//com.ricedotwho.rsm.event.Event.post(Event.java:26)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//net.minecraft.network.Connection.handler$bka000$rsm$handlePacket(Connection.java:1689)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//net.minecraft.network.Connection.genericsFtw(Connection.java)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//net.minecraft.network.Connection.channelRead0(Connection.java:176)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//net.minecraft.network.Connection.channelRead0(Connection.java)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.SimpleChannelInboundHandler.channelRead(SimpleChannelInboundHandler.java:99)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:444)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:420)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:412)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.handler.codec.MessageToMessageDecoder.channelRead(MessageToMessageDecoder.java:107)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:444)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:420)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:412)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.handler.codec.MessageToMessageDecoder.channelRead(MessageToMessageDecoder.java:107)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:444)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:420)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:412)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ByteToMessageDecoder.java:346)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:318)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:444)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:420)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:412)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.handler.flow.FlowControlHandler.dequeue(FlowControlHandler.java:202)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.handler.flow.FlowControlHandler.channelRead(FlowControlHandler.java:164)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:442)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:420)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:412)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ByteToMessageDecoder.java:346)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:318)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:444)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:420)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:412)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ByteToMessageDecoder.java:346)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:318)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:444)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:420)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:412)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.handler.codec.MessageToMessageDecoder.channelRead(MessageToMessageDecoder.java:107)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:444)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:420)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:412)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.handler.timeout.IdleStateHandler.channelRead(IdleStateHandler.java:289)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:442)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:420)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:412)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.DefaultChannelPipeline$HeadContext.channelRead(DefaultChannelPipeline.java:1357)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:440)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:420)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:868)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.epoll.AbstractEpollStreamChannel$EpollStreamUnsafe.epollInReady(AbstractEpollStreamChannel.java:799)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.epoll.EpollEventLoop.processReady(EpollEventLoop.java:501)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.channel.epoll.EpollEventLoop.run(EpollEventLoop.java:399)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:998)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at knot//io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)
-[22:23:15] [Netty Epoll Client IO #0/INFO] (Minecraft) [STDERR]: 	at java.base/java.lang.Thread.run(Thread.java:1583)
- */

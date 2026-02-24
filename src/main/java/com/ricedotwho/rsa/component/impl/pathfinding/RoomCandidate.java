@@ -20,7 +20,7 @@ public class RoomCandidate {
         this.nextDoorRoom = nextDoorRoom;
     }
 
-    public int getCore() {
-        return uniqueRoom.getMainRoom().getCore();
+    public String getName() {
+        return uniqueRoom.getName();
     }
 }
