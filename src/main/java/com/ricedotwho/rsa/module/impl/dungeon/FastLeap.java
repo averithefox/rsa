@@ -51,7 +51,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Getter
-@ModuleInfo(aliases = "FastLeap", id = "FastLeap", category = Category.DUNGEONS)
+@ModuleInfo(aliases = "Fast Leap", id = "FastLeap", category = Category.DUNGEONS)
 public class FastLeap extends Module {
 
     private final KeybindSetting key = new KeybindSetting("Key", new Keybind(InputConstants.MOUSE_BUTTON_LEFT, false, true, true, null) {

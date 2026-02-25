@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
-@ModuleInfo(aliases = "Align", id = "AlignAura", category = Category.DUNGEONS)
+@ModuleInfo(aliases = "Align Aura", id = "AlignAura", category = Category.DUNGEONS)
 public class AlignAura extends Module {
 
     private static final int[][] SOLUTIONS = {

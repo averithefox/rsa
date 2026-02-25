@@ -51,7 +51,7 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
 
-@ModuleInfo(aliases = "Autoroutes", id = "Autoroutes", category = Category.DUNGEONS)
+@ModuleInfo(aliases = "Auto Routes", id = "Autoroutes", category = Category.DUNGEONS)
 public class AutoRoutes extends Module implements Accessor {
 
     @Getter

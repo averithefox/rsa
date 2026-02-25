@@ -1,12 +1,9 @@
-package com.ricedotwho.rsa.module.impl.other.Checks;
+package com.ricedotwho.rsa.module.impl.other.checks;
 
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.module.impl.other.AntiCheat;
-import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.game.ChatEvent;
-import com.ricedotwho.rsm.utils.ChatUtils;
-import lombok.AllArgsConstructor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -18,11 +15,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class invWalk {
+public class InvWalkCheck {
     public static boolean startChecking;
     private static final Pattern playerName = Pattern.compile("^(\\w+)\\s+activated a terminal");
     public static String username;

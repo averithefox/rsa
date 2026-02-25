@@ -25,8 +25,8 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.StringUtil;
 import org.joml.Vector2d;
 
-@Getter // please don't use spaces in the id
-@ModuleInfo(aliases = "P.T", id = "PadTimer", category = Category.DUNGEONS)
+@Getter
+@ModuleInfo(aliases = "Pad Timer", id = "PadTimer", category = Category.DUNGEONS)
 public class PadTimer extends Module {
     private int seconds = 4; // 4 seconds
     private int second = 20; // 20 ticks

@@ -18,7 +18,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 
 @Getter
-@ModuleInfo(aliases = "DevUtils", id = "DevUtils", category = Category.OTHER)
+@ModuleInfo(aliases = "Dev Utils", id = "DevUtils", category = Category.OTHER)
 public class DevUtils extends Module {
     private final ButtonSetting pos = new ButtonSetting("Your XYZ", "List Pos", () -> {
         LocalPlayer player = Minecraft.getInstance().player;

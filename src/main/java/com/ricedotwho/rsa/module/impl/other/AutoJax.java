@@ -26,7 +26,7 @@ import org.joml.Vector2f;
 import java.util.List;
 
 @Getter // please don't use spaces in the id
-@ModuleInfo(aliases = "AJ", id = "AutoJax", category = Category.OTHER)
+@ModuleInfo(aliases = "Auto Jax", id = "AutoJax", category = Category.OTHER)
 public class AutoJax extends Module {
     private final NumberSetting tickdelay = new NumberSetting("Tick Delay", 1, 60, 10, 2);
     private final NumberSetting startDelay = new NumberSetting("Start Delay", 1, 260, 60, 2);

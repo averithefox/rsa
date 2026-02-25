@@ -367,7 +367,7 @@ public class SwapManager {
         if (player == null || id == null || id.length == 0) return -1;
         for (int i = 0; i < 9; i++) {
             ItemStack stack = player.getInventory().getItem(i); // Hotbar is 0 - 8
-            if (id.equals(ItemUtils.getID(stack))) return i;
+            if (Arrays.stream(id).anyMatch(s -> s.equals(ItemUtils.getID(stack)))) return i;
         }
         return -1;
     }
