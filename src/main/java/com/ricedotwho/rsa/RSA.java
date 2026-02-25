@@ -17,10 +17,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.*;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
 import com.ricedotwho.rsa.module.impl.player.BonzoHelper;
 import com.ricedotwho.rsa.module.impl.player.CancelInteract;
-import com.ricedotwho.rsa.module.impl.render.EffectsAndRender;
-import com.ricedotwho.rsa.module.impl.render.Esp;
-import com.ricedotwho.rsa.module.impl.render.HidePlayers;
-import com.ricedotwho.rsa.module.impl.render.PresetWaypoints;
+import com.ricedotwho.rsa.module.impl.render.*;
 import com.ricedotwho.rsa.utils.render3d.type.Ring;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.addon.Addon;
@@ -111,7 +108,8 @@ public class RSA implements Addon {
                 HidePlayers.class,
                 Auto4.class,
                 BonzoHelper.class,
-                AutoCroesus.class
+                AutoCroesus.class,
+                Freecam.class
         );
     }
 
