@@ -109,7 +109,8 @@ public class RSA implements Addon {
                 Auto4.class,
                 BonzoHelper.class,
                 AutoCroesus.class,
-                Freecam.class
+                Freecam.class,
+                AutoUlt.class
         );
     }
 
