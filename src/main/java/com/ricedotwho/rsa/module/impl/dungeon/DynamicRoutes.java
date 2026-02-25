@@ -44,7 +44,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.*;
 import java.util.function.Consumer;
 
-@ModuleInfo(aliases = "Dynamicroutes", id = "Dynamicroutes", category = Category.MOVEMENT)
+@ModuleInfo(aliases = "Dynamic Routes", id = "Dynamicroutes", category = Category.MOVEMENT)
 public class DynamicRoutes extends Module {
     private final UniqueRoom EMPTY_UNIQUE;
 

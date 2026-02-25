@@ -25,7 +25,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 @Getter
-@SubModuleInfo(name = "TTT", alwaysDisabled = false)
+@SubModuleInfo(name = "Tic Tac Toe", alwaysDisabled = false)
 public class AutoTTT extends TicTacToe {
 
     private final BooleanSetting auto = new BooleanSetting("Auto", false);

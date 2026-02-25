@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@SubModuleInfo(name = "IceFill", alwaysDisabled = false)
+@SubModuleInfo(name = "Ice Fill", alwaysDisabled = false)
 public class IceFill extends com.ricedotwho.rsm.module.impl.dungeon.puzzle.IceFill {
 	public final BooleanSetting autoEnabled = new BooleanSetting("Auto Ice Fill", false);
 	public final NumberSetting autoDelay = new NumberSetting("Delay", 0, 8, 0, 1);

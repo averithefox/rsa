@@ -17,159 +17,76 @@ import org.lwjgl.glfw.GLFW;
 @Getter
 @ModuleInfo(aliases = "Keybind Shortcuts", id = "CustomKeybinds", category = Category.OTHER)
 public class CustomKeybinds extends Module {
-    boolean Keypressed1 = false;
-    boolean Keypressed2 = false;
-    boolean Keypressed3 = false;
-    boolean Keypressed4 = false;
-    boolean Keypressed5 = false;
-    boolean Keypressed6 = false;
-    boolean Keypressed7 = false;
-    boolean Keypressed8 = false;
-    boolean Keypressed9 = false;
-    boolean Keypressed10 = false;
-    boolean Keypressed11 = false;
-    boolean Keypressed12 = false;
-    boolean Keypressed13 = false;
-    boolean Keypressed14 = false;
-    private final KeybindSetting Keybind1 = new KeybindSetting("Keybind 1", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed1 = true));
-    private final StringSetting String1 = new StringSetting("Command 1 (dont need the /)", "");
-    private final KeybindSetting Keybind2 = new KeybindSetting("Keybind 2", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed2 = true));
-    private final StringSetting String2 = new StringSetting("Command 2", "");
-    private final KeybindSetting Keybind3 = new KeybindSetting("Keybind 3", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed3 = true));
-    private final StringSetting String3 = new StringSetting("Command 3", "");
-    private final KeybindSetting Keybind4 = new KeybindSetting("Keybind 4", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed4 = true));
-    private final StringSetting String4 = new StringSetting("Command 4", "");
-    private final KeybindSetting Keybind5 = new KeybindSetting("Keybind 5", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed5 = true));
-    private final StringSetting String5 = new StringSetting("Command 5", "");
-    private final KeybindSetting Keybind6 = new KeybindSetting("Keybind 6", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed6 = true));
-    private final StringSetting String6 = new StringSetting("Command 6", "");
-    private final KeybindSetting Keybind7 = new KeybindSetting("Keybind 7", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed7 = true));
-    private final StringSetting String7 = new StringSetting("Command 7", "");
-    private final KeybindSetting Keybind8 = new KeybindSetting("Keybind 8", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed8 = true));
-    private final StringSetting String8 = new StringSetting("Command 8", "");
-    private final KeybindSetting Keybind9 = new KeybindSetting("Keybind 9", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed9 = true));
-    private final StringSetting String9 = new StringSetting("Command 9", "");
-    private final KeybindSetting Keybind10 = new KeybindSetting("Keybind 10", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed10 = true));
-    private final StringSetting String10 = new StringSetting("Command 10", "");
-    private final KeybindSetting Keybind11 = new KeybindSetting("Keybind 11", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed11 = true));
-    private final StringSetting String11 = new StringSetting("Command 11", "");
-    private final KeybindSetting Keybind12 = new KeybindSetting("Keybind 12", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed12 = true));
-    private final StringSetting String12 = new StringSetting("Command 12", "");
-    private final KeybindSetting Keybind13 = new KeybindSetting("Keybind 13", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed13 = true));
-    private final StringSetting String13 = new StringSetting("Command 13", "");
-    private final KeybindSetting Keybind14 = new KeybindSetting("Keybind 14", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> Keypressed14 = true));
-    private final StringSetting String14 = new StringSetting("Command 14", "");
-    //these work when you run the client in inteleJ but its not working in my instance.. IM SO CONFUSED
+    private final StringSetting string1 = new StringSetting("Command 1", "");
+    private final StringSetting string2 = new StringSetting("Command 2", "");
+    private final StringSetting string3 = new StringSetting("Command 3", "");
+    private final StringSetting string4 = new StringSetting("Command 4", "");
+    private final StringSetting string5 = new StringSetting("Command 5", "");
+    private final StringSetting string6 = new StringSetting("Command 6", "");
+    private final StringSetting string7 = new StringSetting("Command 7", "");
+    private final StringSetting string8 = new StringSetting("Command 8", "");
+    private final StringSetting string9 = new StringSetting("Command 9", "");
+    private final StringSetting string10 = new StringSetting("Command 10", "");
+    private final StringSetting string11 = new StringSetting("Command 11", "");
+    private final StringSetting string12 = new StringSetting("Command 12", "");
+    private final StringSetting string13 = new StringSetting("Command 13", "");
+    private final StringSetting string14 = new StringSetting("Command 14", "");
+    private final StringSetting string15 = new StringSetting("Command 15", "");
 
+    private final KeybindSetting keybind1 = new KeybindSetting("Keybind 1", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> sendCmd(string1.getValue())));
+    private final KeybindSetting keybind2 = new KeybindSetting("Keybind 2", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> sendCmd(string2.getValue())));
+    private final KeybindSetting keybind3 = new KeybindSetting("Keybind 3", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> sendCmd(string3.getValue())));
+    private final KeybindSetting keybind4 = new KeybindSetting("Keybind 4", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> sendCmd(string4.getValue())));
+    private final KeybindSetting keybind5 = new KeybindSetting("Keybind 5", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> sendCmd(string5.getValue())));
+    private final KeybindSetting keybind6 = new KeybindSetting("Keybind 6", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> sendCmd(string6.getValue())));
+    private final KeybindSetting keybind7 = new KeybindSetting("Keybind 7", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> sendCmd(string7.getValue())));
+    private final KeybindSetting keybind8 = new KeybindSetting("Keybind 8", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> sendCmd(string8.getValue())));
+    private final KeybindSetting keybind9 = new KeybindSetting("Keybind 9", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> sendCmd(string9.getValue())));
+    private final KeybindSetting keybind10 = new KeybindSetting("Keybind 10", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> sendCmd(string10.getValue())));
+    private final KeybindSetting keybind11 = new KeybindSetting("Keybind 11", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> sendCmd(string11.getValue())));
+    private final KeybindSetting keybind12 = new KeybindSetting("Keybind 12", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> sendCmd(string12.getValue())));
+    private final KeybindSetting keybind13 = new KeybindSetting("Keybind 13", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> sendCmd(string13.getValue())));
+    private final KeybindSetting keybind14 = new KeybindSetting("Keybind 14", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> sendCmd(string14.getValue())));
+    private final KeybindSetting keybind15 = new KeybindSetting("Keybind 15", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> sendCmd(string15.getValue())));
 
-
+    //todo: create a gui for this
     public CustomKeybinds() {
         this.registerProperty(
-                Keybind1,
-                String1,
-                Keybind2,
-                String2,
-                Keybind3,
-                String3,
-                Keybind4,
-                String4,
-                Keybind5,
-                String5,
-                Keybind6,
-                String6,
-                Keybind7,
-                String7,
-                Keybind8,
-                String8,
-                Keybind9,
-                String9,
-                Keybind10,
-                String10,
-                Keybind11,
-                String11,
-                Keybind12,
-                String12,
-                Keybind13,
-                String13,
-                Keybind14,
-                String14
+                keybind1,
+                string1,
+                keybind2,
+                string2,
+                keybind3,
+                string3,
+                keybind4,
+                string4,
+                keybind5,
+                string5,
+                keybind6,
+                string6,
+                keybind7,
+                string7,
+                keybind8,
+                string8,
+                keybind9,
+                string9,
+                keybind10,
+                string10,
+                keybind11,
+                string11,
+                keybind12,
+                string12,
+                keybind13,
+                string13,
+                keybind14,
+                string14,
+                keybind15,
+                string15
         );
     }
 
-    @SubscribeEvent
-    public void sendChat(Render2DEvent event){
-        LocalPlayer player = Minecraft.getInstance().player;
-        ClientLevel level = Minecraft.getInstance().level;
-        if(player == null || level == null) return;
-
-        if(Keypressed1){
-            player.connection.sendCommand(String1.getValue());
-            Keypressed1 = false;
-        }
-
-        if(Keypressed2){
-            player.connection.sendCommand(String2.getValue());
-            Keypressed2 = false;
-        }
-
-        if(Keypressed3){
-            player.connection.sendCommand(String3.getValue());
-            Keypressed3 = false;
-        }
-
-        if(Keypressed4){
-            player.connection.sendCommand(String4.getValue());
-            Keypressed4 = false;
-        }
-
-        if(Keypressed5){
-            player.connection.sendCommand(String5.getValue());
-            Keypressed5 = false;
-        }
-
-        if(Keypressed6){
-            player.connection.sendCommand(String6.getValue());
-            Keypressed6 = false;
-        }
-
-        if(Keypressed7){
-            player.connection.sendCommand(String7.getValue());
-            Keypressed7 = false;
-        }
-
-        if(Keypressed8){
-            player.connection.sendCommand(String8.getValue());
-            Keypressed8 = false;
-        }
-
-        if(Keypressed9){
-            player.connection.sendCommand(String9.getValue());
-            Keypressed9 = false;
-        }
-
-        if(Keypressed10){
-            player.connection.sendCommand(String10.getValue());
-            Keypressed10 = false;
-        }
-
-        if(Keypressed11){
-            player.connection.sendCommand(String11.getValue());
-            Keypressed11 = false;
-        }
-
-        if(Keypressed12){
-            player.connection.sendCommand(String12.getValue());
-            Keypressed12 = false;
-        }
-
-        if(Keypressed13){
-            player.connection.sendCommand(String13.getValue());
-            Keypressed13 = false;
-        }
-
-        if(Keypressed14){
-            player.connection.sendCommand(String14.getValue());
-            Keypressed14 = false;
-        }
+    private void sendCmd(String cmd) {
+        if (mc.player == null || mc.getConnection() == null) return;
+        mc.getConnection().sendCommand(cmd);
     }
 }

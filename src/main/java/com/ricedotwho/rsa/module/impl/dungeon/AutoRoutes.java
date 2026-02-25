@@ -37,10 +37,7 @@ import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
-import net.minecraft.network.protocol.game.ClientboundTakeItemEntityPacket;
-import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
-import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
+import net.minecraft.network.protocol.game.*;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Input;
@@ -51,7 +48,7 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
 
-@ModuleInfo(aliases = "Autoroutes", id = "Autoroutes", category = Category.DUNGEONS)
+@ModuleInfo(aliases = "Auto Routes", id = "Autoroutes", category = Category.DUNGEONS)
 public class AutoRoutes extends Module implements Accessor {
 
     @Getter
@@ -90,21 +87,23 @@ public class AutoRoutes extends Module implements Accessor {
     // Player inputs are sent after C08s and keybinding events, in level.tickEntities
 
     private static final Set<String> SECRET_NAMES  = Set.of(
-            "[Health Potion VIII Splash Potion]",
-            "[Healing Potion 8 Splash Potion]",
-            "[Healing Potion VIII Splash Potion]",
-            "[Healing VIII Splash Potion]",
-            "[Healing 8 Splash Potion]",
-            "[Decoy]",
-            "[Inflatable Jerry]",
-            "[Spirit Leap]",
-            "[Trap]",
-            "[Training Weights]",
-            "[Defuse Kit]",
-            "[Dungeon Chest Key]",
-            "[Treasure Talisman]",
-            "[Revive Stone]",
-            "[Architect's First Draft]"
+            "Health Potion VIII Splash Potion",
+            "Healing Potion 8 Splash Potion",
+            "Healing Potion VIII Splash Potion",
+            "Healing VIII Splash Potion",
+            "Healing 8 Splash Potion",
+            "Decoy",
+            "Inflatable Jerry",
+            "Spirit Leap",
+            "Trap",
+            "Training Weights",
+            "Defuse Kit",
+            "Dungeon Chest Key",
+            "Treasure Talisman",
+            "Revive Stone",
+            "Architect's First Draft",
+            "Secret Dye",
+            "Candycomb"
     );
 
     public AutoRoutes() {
@@ -321,18 +320,30 @@ public class AutoRoutes extends Module implements Accessor {
 
     @SubscribeEvent
     public void onReceivePacket(PacketEvent.Receive event) {
-        if (!Location.getArea().is(Island.Dungeon) || Map.getCurrentRoom() == null) return;
+        if (!Location.getArea().is(Island.Dungeon)
+                || Map.getCurrentRoom() == null
+                || this.inNode == null
+                || mc.level == null
+                || !this.inNode.hasAwaits()
+                || !this.inNode.getAwaitManager().hasAwait(AwaitSecrets.class)
+        ) return;
 
-        if (this.inNode != null && event.getPacket() instanceof ClientboundTakeItemEntityPacket packet) {
+        if (event.getPacket() instanceof ClientboundTakeItemEntityPacket packet) {
             if (Minecraft.getInstance().level == null) return;
             Entity entity = Minecraft.getInstance().level.getEntity(packet.getItemId());
             if (!(entity instanceof ItemEntity itemEntity)) return;
-            String name = ChatFormatting.stripFormatting(itemEntity.getItem().getDisplayName().getString());
+            String name = ChatFormatting.stripFormatting(itemEntity.getItem().getHoverName().getString());
             if (!SECRET_NAMES.contains(name)) return;
-            //ChatUtils.chat("Picked up secret!");
-            //ChatUtils.chat(this.inNode.getRealPos());
-            if (!this.inNode.hasAwaits() || !this.inNode.getAwaitManager().hasAwait(AwaitSecrets.class)) return; // Move earlier
             this.inNode.getAwaitManager().consume(AwaitSecrets.class, 1);
+        } else if (event.getPacket() instanceof ClientboundRemoveEntitiesPacket packet) {
+            packet.getEntityIds().forEach(id -> {
+                Entity entity = mc.level.getEntity(id);
+                if (entity instanceof ItemEntity itemEntity
+                        && entity.distanceToSqr(mc.player) < 64
+                        && SECRET_NAMES.contains(ChatFormatting.stripFormatting(itemEntity.getItem().getHoverName().getString()))) {
+                    this.inNode.getAwaitManager().consume(AwaitSecrets.class, 1);
+                }
+            });
         }
     }
 

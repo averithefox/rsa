@@ -52,6 +52,7 @@ public class InstaMid extends Module {
         if (!(event.getPacket() instanceof ServerboundMovePlayerPacket packet)
                 || !Location.getArea().is(Island.Dungeon)
                 || !(Location.getFloor() == Floor.F7 || Location.getFloor() == Floor.M7)
+                || !Dungeon.isInBoss()
                 || !DungeonUtils.isPhase(Phase7.P4)
                 || !startOnNextFlying
                 || packet.isOnGround()

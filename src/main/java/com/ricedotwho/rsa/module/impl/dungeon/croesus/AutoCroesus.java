@@ -41,7 +41,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Getter
-@ModuleInfo(aliases = "Croesus", id = "AutoCroesus", category = Category.DUNGEONS)
+@ModuleInfo(aliases = "Auto Croesus", id = "AutoCroesus", category = Category.DUNGEONS)
 public class AutoCroesus extends Module {
 
     private final NumberSetting clickDelay = new NumberSetting("Click Delay", 100, 1000, 300, 25);

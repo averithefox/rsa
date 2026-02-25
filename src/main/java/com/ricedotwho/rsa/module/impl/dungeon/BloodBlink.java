@@ -59,7 +59,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
-@ModuleInfo(aliases = "BB", id = "BloodBlink", category = Category.DUNGEONS)
+@ModuleInfo(aliases = "Blood Blink", id = "BloodBlink", category = Category.DUNGEONS)
 public class BloodBlink extends Module {
     private static final Pos SLAB_BLOCK_OFFSET = new Pos(-9.5, 82, -12.5); // Sometimes y = 81.5
     private static final Vec3 MIDDLE_MAP_COORDS = new Vec3(-104.5, 0, -104.5);

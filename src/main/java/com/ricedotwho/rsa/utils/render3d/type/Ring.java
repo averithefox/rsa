@@ -6,6 +6,8 @@ import com.ricedotwho.rsa.utils.render3d.RSAVertexRenderer;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.utils.render.render3d.type.RenderTask;
 import com.ricedotwho.rsm.utils.render.render3d.type.RenderType;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
 public class Ring extends RenderTask {
@@ -28,16 +30,36 @@ public class Ring extends RenderTask {
         this.layers = layers;
     }
 
+    private int getFactor() {
+        Entity camera = Minecraft.getInstance().getCameraEntity();
+        double dist = camera.distanceToSqr(pos);
+        if (dist > 64 * 64) {
+            return 0;
+        } else if (dist > 48 * 48) {
+            return 8;
+        } else if (dist > 32 * 32) {
+            return 4;
+        } else if (dist > 16 *16) {
+            return 2;
+        } else {
+            return 1;
+        }
+    }
+
     @Override
     public void render(PoseStack stack, VertexConsumer buffer, RenderType source) {
+        int factor = getFactor();
+        if (factor == 0) return;
+        int slices = this.slices / factor;
+        int layers = this.layers / factor;
         RSAVertexRenderer.renderRing(
                 stack.last(),
                 buffer,
                 this.pos,
                 this.radius,
                 this.colour,
-                this.slices,
-                this.layers
+                slices,
+                layers
         );
     }
 }

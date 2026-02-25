@@ -21,25 +21,26 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import oshi.jna.platform.mac.IOKit;
 
 import java.util.function.Predicate;
 
 @Getter
-@ModuleInfo(aliases = "AutoGfs", id = "AutoGfs", category = Category.OTHER)
+@ModuleInfo(aliases = "Auto Gfs", id = "AutoGfs", category = Category.OTHER)
 public class AutoGfs extends Module {
-    private boolean worldLoaded = false;
-    private boolean countDownstarted = false;
-    private int globalDelay = 0;
-
     private final BooleanSetting
-            enderPearl = new BooleanSetting("EnderPearl", false, () -> true),
-            spiritLeap = new BooleanSetting("SpiritLeap", false, () -> true),
-            superBoom = new BooleanSetting("SuperBoom", false, () -> true);
+            enderPearl = new BooleanSetting("Ender Pearl", false),
+            spiritLeap = new BooleanSetting("Spirit Leap", false),
+            superBoom = new BooleanSetting("Super Boom", false);
 
     private final NumberSetting worldLoadTicks = new NumberSetting("World Load Delay", 20, 80, 40, 1);
     private final NumberSetting getItemDelay = new NumberSetting("Get Item Delay", 20, 80, 40, 1);
-    private int worldLoaddelay = worldLoadTicks.getValue().intValue();
-    private int setDelay = getItemDelay.getValue().intValue();
+
+    private int loadDelay = 0;
+    private boolean worldLoaded = false;
+    private boolean countdownStarted = false;
+    private int globalDelay = 0;
+
     public AutoGfs() {
         this.registerProperty(
                 enderPearl,
@@ -48,21 +49,6 @@ public class AutoGfs extends Module {
                 getItemDelay,
                 worldLoadTicks
         );
-    }
-
-    @Override
-    public void onEnable() {
-
-    }
-
-    @Override
-    public void onDisable() {
-
-    }
-
-    @Override
-    public void reset() {
-
     }
 
     @SubscribeEvent
@@ -79,94 +65,35 @@ public class AutoGfs extends Module {
         }
 
         boolean sentCommand = false;
-        if (!sentCommand && enderPearl.getValue()) {
-            if (tryGetEnderPearls(player)) {
+        if (enderPearl.getValue()) {
+            if (tryGetItem(16, "ENDER_PEARL")) {
                 globalDelay = 20;
                 sentCommand = true;
             }
         }
 
         if (!sentCommand && spiritLeap.getValue()) {
-            if (tryGetSpiritLeaps(player)) {
+            if (tryGetItem(16, "ENDER_PEARL")) {
                 globalDelay = 20;
                 sentCommand = true;
             }
         }
 
         if (!sentCommand && superBoom.getValue()) {
-            if (tryGetSuperBooms(player)) {
+            if (tryGetItem(64, "SUPERBOOM_TNT")) {
                 globalDelay = 20;
             }
         }
     }
 
-    private boolean tryGetEnderPearls(LocalPlayer player) {
-        int enderPearlStackSize = 0;
-        try {
-            ItemStack stack = findItemStackMatching(i -> i.getItem() == Items.ENDER_PEARL && ItemUtils.getID(i).equals("ENDER_PEARL"));
-            if (stack != null) {
-                enderPearlStackSize = stack.getCount();
-            }
-        } catch (Exception e) {
-            return false;
-        }
-
-        // Get ender pearls
-        if (enderPearlStackSize > 0 && enderPearlStackSize < 16) {
-            int missingAmount = 16 - enderPearlStackSize;
-            player.connection.sendCommand("gfs ender_pearl " + missingAmount);
-            //ChatUtils.chat("GFS ep: " + missingAmount);
-            return true;
-        }
-        return false;
-    }
-
-    private boolean tryGetSpiritLeaps(LocalPlayer player) {
-        int spiritLeapSlot = SwapManager.getItemSlot("SPIRIT_LEAP");
-        if (spiritLeapSlot == -1) return false;
-
-        int spiritLeapCount = 0;
-        try {
-            ItemStack itemStack = player.getInventory().getItem(spiritLeapSlot);
-            if (itemStack != null && !itemStack.isEmpty()) {
-                spiritLeapCount = itemStack.getCount();
-            } else {
-                return false;
-            }
-        } catch (Exception e) {
-            return false;
-        }
-
-        // Get spirit leaps
-        if(spiritLeapCount > 0 && spiritLeapCount < 16){
-            int missingAmount = 16 - spiritLeapCount;
-            player.connection.sendCommand("gfs spirit_leap " + missingAmount);
-            //ChatUtils.chat("GFS sl: " + missingAmount);
-            return true;
-        }
-        return false;
-    }
-
-    private boolean tryGetSuperBooms(LocalPlayer player) {
-        int superBoomSlot = SwapManager.getItemSlot("SUPERBOOM_TNT");
-        if (superBoomSlot == -1) return false; // Item not in hotbar
-        
-        int superBoomCount = 0;
-        try {
-            Item superBoomStack = player.getInventory().getItem(superBoomSlot).getItem();
-            ItemStack itemStack = findItemStackMatching(superBoomStack);
-            if (itemStack != null) {
-                superBoomCount = itemStack.getCount();
-            }
-        } catch (Exception e){
-            return false;
-        }
-
-        // Get super booms
-        if(superBoomCount > 0 && superBoomCount < 64){
-            int missingAmount = 64 - superBoomCount;
-            player.connection.sendCommand("gfs superboom_tnt " + missingAmount);
-            //ChatUtils.chat("GFS sb: " + missingAmount);
+    private boolean tryGetItem(int maxStack, String sbId) {
+        int slot = SwapManager.getItemSlot(sbId);
+        if (slot == -1) return false;
+        ItemStack stack = mc.player.getInventory().getItem(slot);
+        int count = stack.getCount();
+        if (count > 0 && count < maxStack) {
+            int missing = maxStack - count;
+            mc.player.connection.sendCommand("gfs " + sbId + " " + missing);
             return true;
         }
         return false;
@@ -174,37 +101,21 @@ public class AutoGfs extends Module {
 
     @SubscribeEvent
     public void worldLoad(WorldEvent.Load event){
-        countDownstarted = true;
-        globalDelay = worldLoadTicks.getValue().intValue();
+        countdownStarted = true;
+        loadDelay = worldLoadTicks.getValue().intValue();
     }
 
     @SubscribeEvent
     public void countDown(ServerTickEvent event) {
-        if(Location.getArea() == Island.Unknown) return;
-        if (countDownstarted) {
+        if (Location.getArea() == Island.Unknown) return;
+        if (countdownStarted) {
             worldLoaded = false;
-            if (worldLoaddelay > 0) {
-                worldLoaddelay--;
+            if (loadDelay > 0) {
+                loadDelay--;
                 return;
             }
-            countDownstarted = false;
+            countdownStarted = false;
             worldLoaded = true;
         }
-    }
-
-    public static ItemStack findItemStackMatching(Item item) {
-        return findItemStackMatching(i -> i.getItem() == item);
-    }
-
-    public static ItemStack findItemStackMatching(Predicate<ItemStack> predicate) {
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null) return null;
-
-        for (int i = 0; i < 9; i++) {
-            ItemStack stack = player.getInventory().getItem(i); // Hotbar is 0 - 8
-            if (!predicate.test(stack)) continue;
-            return stack;
-        }
-        return null;
     }
 }
