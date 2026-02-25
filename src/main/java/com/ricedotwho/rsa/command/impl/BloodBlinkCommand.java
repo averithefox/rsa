@@ -1,6 +1,7 @@
 package com.ricedotwho.rsa.command.impl;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import com.ricedotwho.rsa.module.impl.dungeon.BloodBlink;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
@@ -19,22 +20,24 @@ public class BloodBlinkCommand extends Command {
 
     @Override
     public LiteralArgumentBuilder<ClientSuggestionProvider> build() {
-        return literal(name()).executes((source) -> {
-            BloodBlink bloodBlink = RSM.getModule(BloodBlink.class);
-            if (!bloodBlink.isEnabled()) {
-                ChatUtils.chat("Please enable blood blink!");
-                return 0;
-            }
+        return literal(name()).executes(this::bb);
+    }
 
-            if (Map.getCurrentRoom().getData().type() != RoomType.ENTRANCE) {
-                ChatUtils.chat("You can't blood blink outside of entrance!");
-                return 0;
-            }
+    private int bb(CommandContext<ClientSuggestionProvider> ctx) {
+        BloodBlink bloodBlink = RSM.getModule(BloodBlink.class);
+        if (!bloodBlink.isEnabled()) {
+            ChatUtils.chat("Please enable blood blink!");
+            return 0;
+        }
 
-            ChatUtils.chat("Trying blood blinking!");
-            bloodBlink.doBlink();
-            return 1;
-        });
+        if (Map.getCurrentRoom().getData().type() != RoomType.ENTRANCE) {
+            ChatUtils.chat("You can't blood blink outside of entrance!");
+            return 0;
+        }
+
+        ChatUtils.chat("Trying blood blinking!");
+        bloodBlink.doBlink();
+        return 1;
     }
 
 }

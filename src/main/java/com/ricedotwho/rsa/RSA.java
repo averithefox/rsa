@@ -3,6 +3,7 @@ package com.ricedotwho.rsa;
 import com.ricedotwho.rsa.command.impl.*;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.InstaMid;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.PadTimer;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.AutoP3;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.AutoTerms;
 import com.ricedotwho.rsa.module.impl.dungeon.FastLeap;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.TermAura;
@@ -100,7 +101,8 @@ public class RSA implements Addon {
                 HidePlayers.class,
                 Auto4.class,
                 BonzoHelper.class,
-                AutoCroesus.class
+                AutoCroesus.class,
+                AutoP3.class
         );
     }
 
@@ -115,6 +117,7 @@ public class RSA implements Addon {
                 RouteCommand.class,
                 DynamicRouteCommand.class,
                 BloodBlinkCommand.class,
+                BBGCommand.class,
                 RSADevCommand.class,
                 AutoCroesusCommand.class
         );
