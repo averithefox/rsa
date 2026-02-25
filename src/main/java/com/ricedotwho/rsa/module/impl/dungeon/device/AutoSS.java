@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.device;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
@@ -88,7 +89,7 @@ public class AutoSS extends Module {
         allButtons.clear();
         //float[] angles = EtherUtils.getYawAndPitch(START_BUTTON, false, player, true);
 
-        ChatUtils.chat("Starting SS!");
+        RSA.chat("Starting SS!");
         resetState();
         doingSS = true;
 
@@ -103,7 +104,7 @@ public class AutoSS extends Module {
                 doingSS = true;
                 clickButton(START_BUTTON);
             } catch (Exception e) {
-                ChatUtils.chat("Error Occurred");
+                RSA.chat("Error Occurred");
             }
         }).start();
     }
@@ -181,7 +182,7 @@ public class AutoSS extends Module {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
         if (player.distanceToSqr(vec3) > 36) {
-            ChatUtils.chat("Button too far!");
+            RSA.chat("Button too far!");
             return;
         }
         lastClickTime = System.currentTimeMillis();
@@ -192,7 +193,7 @@ public class AutoSS extends Module {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
         if (player.distanceToSqr(vec3) > 36) {
-            ChatUtils.chat("Button too far!");
+            RSA.chat("Button too far!");
             return;
         }
 

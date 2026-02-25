@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
@@ -256,7 +257,7 @@ public class AutoRoutes extends Module implements Accessor {
         redoMap.get(uniqueRoom.getName()).add(node);
         AutoroutesFileManager.save();
 
-        ChatUtils.chat("Undid %s at %s", node.getName(), node.getRealPos().toChatString());
+        RSA.chat("Undid %s at %s", node.getName(), node.getRealPos().toChatString());
         return true;
     }
 
@@ -270,7 +271,7 @@ public class AutoRoutes extends Module implements Accessor {
         nodes.add(node);
         AutoroutesFileManager.save();
 
-        ChatUtils.chat("Redid %s at %s", node.getName(), node.getRealPos().toChatString());
+        RSA.chat("Redid %s at %s", node.getName(), node.getRealPos().toChatString());
         return true;
     }
 
@@ -378,7 +379,7 @@ public class AutoRoutes extends Module implements Accessor {
         Optional<BreakNode> opt = this.activeNodes.get(currentRoom.getData())
                 .stream().filter(n -> n.isInNode(playerPos) && n instanceof BreakNode).map(n -> (BreakNode) n).findFirst();
         if (opt.isEmpty()) {
-            ChatUtils.chat("Not in break node");
+            RSA.chat("Not in break node");
             return;
         }
         opt.get().addOrRemoveBlock();

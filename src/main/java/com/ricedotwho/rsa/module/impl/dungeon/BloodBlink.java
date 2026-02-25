@@ -2,6 +2,7 @@ package com.ricedotwho.rsa.module.impl.dungeon;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.RSM;
@@ -167,7 +168,7 @@ public class BloodBlink extends Module {
 
             case 0: {
                 if (targetRoom == null && Dungeon.isStarted()) {
-                    ChatUtils.chat("Cannot blood blink while run has started and blood has not been loaded!");
+                    RSA.chat("Cannot blood blink while run has started and blood has not been loaded!");
                     state = 31;
                     break;
                 }
@@ -262,7 +263,7 @@ public class BloodBlink extends Module {
 
                     if (targetRoom == null) {
                         // Still null, we didn't find it
-                        ChatUtils.chat("Could not find target room!");
+                        RSA.chat("Could not find target room!");
                         state = 31;
                         break;
                     }
@@ -331,7 +332,7 @@ public class BloodBlink extends Module {
                         // Can't use pearl() because concurrentModification exception
                         if (!SwapManager.swapItem(i -> i.getItem() == Items.ENDER_PEARL && isNormalEnderpearlID(ItemUtils.getID(i)))) return;
                         if (!SwapManager.sendAirC08(player.getYRot(), -90f, true, true)) {
-                            ChatUtils.chat("Pearl failed!");
+                            RSA.chat("Pearl failed!");
                             return;
                         }
                         state = 30;
@@ -423,7 +424,7 @@ public class BloodBlink extends Module {
     private void cancel() {
         reset();
         this.state = 31; // End
-        ChatUtils.chat("Cancelling blood blink!");
+        RSA.chat("Cancelling blood blink!");
     }
 
     private void pearl(float yaw, float pitch, Runnable succeed) {
@@ -439,7 +440,7 @@ public class BloodBlink extends Module {
         if (this.mode.is("Blood")) {
             if (event.getRoom().getData().type() == RoomType.BLOOD) {
                 this.targetRoom = event.getRoom();
-                ChatUtils.chat("Found blood at : " + targetRoom.getX() + ", " + targetRoom.getZ());
+                RSA.chat("Found blood at : " + targetRoom.getX() + ", " + targetRoom.getZ());
             }
         }
     }
@@ -535,15 +536,15 @@ public class BloodBlink extends Module {
         });
 
         if (roomPriority.size() < this.priority.getValue().intValue()) {
-            ChatUtils.chat("No room found with priority %s to InstaClear!", this.priority.getValue());
+            RSA.chat("No room found with priority %s to InstaClear!", this.priority.getValue());
             return;
         }
 
         this.targetRoom = this.roomPriority.get(this.priority.getValue().intValue() - 1).room().getMainRoom();
         if (this.targetRoom != null) {
-            ChatUtils.chat("Found a room to insta: \"%s\"", this.targetRoom.getData().name());
+            RSA.chat("Found a room to insta: \"%s\"", this.targetRoom.getData().name());
             if (RSM.getModule(ClickGUI.class).getDevInfo().getValue()) {
-                ChatUtils.chat("InstaClear candidates: %s", this.roomPriority.stream().map(r -> r.room().getName()).toList());
+                RSA.chat("InstaClear candidates: %s", this.roomPriority.stream().map(r -> r.room().getName()).toList());
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.utils;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import javazoom.jl.player.Player;
 import javax.sound.sampled.*;
@@ -14,7 +15,7 @@ public class SoundPlayer {
         if (fileName.endsWith(".mp3")) {
             playMP3(soundFile, volume);
         }else {
-            ChatUtils.chat("Make sure u typed it right. it needs to have .mp3 at the end");
+            RSA.chat("Make sure u typed it right. it needs to have .mp3 at the end");
             throw new IllegalArgumentException();
         }
     }
@@ -27,7 +28,7 @@ public class SoundPlayer {
                 Player player = new Player(bis);
                 player.play();
             } catch (Exception e) {
-                ChatUtils.chat(e.getMessage());
+                RSA.chat(e.getMessage());
             }
         }).start();
     }

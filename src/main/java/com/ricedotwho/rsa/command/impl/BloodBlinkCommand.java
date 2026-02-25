@@ -1,6 +1,7 @@
 package com.ricedotwho.rsa.command.impl;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.module.impl.dungeon.BloodBlink;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
@@ -22,16 +23,16 @@ public class BloodBlinkCommand extends Command {
         return literal(name()).executes((source) -> {
             BloodBlink bloodBlink = RSM.getModule(BloodBlink.class);
             if (!bloodBlink.isEnabled()) {
-                ChatUtils.chat("Please enable blood blink!");
+                RSA.chat("Please enable blood blink!");
                 return 0;
             }
 
             if (Map.getCurrentRoom().getData().type() != RoomType.ENTRANCE) {
-                ChatUtils.chat("You can't blood blink outside of entrance!");
+                RSA.chat("You can't blood blink outside of entrance!");
                 return 0;
             }
 
-            ChatUtils.chat("Trying blood blinking!");
+            RSA.chat("Trying blood blinking!");
             bloodBlink.doBlink();
             return 1;
         });

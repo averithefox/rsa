@@ -11,6 +11,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.*;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
@@ -83,7 +84,7 @@ public class RouteCommand extends Command {
                 .then(literal("backup")
                         .executes((ctx) -> {
                             AutoroutesFileManager.createBackup();
-                            ChatUtils.chat("Made backup!");
+                            RSA.chat("Made backup!");
                             return 1;
                         })
                 )
@@ -96,52 +97,52 @@ public class RouteCommand extends Command {
         boolean bl = AutoroutesFileManager.load();
         if (bl) {
             // Should recalculate positions?
-            ChatUtils.chat("Loaded nodes!");
+            RSA.chat("Loaded nodes!");
             return 1;
         }
-        ChatUtils.chat("Failed to load nodes! Check logs!");
+        RSA.chat("Failed to load nodes! Check logs!");
         return 0;
     }
 
     private static int clearNodes(CommandContext<ClientSuggestionProvider> ctx) {
         Room room = Map.getCurrentRoom();
         if (room == null || room.getUniqueRoom() == null) {
-            ChatUtils.chat("Failed to find room!");
+            RSA.chat("Failed to find room!");
             return 0;
         }
 
         if (!RSM.getModule(AutoRoutes.class).clearNodes(room.getUniqueRoom())) {
-            ChatUtils.chat("No nodes found in this room!");
+            RSA.chat("No nodes found in this room!");
             return 0;
         }
-        ChatUtils.chat("Cleared all nodes!");
+        RSA.chat("Cleared all nodes!");
         return 1;
     }
 
     private static int removeNode(CommandContext<ClientSuggestionProvider> ctx) {
         Room room = Map.getCurrentRoom();
         if (room == null || room.getUniqueRoom() == null) {
-            ChatUtils.chat("Failed to find room!");
+            RSA.chat("Failed to find room!");
             return 0;
         }
 
         if (!RSM.getModule(AutoRoutes.class).removeNearest(room.getUniqueRoom())) {
-            ChatUtils.chat("No nodes found in this room!");
+            RSA.chat("No nodes found in this room!");
             return 0;
         }
-        ChatUtils.chat("Removed node!");
+        RSA.chat("Removed node!");
         return 1;
     }
 
     private static int undoNode(CommandContext<ClientSuggestionProvider> ctx) {
         Room room = Map.getCurrentRoom();
         if (room == null || room.getUniqueRoom() == null) {
-            ChatUtils.chat("Failed to find room!");
+            RSA.chat("Failed to find room!");
             return 0;
         }
 
         if (!RSM.getModule(AutoRoutes.class).undoNode(room.getUniqueRoom())) {
-            ChatUtils.chat("No nodes found in this room!");
+            RSA.chat("No nodes found in this room!");
             return 0;
         }
         return 1;
@@ -150,12 +151,12 @@ public class RouteCommand extends Command {
     private static int redoNode(CommandContext<ClientSuggestionProvider> ctx) {
         Room room = Map.getCurrentRoom();
         if (room == null || room.getUniqueRoom() == null) {
-            ChatUtils.chat("Failed to find room!");
+            RSA.chat("Failed to find room!");
             return 0;
         }
 
         if (!RSM.getModule(AutoRoutes.class).redoNode(room.getUniqueRoom())) {
-            ChatUtils.chat("No nodes found in this room!");
+            RSA.chat("No nodes found in this room!");
             return 0;
         }
         return 1;
@@ -164,12 +165,12 @@ public class RouteCommand extends Command {
     private static int addNode(CommandContext<ClientSuggestionProvider> ctx, int secrets, boolean click, boolean start, boolean raytrace) {
         Room room = Map.getCurrentRoom();
         if (!Location.getArea().is(Island.Dungeon) || room == null) {
-            ChatUtils.chat("Failed to add node, please enter a dungeon!");
+            RSA.chat("Failed to add node, please enter a dungeon!");
             return 0;
         }
 
         if (room.getUniqueRoom() == null) {
-            ChatUtils.chat("Null unique room!");
+            RSA.chat("Null unique room!");
             return 0;
         }
         List<AwaitCondition<?>> conditions = new ArrayList<>();
@@ -185,7 +186,7 @@ public class RouteCommand extends Command {
         NodeType type = NodeArgumentType.getNode(ctx, "node");
         Node node = type.supply(room.getUniqueRoom(), awaits, start);
         if (node == null) {
-            ChatUtils.chat("Failed to add node, invalid player information!");
+            RSA.chat("Failed to add node, invalid player information!");
             return 0;
         }
 
@@ -198,7 +199,7 @@ public class RouteCommand extends Command {
 
 
         RSM.getModule(AutoRoutes.class).addNode(node, room.getUniqueRoom());
-        ChatUtils.chat("Added " + type + " node!");
+        RSA.chat("Added " + type + " node!");
         return 1;
     }
 

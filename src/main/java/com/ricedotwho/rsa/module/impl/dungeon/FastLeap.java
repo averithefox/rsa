@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.primitives.Shorts;
 import com.google.common.primitives.SignedBytes;
 import com.mojang.blaze3d.platform.InputConstants;
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.RSM;
@@ -313,6 +314,6 @@ public class FastLeap extends Module {
     }
 
     private void modMessage(String message) {
-        ChatUtils.chat(ChatFormatting.BLUE + "Fast Leap » " + ChatFormatting.RESET + message);
+        RSA.chat(ChatFormatting.BLUE + "Fast Leap » " + ChatFormatting.RESET + message);
     }
 }

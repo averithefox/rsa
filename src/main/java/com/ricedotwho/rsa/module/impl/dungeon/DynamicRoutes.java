@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.pathfinding.EtherwarpPathfinder;
 import com.ricedotwho.rsa.component.impl.pathfinding.Goal;
 import com.ricedotwho.rsa.component.impl.pathfinding.Path;
@@ -181,7 +182,7 @@ public class DynamicRoutes extends Module {
 
     public void executePath(EtherwarpPathfinder pathfinder, Consumer<Path> callback) {
         if (this.currentPathfinder != null) {
-            ChatUtils.chat("Pathfinder already active!");
+            RSA.chat("Pathfinder already active!");
             return;
         }
         this.queueSequence = 0;

@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.component.impl.pathfinding;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.pathfinding.openset.BinaryHeapOpenSet;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
@@ -42,7 +43,7 @@ public class EtherwarpPathfinder {
         if (solved) return path;
 
         if (!goal.isPossible()) {
-            ChatUtils.chat("Goal is impossible!");
+            RSA.chat("Goal is impossible!");
             return null;
         }
 
@@ -64,7 +65,7 @@ public class EtherwarpPathfinder {
 
         this.run();
 
-        ChatUtils.chat("Found path! Took " + (System.currentTimeMillis() - time) + "ms!");
+        RSA.chat("Found path! Took " + (System.currentTimeMillis() - time) + "ms!");
         this.path = new Path(context.startBlock(), startNode, bestNode, goal);
         this.solved = true;
         return this.path;
@@ -80,7 +81,7 @@ public class EtherwarpPathfinder {
         if (checkNode == null) return;
         double moveCost = checkNode.getMoveCost(context.newNodeCost());
         if (goal.test(checkNode.getPos())) {
-            ChatUtils.chat("Found valid route length " + checkNode.getIndex());
+            RSA.chat("Found valid route length " + checkNode.getIndex());
             if (!isComplete() || moveCost < getBestNodeMoveCost()) setBestNode(checkNode);
         }
 

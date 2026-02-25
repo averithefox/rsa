@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.croesus;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.utils.InteractUtils;
 import com.ricedotwho.rsm.component.impl.location.Floor;
@@ -109,7 +110,7 @@ public class AutoCroesus extends Module {
     }
 
     public static void modMessage(String text) {
-        ChatUtils.chat(ChatFormatting.YELLOW + "AutoCroesus » " + ChatFormatting.RESET + text);
+        RSA.chat(ChatFormatting.YELLOW + "AutoCroesus » " + ChatFormatting.RESET + text);
     }
 
     public void start() {

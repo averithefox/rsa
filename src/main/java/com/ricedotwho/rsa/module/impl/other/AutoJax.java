@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.other;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
@@ -100,14 +101,14 @@ public class AutoJax extends Module {
         String unformatted = StringUtil.stripColor(event.getMessage().getString());
 
         if (pos.distanceTo(startPos) < .3) {
-            ChatUtils.chat("at start area.");
+            RSA.chat("at start area.");
             atstart = true;
         }
 
         ItemStack itemStack = player.getItemInHand(InteractionHand.MAIN_HAND);
         Item item = itemStack.getItem();
         if (unformatted.contains("Goal:") && atstart && item == Items.BOW) {
-            ChatUtils.chat("Shooting All Targets in 3s.");
+            RSA.chat("Shooting All Targets in 3s.");
             isRunning = true;
             currentIndex = 0;
             tickDelay = startDelay.getValue().intValue();
@@ -115,11 +116,11 @@ public class AutoJax extends Module {
             rotateToClickTicks = 0;
         } else if(unformatted.contains("Goal:") && atstart && item != Items.BOW) {
             isRunning = false;
-            ChatUtils.chat("Hold a bow, and go back onto the pad.");
+            RSA.chat("Hold a bow, and go back onto the pad.");
         }
 
         if (unformatted.contains("Sending packets too fast!") || unformatted.contains("Cancelled!")) {
-            ChatUtils.chat("GET BACK ON DA PAD! AutoJax Canceled.");
+            RSA.chat("GET BACK ON DA PAD! AutoJax Canceled.");
             isRunning = false;
             currentIndex = 0;
 
@@ -151,7 +152,7 @@ public class AutoJax extends Module {
         }
 
         if (currentIndex >= positions.size()) {
-            ChatUtils.chat("Finished.");
+            RSA.chat("Finished.");
             isRunning = false;
             return;
         }

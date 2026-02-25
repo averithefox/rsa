@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.component.impl.pathfinding;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.component.impl.map.handler.DungeonInfo;
 import com.ricedotwho.rsm.component.impl.map.map.*;
 import com.ricedotwho.rsm.data.Pair;
@@ -58,7 +59,7 @@ public class DungeonMapPathfinder {
         while (roomNode != null) {
             UniqueRoom currentUnique = roomNode.getRoom().getUniqueRoom();
             if (currentUnique == null) {
-                ChatUtils.chat("Failed to find room path! Not loaded!");
+                RSA.chat("Failed to find room path! Not loaded!");
                 break;
             }
             Room nextDoorRoom = null;

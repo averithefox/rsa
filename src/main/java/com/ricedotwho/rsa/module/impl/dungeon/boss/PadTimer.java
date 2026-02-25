@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.data.Colour;
@@ -41,13 +42,13 @@ public class PadTimer extends Module {
     private int yPadTicks = 48;// 40 ticks [2 seconds]
     private final ButtonSetting rsvalues = new ButtonSetting("Restart Values", "restartvalues", this::reset);
     private final BooleanSetting debug = new BooleanSetting("Debug", false, () -> true);
-    private final DragSetting PADELERT = new DragSetting("PAD ELERT", new Vector2d(0, 0), new Vector2d(0, 0));
+    private final DragSetting padAlert = new DragSetting("Pad Alert", new Vector2d(0, 0), new Vector2d(0, 0));
 
     String string = "Pad in " + seconds;
 
     public PadTimer() {
         this.registerProperty(
-                PADELERT,
+                padAlert,
                 rsvalues,
                 debug
         );
@@ -94,7 +95,7 @@ public class PadTimer extends Module {
             pPadcountdown = true;
             pPadmsg = true;
             IsEnabled = true;
-            ChatUtils.chat("Pad Countdown Started.");
+            RSA.chat("Pad Countdown Started.");
         }
     }
 
@@ -109,7 +110,7 @@ public class PadTimer extends Module {
             if (second > 0 && pPadTicks <= 0 && countdownP) {
                 second--;
                 if (second == 0) {
-                    ChatUtils.chat("PAD IN: " + padSeconds);
+                    RSA.chat("PAD IN: " + padSeconds);
                     padSeconds--;
                 }
                 if (padSeconds <= 0) countdownP = false;
@@ -122,7 +123,6 @@ public class PadTimer extends Module {
 
             if (stopShowing > 0 && pPadTicks <= 0) {
                 stopShowing--;
-                ChatUtils.chat(stopShowing);
                 return;
             }
 
@@ -142,7 +142,7 @@ public class PadTimer extends Module {
     @SubscribeEvent
     public void onRender2D(Render2DEvent event) {
         if (padSeconds <= 0 && stopShowing > stopShowing2 && Location.getArea() == Island.Dungeon) {
-            this.PADELERT.renderScaled(event.getGfx(), () -> NVGUtils.drawText("PAD NOW", 0, 0, 50f, Colour.blue, NVGUtils.JOSEFIN), 60, 30);
+            this.padAlert.renderScaled(event.getGfx(), () -> NVGUtils.drawText("Pad Now", 0, 0, 50f, Colour.blue, NVGUtils.JOSEFIN), 60, 30);
         }
     }
 }

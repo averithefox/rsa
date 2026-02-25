@@ -2,6 +2,7 @@ package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes;
 
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
@@ -69,13 +70,13 @@ public class EtherwarpNode extends Node {
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
             if ((swap && !SwapManager.checkClientItem(Items.DIAMOND_SHOVEL)) || (!swap && !SwapManager.checkServerItem(Items.DIAMOND_SHOVEL))) {
                 // Swap didn't work??? It got swapped back? WTF
-                ChatUtils.chat("Big fuck up! : " + swap + ", " + Minecraft.getInstance().player.getInventory().getItem(SwapManager.getServerSlot()).getItem());
+                RSA.chat("Big fuck up! : " + swap + ", " + Minecraft.getInstance().player.getInventory().getItem(SwapManager.getServerSlot()).getItem());
                 return;
             }
 
             float[] angles = EtherUtils.getYawAndPitch(targetDeltaCopy.x, targetDeltaCopy.y, targetDeltaCopy.z);
             if (!SwapManager.sendAirC08(angles[0], angles[1], swap, false)) {
-                ChatUtils.chat("Failed to send ether C08!");
+                RSA.chat("Failed to send ether C08!");
                 return;
             }
             //ChatUtils.chat("Sent ether C08! + " + angles[0] + ", " + angles[1]);

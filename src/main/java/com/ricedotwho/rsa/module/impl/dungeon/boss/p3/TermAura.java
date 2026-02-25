@@ -75,13 +75,13 @@ public class TermAura extends Module {
         }
 
         if (bestCandidate == null) return;
-        //ChatUtils.chat(bestDistance);
+        ChatUtils.chat(bestDistance);
 
 
         Vec3 vec3 = MathUtils.clamp(bestCandidate.getBoundingBox(), eyePos).subtract(bestCandidate.getX(), bestCandidate.getY(), bestCandidate.getZ());
 //        Minecraft.getInstance().getConnection().send(ServerboundInteractPacket.createInteractionPacket(bestCandidate, Minecraft.getInstance().player.isShiftKeyDown(), InteractionHand.MAIN_HAND, vec3));
 
-        // so this should be how vanilla does it, can't check if there's flags bcs of reach flagging hitboxes, and grim ignores armourstands for PacketOrderC
+        // so this should be how vailla does it, can't check if there's flags bcs of reach flagging hitboxes, and grim ignores armourstands for PacketOrderC
         InteractUtils.interactOnEntity(bestCandidate, vec3);
 
         lastClick = System.currentTimeMillis();

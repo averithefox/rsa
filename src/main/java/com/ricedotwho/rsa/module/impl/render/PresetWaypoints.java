@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.render;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
@@ -124,34 +125,34 @@ public class PresetWaypoints extends Module {
 
        if(BaarBerserkers.getValue()){
            if(unformatted.contains("Hello there, adventurer!")){
-               ChatUtils.chat("Hello BAAR!!");
+               RSA.chat("Hello BAAR!!");
            }
            if(unformatted.contains("To start out I'll need some generic gold to experiment on, could you get me a stack?")){
-                ChatUtils.chat("Baar: 64x Gold ingots.");
+               RSA.chat("Baar: 64x Gold ingots.");
            }
            if(unformatted.contains("Next I need some flat gold to test how reflective gold is, could you try forging gold into 5 gold plates?")){
-               ChatUtils.chat("Baar: 5x Golden Plates. (/bz Golden plate)");
+               RSA.chat("Baar: 5x Golden Plates. (/bz Golden plate)");
            }
            if(unformatted.contains("I heard there exist golden boots that helps you swim faster in water. I would like to test their magical properties, could you bring me them?")){
-               ChatUtils.chat("Baar: Divers Boots. (/ahs Diver's Boots)");
+               RSA.chat("Baar: Divers Boots. (/ahs Diver's Boots)");
            }
            if(unformatted.contains("It seems like the first piece you brought me is only 25% of the magical power, could you get me the chestplate?")){
-               ChatUtils.chat("Baar: Divers Shirt. (/ahs Diver's Shirt)");
+               RSA.chat("Baar: Divers Shirt. (/ahs Diver's Shirt)");
            }
            if(unformatted.contains("Now I need a lot of compacted gold, it has to be extremely dense. A half stack should do.")){
-               ChatUtils.chat("Baar: 32x Enchanted Gold Block. (/bz Enchanted Gold Block)");
+               RSA.chat("Baar: 32x Enchanted Gold Block. (/bz Enchanted Gold Block)");
            }
            if(unformatted.contains("There is a fine-grained gold substance somewhere in the Hub, I'll need 5 of that.")){
-               ChatUtils.chat("Baar: 5x Golden Powder. (/bz Golden Powder)");
+               RSA.chat("Baar: 5x Golden Powder. (/bz Golden Powder)");
            }
            if(unformatted.contains("Next I'm going to need a vegetable that is made out of solid gold. I want to experiment with how gold interacts with organics, maybe you can find some, like a half stack?")){
-               ChatUtils.chat("Baar: 32x Enchanted Golden Carrot (/bz Enchanted Golden Carrot)");
+               RSA.chat("Baar: 32x Enchanted Golden Carrot (/bz Enchanted Golden Carrot)");
            }
            if(unformatted.contains("I just need one last thing, there's an extremely dangerous scientist who sells an assortment of items, he has a special rounded type of gold. Try to convince him to sell you it.")){
-               ChatUtils.chat("Baar: 1x Golden Ball (/bz Golden Ball)");
+               RSA.chat("Baar: 1x Golden Ball (/bz Golden Ball)");
            }
            if(unformatted.contains("As promised, here is your reward.")){
-               ChatUtils.chat("yw for the help :)");
+               RSA.chat("yw for the help :)");
            }
        }
 

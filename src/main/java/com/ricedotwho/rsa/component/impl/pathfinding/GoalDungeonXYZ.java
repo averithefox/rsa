@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.component.impl.pathfinding;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
@@ -36,13 +37,13 @@ public class GoalDungeonXYZ implements Goal {
         Room startRoom = ScanUtils.getRoomFromPos(player.getBlockX(), player.getBlockZ());
         Room endRoom = ScanUtils.getRoomFromPos(endPos.getX(), endPos.getZ());
         if (startRoom == null || endRoom == null) {
-            ChatUtils.chat("Room is not loaded!");
+            RSA.chat("Room is not loaded!");
             return null;
         }
 
         List<RoomCandidate> candidates = DungeonMapPathfinder.solve(startRoom, endRoom);
         if (candidates.isEmpty()) {
-            ChatUtils.chat("Failed to find path!");
+            RSA.chat("Failed to find path!");
             return null;
         }
 //        for (RoomCandidate roomCandidate : candidates) {
