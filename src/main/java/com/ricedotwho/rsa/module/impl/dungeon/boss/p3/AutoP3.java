@@ -1,17 +1,13 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3;
 
-import com.ricedotwho.rsm.RSM;
-import com.ricedotwho.rsm.component.impl.camera.CameraRotationProvider;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationHandler;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationProvider;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
-import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.utils.ChatUtils;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -19,7 +15,7 @@ import net.minecraft.world.entity.player.Input;
 
 import java.util.*;
 
-@ModuleInfo(aliases = "Auto P3", id = "Auto P3", category = Category.DUNGEONS)
+@ModuleInfo(aliases = "Auto P3", id = "AutoP3", category = Category.DUNGEONS)
 public class AutoP3 extends Module implements ClientRotationProvider {
     private static final MutableComponent PREFIX = Component.literal("§6[§8byebyegoldor§6] §r");
     public static final double UNIT_VECTOR_LENGTH = 0.210139989d;

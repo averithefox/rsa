@@ -3,6 +3,7 @@ package com.ricedotwho.rsa.module.impl.render;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
+import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
@@ -24,6 +25,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ambient.Bat;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.monster.EnderMan;
@@ -45,8 +47,9 @@ public class Esp extends Module {
     private final BooleanSetting
             showStarredMobs = new BooleanSetting("Starred Mobs", true),
             onlyShowInCurrentRoom = new BooleanSetting("Current Room Only", true),
-            drawBloodMobs = new BooleanSetting("Blood Mobs", true),
+            drawBloodMobs = new BooleanSetting("Blood Mobs", false),
             withers = new BooleanSetting("Withers", true),
+            bats = new BooleanSetting("Bats", false),
             depth = new BooleanSetting("Depth", false);
 
     private final DefaultGroupSetting colours = new DefaultGroupSetting("Colours", this);
@@ -57,11 +60,14 @@ public class Esp extends Module {
             bloodFill = new ColourSetting("Blood Fill", new Colour(0x1A720000)),
             bloodOutline = new ColourSetting("Blood Outline", new Colour(0xFFFF0000)),
             witherFill = new ColourSetting("Wither Fill", new Colour(0x1A003688)),
-            witherOutline = new ColourSetting("Wither Outline", new Colour(0xFF0066FF));
+            witherOutline = new ColourSetting("Wither Outline", new Colour(0xFF0066FF)),
+            batFill = new ColourSetting("Bat Fill", new Colour(173, 92, 173, 90)),
+            batOutline = new ColourSetting("Bat Outline", new Colour(173, 92, 173));
 
     // Tracked entities
     private final Set<Integer> starredMobs = new HashSet<>();
     private final Set<Integer> bloodMobs = new HashSet<>();
+    private final Set<Integer> batMobs = new HashSet<>();
     private final Set<Integer> bloodNames = new HashSet<>();
     
     private int wither = -1;
@@ -98,11 +104,12 @@ public class Esp extends Module {
                 showStarredMobs,
                 onlyShowInCurrentRoom,
                 drawBloodMobs,
+                bats,
                 withers,
                 colours
         );
 
-        colours.add(starredFill, starredOutline, bloodFill, bloodOutline, witherFill, witherOutline);
+        colours.add(starredFill, starredOutline, bloodFill, bloodOutline, witherFill, witherOutline, batFill, batOutline);
     }
     
     private void addName(String name) {
@@ -111,21 +118,14 @@ public class Esp extends Module {
 
     @Override
     public void onEnable() {
-        starredMobs.clear();
-        bloodMobs.clear();
-    }
-
-    @Override
-    public void onDisable() {
-        starredMobs.clear();
-        bloodMobs.clear();
-        wither = -1;
+        reset();
     }
 
     @Override
     public void reset() {
         starredMobs.clear();
         bloodMobs.clear();
+        batMobs.clear();
         wither = -1;
         witherDistance = Double.MAX_VALUE;
     }
@@ -148,6 +148,10 @@ public class Esp extends Module {
             handleRender(bloodMobs, this.getBloodOutline().getValue(), this.getBloodFill().getValue(), partialTicks);
         }
 
+        if (bats.getValue() && !batMobs.isEmpty()) {
+            handleRender(batMobs, this.getBatOutline().getValue(), this.getBatFill().getValue(), partialTicks);
+        }
+
         // Render wither
         if (withers.getValue() && wither != -1) {
             Entity entity = mc.level.getEntity(wither);
@@ -161,7 +165,7 @@ public class Esp extends Module {
 
     @SubscribeEvent
     public void onTick(ClientTickEvent.Start event) {
-        if (mc.level == null || mc.player == null) return;
+        if (mc.level == null || mc.player == null || !Location.getArea().is(Island.Dungeon)) return;
         if (event.getTime() % updateInterval == 0) {
             updateTrackedEntities(mc.level);
         }
@@ -215,9 +219,14 @@ public class Esp extends Module {
             }
 
             // Blood mobs - giants
-            if (drawBloodMobs.getValue() && entity instanceof Giant) {
+            if (drawBloodMobs.getValue() && entity instanceof Giant && !Dungeon.isInBoss()) { // why can I see goldors fucking sword giant thing :sob:
                 bloodMobs.add(entity.getId());
                 entity.setInvisible(false);
+                continue;
+            }
+
+            if (bats.getValue() && entity instanceof Bat && !entity.isInvisible()) {
+                batMobs.add(entity.getId());
                 continue;
             }
 
@@ -247,7 +256,7 @@ public class Esp extends Module {
         List<Integer> toRemove = new ArrayList<>();
         for (int entityId : entityIds) {
             Entity entity = level.getEntity(entityId);
-            if (entity == null) {
+            if (entity == null || entity instanceof LivingEntity living && living.isDeadOrDying()) {
                 toRemove.add(entityId);
                 continue;
             }
@@ -296,10 +305,5 @@ public class Esp extends Module {
                         && !(e instanceof WitherBoss && e.isInvisible()))
                 .min(Comparator.comparingDouble(e -> e.distanceToSqr(stand)))
                 .orElse(null);
-    }
-
-    private float getSBMaxHealth(LivingEntity entity) {
-        if (entity == null) return 0f;
-        return entity.getMaxHealth();
     }
 }
