@@ -27,10 +27,10 @@ jobs:
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
 
-      - name: build dependency
+      - name: build rsm
         run: |
           git clone https://github.com/rs-mod/rsm.git
-          cd dependency
+          cd rsm
           chmod +x ./gradlew
           ./gradlew publishToMavenLocal
 
