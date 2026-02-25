@@ -46,7 +46,7 @@ public class SwapManager {
         if (!(packet instanceof ServerboundSetCarriedItemPacket slotPacket)) return true;
 
         if (swappedThisTick || slotPacket.getSlot() == lastSentServerSlot) {
-            ChatUtils.chat("Prevented packet 0 tick swap! This shouldn't happen, tell hyper!");
+            RSA.chat("Prevented packet 0 tick swap! This shouldn't happen, tell hyper!");
             return false;
         }
 
@@ -66,9 +66,9 @@ public class SwapManager {
     public static boolean onEnsureHasSentCarriedItem(int managerServerSlot) {
         if (Minecraft.getInstance().player == null) return false;
         if (serverSlot != managerServerSlot) {
-            ChatUtils.chat("Slot mismatch! Tell Hyper if you see this!");
-            ChatUtils.chat("SwapManger : " + serverSlot);
-            ChatUtils.chat("GameMode : " + managerServerSlot);
+            RSA.chat("Slot mismatch! Tell Hyper if you see this!");
+            RSA.chat("SwapManger : " + serverSlot);
+            RSA.chat("GameMode : " + managerServerSlot);
         }
         int i = Minecraft.getInstance().player.getInventory().getSelectedSlot();
         if (!swappedThisTick && requireSwap > -1 && i != requireSwap) {
@@ -122,7 +122,7 @@ public class SwapManager {
         int i = Minecraft.getInstance().player.getInventory().getSelectedSlot();
         if (syncSlots) manager.syncSlot();
         if (syncSlots && !checkServerSlot(i)) {
-            ChatUtils.chat("Failed to swap to slot : " + i);
+            RSA.chat("Failed to swap to slot : " + i);
             return false;
         }
 
@@ -156,7 +156,7 @@ public class SwapManager {
             int i = Minecraft.getInstance().player.getInventory().getSelectedSlot();
             manager.syncSlot();
             if (!checkServerSlot(i)) {
-                ChatUtils.chat("Failed to swap to slot : " + i);
+                RSA.chat("Failed to swap to slot : " + i);
                 return false;
             }
         }
@@ -169,7 +169,7 @@ public class SwapManager {
     public static boolean sendBlockC08(float yaw, float pitch, boolean swing, boolean syncSlot) {
         HitResult result = RotationUtils.getBlockHitResult(Minecraft.getInstance().player.getContainerInteractionRange(), yaw, pitch, Minecraft.getInstance().player.position().add(0d, EtherUtils.SNEAK_EYE_HEIGHT, 0d));
         if (result.getType() != HitResult.Type.BLOCK) {
-            ChatUtils.chat("Failed to send block C08!");
+            RSA.chat("Failed to send block C08!");
         }
         return sendBlockC08((BlockHitResult) result, swing, syncSlot);
     }
@@ -189,7 +189,7 @@ public class SwapManager {
             int i = Minecraft.getInstance().player.getInventory().getSelectedSlot();
             manager.syncSlot();
             if (!checkServerSlot(i)) {
-                ChatUtils.chat("Failed to swap to slot : " + i);
+                RSA.chat("Failed to swap to slot : " + i);
                 return false;
             }
         }

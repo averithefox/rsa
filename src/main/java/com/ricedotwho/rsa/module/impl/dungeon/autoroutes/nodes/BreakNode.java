@@ -2,6 +2,7 @@ package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes;
 
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
@@ -141,11 +142,11 @@ public class BreakNode extends Node implements Accessor {
 
     public void addOrRemoveBlock() {
         if (Map.getCurrentRoom() == null) {
-            ChatUtils.chat(ChatFormatting.RED + "Room is null!");
+            RSA.chat(ChatFormatting.RED + "Room is null!");
         }
 
         if (!(Minecraft.getInstance().hitResult instanceof BlockHitResult blockHitResult) || blockHitResult.getType() == HitResult.Type.MISS) {
-            ChatUtils.chat(ChatFormatting.RED + "Not looking at a block");
+            RSA.chat(ChatFormatting.RED + "Not looking at a block");
             return;
         }
 
@@ -155,10 +156,10 @@ public class BreakNode extends Node implements Accessor {
 
         if (blocks.contains(relPos)) {
             blocks.remove(relPos);
-            ChatUtils.chat(ChatFormatting.RED + "Removed " + relPos.toChatString() + " from break node");
+            RSA.chat(ChatFormatting.RED + "Removed " + relPos.toChatString() + " from break node");
         } else {
             this.blocks.add(relPos);
-            ChatUtils.chat(ChatFormatting.GREEN + "Added " + relPos.toChatString() + " to break node!");
+            RSA.chat(ChatFormatting.GREEN + "Added " + relPos.toChatString() + " to break node!");
         }
         this.calculate(Map.getCurrentRoom().getUniqueRoom());
 

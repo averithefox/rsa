@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
@@ -84,7 +85,7 @@ public class InstaMid extends Module {
 
     private void startIMid() {
         startOnNextFlying = false;
-        ChatUtils.chat("Attempting to InstaMid");
+        RSA.chat("Attempting to InstaMid");
         //mc.doRunTask(this::freeze);
         freeze();
     }

@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.other.Checks;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.module.impl.other.AntiCheat;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
@@ -92,19 +93,19 @@ public class invWalk {
             TermPos.clear();
 
             if(xOffset > 7 && xOffset < 40|| xOffset < -7 && xOffset > -40){
-                ChatUtils.chat("§b" + username + " §7Failed InvWalk Check §4§lxOffSet§r§7: §8" + xOffset);
+                RSA.chat("§b" + username + " §7Failed InvWalk Check §4§lxOffSet§r§7: §8" + xOffset);
                 username = null;
             }else if(yOffset > 13 || yOffset < -13) {
-                ChatUtils.chat("§b" + username + " §7Failed InvWalk Check §4§lyOffSet§r§7: §8" + yOffset);
+                RSA.chat("§b" + username + " §7Failed InvWalk Check §4§lyOffSet§r§7: §8" + yOffset);
                 username = null;
             }else if(zOffset > 7 && zOffset < 40|| zOffset < -7 && zOffset > -40) {
-                ChatUtils.chat("§b" + username + " §7Failed InvWalk Check §4§lzOffSet§r§7: §8" + zOffset);
+                RSA.chat("§b" + username + " §7Failed InvWalk Check §4§lzOffSet§r§7: §8" + zOffset);
                 username = null;
             }else if(xOffset > 40 || xOffset < -40) {
-                ChatUtils.chat("§b" + username + " §7Failed AutoLeap Check §4§lzOffSet§r§7: §8" + xOffset);
+                RSA.chat("§b" + username + " §7Failed AutoLeap Check §4§lzOffSet§r§7: §8" + xOffset);
                 username = null;
             }else if(zOffset > 40 || zOffset < -40) {
-                ChatUtils.chat("§b" + username + " §7Failed AutoLeap Check §4§lzOffSet§r§7: §8" + zOffset);
+                RSA.chat("§b" + username + " §7Failed AutoLeap Check §4§lzOffSet§r§7: §8" + zOffset);
                 username = null;
             }
             PlayerPos.clear();

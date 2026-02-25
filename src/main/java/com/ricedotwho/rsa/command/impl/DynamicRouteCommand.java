@@ -11,6 +11,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.pathfinding.*;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.DynamicRoutes;
@@ -104,11 +105,11 @@ public class DynamicRouteCommand extends Command {
     private static int stopPathing(CommandContext<ClientSuggestionProvider> ctx) {
         boolean bl = RSM.getModule(DynamicRoutes.class).cancelPathing();
         if (bl) {
-            ChatUtils.chat("Cancelled pathing!");
+            RSA.chat("Cancelled pathing!");
             return 1;
         }
 
-        ChatUtils.chat("No pathing active!");
+        RSA.chat("No pathing active!");
         return 0;
     }
     private static int copyBlockPosLook(CommandContext<ClientSuggestionProvider> ctx) {
@@ -123,7 +124,7 @@ public class DynamicRouteCommand extends Command {
 
         String s = ether.getX() + " " + ether.getY() + " " + ether.getZ();
         Minecraft.getInstance().keyboardHandler.setClipboard(s);
-        ChatUtils.chat("Copied " + s);
+        RSA.chat("Copied " + s);
         return 1;
     }
 
@@ -147,12 +148,12 @@ public class DynamicRouteCommand extends Command {
         for (String s : roomNames) {
             UniqueRoom uniqueRoom = DungeonInfo.getRoomByName(s);
             if (uniqueRoom == null || uniqueRoom.getTiles().isEmpty()) {
-                ChatUtils.chat("Room not loaded!");
+                RSA.chat("Room not loaded!");
             }
 
             GoalDungeonRoom goal = GoalDungeonRoom.create(uniqueRoom);
             if (goal == null) {
-                ChatUtils.chat("Failed to create goal!");
+                RSA.chat("Failed to create goal!");
                 return 0;
             }
             goals.add(goal);
@@ -167,13 +168,13 @@ public class DynamicRouteCommand extends Command {
 
         UniqueRoom uniqueRoom = DungeonInfo.getRoomByName(uniqueRoomName);
         if (uniqueRoom == null || uniqueRoom.getTiles().isEmpty()) {
-            ChatUtils.chat("Room not loaded!");
+            RSA.chat("Room not loaded!");
         }
 
         BlockPos startPos = BlockPos.containing(Minecraft.getInstance().player.position().subtract(0, EtherUtils.EPSILON, 0d));
         GoalDungeonRoom goal = GoalDungeonRoom.create(uniqueRoom);
         if (goal == null) {
-            ChatUtils.chat("Failed to create goal!");
+            RSA.chat("Failed to create goal!");
             return 0;
         }
 
@@ -187,7 +188,7 @@ public class DynamicRouteCommand extends Command {
         BlockPos startPos = BlockPos.containing(Minecraft.getInstance().player.position().subtract(0, EtherUtils.EPSILON, 0d));
         GoalDungeonXYZ goal = GoalDungeonXYZ.create(blockPos);
         if (goal == null) {
-            ChatUtils.chat("Failed to create goal!");
+            RSA.chat("Failed to create goal!");
             return 0;
         }
 
@@ -198,19 +199,19 @@ public class DynamicRouteCommand extends Command {
 
     private static int clearNodes(CommandContext<ClientSuggestionProvider> ctx) {
         if (!RSM.getModule(DynamicRoutes.class).clearNodes()) {
-            ChatUtils.chat("No nodes found!");
+            RSA.chat("No nodes found!");
             return 0;
         }
-        ChatUtils.chat("Cleared all nodes!");
+        RSA.chat("Cleared all nodes!");
         return 1;
     }
 
     private static int removeNode(CommandContext<ClientSuggestionProvider> ctx) {
         if (!RSM.getModule(DynamicRoutes.class).removeNearest()) {
-            ChatUtils.chat("No nodes found in this room!");
+            RSA.chat("No nodes found in this room!");
             return 0;
         }
-        ChatUtils.chat("Removed node!");
+        RSA.chat("Removed node!");
         return 1;
     }
 
@@ -218,10 +219,10 @@ public class DynamicRouteCommand extends Command {
         if (Minecraft.getInstance().player == null) return 0;
         boolean bl = RSM.getModule(DynamicRoutes.class).addNode(Minecraft.getInstance().player);
         if (!bl) {
-            ChatUtils.chat("Failed to raytrace etherwarp!");
+            RSA.chat("Failed to raytrace etherwarp!");
             return 0;
         }
-        ChatUtils.chat("Added " + NodeType.ETHERWARP + " node!");
+        RSA.chat("Added " + NodeType.ETHERWARP + " node!");
         return 1;
     }
 }

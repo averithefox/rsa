@@ -3,6 +3,7 @@ package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.annotations.Expose;
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
@@ -71,13 +72,13 @@ public class UseNode extends Node {
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
             if ((swap && !SwapManager.checkClientItem(this.itemID)) || (!swap && !SwapManager.checkServerItem(this.itemID))) {
                 // Swap didn't work??? It got swapped back? WTF
-                ChatUtils.chat("Big fuck up! : " + swap + ", " + Minecraft.getInstance().player.getInventory().getItem(SwapManager.getServerSlot()).getItem());
+                RSA.chat("Big fuck up! : " + swap + ", " + Minecraft.getInstance().player.getInventory().getItem(SwapManager.getServerSlot()).getItem());
                 return;
             }
 
             float[] angles = EtherUtils.getYawAndPitch(realRotationVector.x, realRotationVector.y, realRotationVector.z);
             if (!SwapManager.sendAirC08(angles[0], angles[1], swap, false)) {
-                ChatUtils.chat("Failed to send use C08!");
+                RSA.chat("Failed to send use C08!");
                 return;
             }
         });

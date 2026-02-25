@@ -3,7 +3,7 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Shorts;
 import com.google.common.primitives.SignedBytes;
-import com.ricedotwho.rsa.component.impl.TickFreeze;
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.event.impl.RawTickEvent;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.terminals.*;
 import com.ricedotwho.rsm.RSM;
@@ -18,7 +18,6 @@ import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.group.GroupSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.*;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
@@ -128,7 +127,7 @@ public class AutoTerms extends Module {
     // Need to change this for inv walk
     private static void sendWindowClick(int windowID, SolutionClick click, Player player, AbstractContainerMenu abstractContainerMenu) {
         if (windowID != abstractContainerMenu.containerId) {
-            ChatUtils.chat("Window ID mismatch!");
+            RSA.chat("Window ID mismatch!");
             return;
         }
 
@@ -243,7 +242,7 @@ public class AutoTerms extends Module {
 
         if (isInTerm() && event.getPacket() instanceof ClientboundContainerClosePacket packet) {
             if (packet.getContainerId() != terminalContainer.containerId) {
-                ChatUtils.chat("Container ID mismatch on close!");
+                RSA.chat("Container ID mismatch on close!");
             }
 
             this.close();

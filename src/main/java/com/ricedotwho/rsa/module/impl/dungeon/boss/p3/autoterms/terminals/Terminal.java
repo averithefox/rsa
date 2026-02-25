@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.terminals;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
 import net.minecraft.core.component.DataComponents;
@@ -41,7 +42,7 @@ public abstract class Terminal {
 
     public void loadSlot(ClientboundContainerSetSlotPacket packet) {
         if (packet.getContainerId() != this.getWindowID()) {
-            ChatUtils.chat("Window ID slot load mismatch! -> term : " + this.getWindowID() + " packet : " + packet.getContainerId());
+            RSA.chat("Window ID slot load mismatch! -> term : " + this.getWindowID() + " packet : " + packet.getContainerId());
             return;
         }
 
@@ -57,14 +58,14 @@ public abstract class Terminal {
 
     protected static TerminalState getTerminalState(TerminalType type, List<HashInfo> stacks) {
         int hash = 1;
-//        ChatUtils.chat("Items Start!");
+//        RSA.chat("Items Start!");
         for (int i = 0; i < stacks.size(); i++) {
             HashInfo stack = stacks.get(i);
 
             hash = 31 * hash + stack.getItem();
             hash = 31 * hash + stack.getSize();
             hash = 31 * hash + (stack.isEnchanted() ? 1 : 0);
-//            ChatUtils.chat(i + " : " + hash);
+//            RSA.chat(i + " : " + hash);
         }
 
         return new TerminalState(type, hash);

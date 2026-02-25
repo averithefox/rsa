@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.other;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
@@ -28,9 +29,9 @@ public class DevUtils extends Module {
         double y = player.getY();
         double z = player.getZ();
         String xyz = x + ", " + y + ", " + z;
-        ChatUtils.chat(xyz);
+        RSA.chat(xyz);
         keyboard.setClipboard(xyz);
-        ChatUtils.chat("Copied to clipboard!");
+        RSA.chat("Copied to clipboard!");
     });
     private final ButtonSetting yawPitch = new ButtonSetting("Yaw and Pitch", "Yaw/Pitch", () -> {
         LocalPlayer player = Minecraft.getInstance().player;
@@ -40,7 +41,7 @@ public class DevUtils extends Module {
         float yaw =  player.getYRot();
         float pitch = player.getXRot();
         String yp = yaw + ", " + pitch;
-        ChatUtils.chat(yp);
+        RSA.chat(yp);
         keyboard.setClipboard(yp);
     });
     private final ButtonSetting blockinfo = new ButtonSetting("Block info that you're lookin at", "Block Info", () -> {
@@ -59,7 +60,7 @@ public class DevUtils extends Module {
             double z = pos.getZ() + .5;
 
             String BlockInfo = x + ", " + y + ", " + z;
-            ChatUtils.chat("XYZ: " + BlockInfo);
+            RSA.chat("XYZ: " + BlockInfo);
         }
     });
     private final ButtonSetting entityinfo = new ButtonSetting("Entity info that you're lookin at", "Entity Info", () -> {
@@ -70,9 +71,9 @@ public class DevUtils extends Module {
         String entityInfo = entityHR.getEntity().getName().getString();
         String entityId = String.valueOf(entityHR.getEntity().getId());
         String simplePos = entityHR.getEntity().blockPosition().getX() + ", " + entityHR.getEntity().blockPosition().getY() + ", " + entityHR.getEntity().blockPosition().getZ();
-        ChatUtils.chat("Name: " + entityInfo);
-        ChatUtils.chat("ID: " + entityId);
-        ChatUtils.chat("Pos: " + simplePos);
+        RSA.chat("Name: " + entityInfo);
+        RSA.chat("ID: " + entityId);
+        RSA.chat("Pos: " + simplePos);
     });
     private final ButtonSetting getSbID = new ButtonSetting("Gets the SBID of the item you're holding" , "Get SBID", () -> {
         LocalPlayer player = Minecraft.getInstance().player;
@@ -80,7 +81,7 @@ public class DevUtils extends Module {
         if(player == null) return;
         ItemStack stack = player.getMainHandItem();
         String sbid = ItemUtils.getID(stack);
-        ChatUtils.chat("SBID: " + sbid);
+        RSA.chat("SBID: " + sbid);
     });
 
     public DevUtils() {

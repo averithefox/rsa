@@ -29,8 +29,12 @@ import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.component.api.ModComponent;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.module.Module;
+import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -43,6 +47,13 @@ public class RSA implements Addon {
     @Getter
     private static final Logger logger = LogManager.getLogger("rsa");
     public static Path SOUNDS_FOLDER;
+    @Getter
+    private static final MutableComponent prefix = Component.empty()
+            .append(Component.literal("[").withStyle(ChatFormatting.DARK_GRAY))
+            .append(Component.literal("R").withColor(0xB263DF))
+            .append(Component.literal("S").withColor(0xC57BEA))
+            .append(Component.literal("A").withColor(0xD793F4))
+            .append(Component.literal("] ").withStyle(ChatFormatting.DARK_GRAY));
 
     @Override
     public void onInitialize() {
@@ -121,6 +132,18 @@ public class RSA implements Addon {
                 RSADevCommand.class,
                 AutoCroesusCommand.class
         );
+    }
+
+    public static void chat(Object message, Object ... objects) {
+        ChatUtils.chatClean(getPrefix().copy().append(String.format(message.toString(), objects)));
+    }
+
+    public static void chat(String text) {
+        ChatUtils.chatClean(getPrefix().copy().append(text));
+    }
+
+    public static void chat(Component component) {
+        ChatUtils.chatClean(getPrefix().copy().append(component));
     }
 
 }
