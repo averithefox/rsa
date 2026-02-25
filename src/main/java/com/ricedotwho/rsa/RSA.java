@@ -135,4 +135,12 @@ public class RSA implements Addon {
         ChatUtils.chatClean(getPrefix().copy().append(String.format(message.toString(), objects)));
     }
 
+    public static void chat(String text) {
+        ChatUtils.chatClean(getPrefix().copy().append(text));
+    }
+
+    public static void chat(Component component) {
+        ChatUtils.chatClean(getPrefix().copy().append(component));
+    }
+
 }
