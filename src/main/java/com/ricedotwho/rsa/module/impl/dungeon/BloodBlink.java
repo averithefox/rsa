@@ -203,7 +203,7 @@ public class BloodBlink extends Module {
             }
 
             case 2: {
-                // Wait for aotv S08s
+                // Wait for ew S08
                 break;
             }
 
@@ -223,7 +223,7 @@ public class BloodBlink extends Module {
                     state = 17;
                     break;
                 }
-                if ((serverTickTimer % 40) < 10) {
+                if ((serverTickTimer % 40) < 25) {
                     PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
                         if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) return;
                         float playerYaw = player.getYRot();

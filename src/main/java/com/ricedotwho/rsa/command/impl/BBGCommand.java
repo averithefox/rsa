@@ -4,6 +4,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.ricedotwho.rsa.module.impl.dungeon.BloodBlink;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.AutoP3;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AlignRing;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
@@ -25,9 +26,17 @@ public class BBGCommand extends Command {
                 .then(literal("center")
                         .executes(this::center)
                 )
+                .then(literal("add")
+                        .executes(this::addRing)
+                )
                 .then(literal("test")
                         .executes(this::test)
                 );
+    }
+
+    private int addRing(CommandContext<ClientSuggestionProvider> ctx) {
+        RSM.getModule(AutoP3.class).addRing(new AlignRing(Minecraft.getInstance().player.position()));
+        return 1;
     }
 
     private int center(CommandContext<ClientSuggestionProvider> ctx) {
@@ -60,7 +69,6 @@ public class BBGCommand extends Command {
         if (lastMovement != null) {
             ChatUtils.chat(pos.subtract(lastMovement).length());
         }
-        autoP3.test();
         lastMovement = pos;
 
         AutoP3.chat("Test!");
