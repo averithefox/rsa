@@ -86,9 +86,19 @@ public class AutoGfs extends Module {
         }
     }
 
-    private boolean tryGetItem(int maxStack, String sbId) {
+    public static boolean tryGetItem(int maxStack, String sbId) {
+        return tryGetItem(maxStack, sbId, false);
+    }
+
+    public static boolean tryGetItem(int maxStack, String sbId, boolean notExisting) {
         int slot = SwapManager.getItemSlot(sbId);
-        if (slot == -1) return false;
+        if (slot == -1) {
+            if (!notExisting) {
+                mc.player.connection.sendCommand("gfs " + sbId + " " + maxStack);
+                return true;
+            }
+            return false;
+        }
         ItemStack stack = mc.player.getInventory().getItem(slot);
         int count = stack.getCount();
         if (count > 0 && count < maxStack) {

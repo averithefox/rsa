@@ -2,9 +2,13 @@ package com.ricedotwho.rsa.module.impl.dungeon;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.mojang.blaze3d.platform.InputConstants;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsa.module.impl.other.AutoGfs;
+import com.ricedotwho.rsa.packet.sb.BloodClipHelperStartPacket;
+import com.ricedotwho.rsa.utils.Util;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
@@ -17,6 +21,7 @@ import com.ricedotwho.rsm.component.impl.map.map.RoomType;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.component.impl.map.utils.ScanUtils;
+import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
@@ -30,6 +35,7 @@ import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.module.impl.render.ClickGUI;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.ModeSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
@@ -43,6 +49,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ClientboundPingPacket;
+import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTimePacket;
 import net.minecraft.util.Mth;
@@ -51,6 +58,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
+import org.lwjgl.glfw.GLFW;
 
 import java.awt.*;
 import java.io.InputStreamReader;
@@ -88,9 +96,12 @@ public class BloodBlink extends Module {
 
     // Options
     private final BooleanSetting waitForGround = new BooleanSetting("Wait For Ground", false);
+    private final BooleanSetting proxyPearl = new BooleanSetting("Proxy Pearl", false);
     private final BooleanSetting auto = new BooleanSetting("Auto Blink", true);
     private final NumberSetting deathTickOffset = new NumberSetting("Death Tick Offset", 0.0d, 20.0d, 0.0d, 1.0d);
     private final NumberSetting earlyExit = new NumberSetting("Early Exit", 0, 20, 0, 1);
+    private final NumberSetting exploreExit = new NumberSetting("Explore Exit", 10, 40, 25, 1);
+    private final KeybindSetting cancel = new KeybindSetting("Cancel", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, this::cancel));
 
     private final ModeSetting mode = new ModeSetting("Mode", "Blood", List.of("Blood", "InstaClear"));
     // each party member must have a different prio!
@@ -99,11 +110,14 @@ public class BloodBlink extends Module {
     public BloodBlink() {
         this.registerProperty(
                 waitForGround,
+                proxyPearl,
                 auto,
                 deathTickOffset,
                 earlyExit,
+                exploreExit,
                 mode,
-                priority
+                priority,
+                cancel
         );
 
         rooms = new Gson().fromJson(
@@ -208,7 +222,11 @@ public class BloodBlink extends Module {
             }
 
             case 4: {
-                pearl(player.getYRot(), -90f, () -> state = 5);
+                if (proxyPearl.getValue() && Util.isZero()) {
+                    state = 5;
+                } else {
+                    pearl(player.getYRot(), -90f, () -> state = 5);
+                }
                 break;
             }
 
@@ -223,7 +241,7 @@ public class BloodBlink extends Module {
                     state = 17;
                     break;
                 }
-                if ((serverTickTimer % 40) < 25) {
+                if ((serverTickTimer % 40) < exploreExit.getValue().intValue()) {
                     PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
                         if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) return;
                         float playerYaw = player.getYRot();
@@ -294,7 +312,11 @@ public class BloodBlink extends Module {
             }
 
             case 15: {
-                pearl(player.getYRot(), -90f, () -> state = 16);
+                if (proxyPearl.getValue() && Util.isZero()) {
+                    state = 16;
+                } else {
+                    pearl(player.getYRot(), -90f, () -> state = 16);
+                }
                 break;
             }
 
@@ -450,6 +472,7 @@ public class BloodBlink extends Module {
         if (Location.getArea() != Island.Dungeon || Minecraft.getInstance().player == null) return;
         if (event.getMessage().getString().equals("Starting in 1 second.")) {
             ticksTillStart = Math.max(20 - this.earlyExit.getValue().intValue(), 0);
+            AutoGfs.tryGetItem(16, "ENDER_PEARL", true);
         }
     }
 
@@ -471,11 +494,17 @@ public class BloodBlink extends Module {
         if (packet instanceof ClientboundPlayerPositionPacket s08) {
             switch (state) {
                 case 2: {
+                    if (proxyPearl.getValue() && Util.isZero()) {
+                        sendStartPearling(isLower ? 98 : 99);
+                    }
                     state = 4;
                     break;
                 }
 
                 case 13: {
+                    if (proxyPearl.getValue() && Util.isZero()) {
+                        sendStartPearling(isLower ? 98 : 99);
+                    }
                     state = 15;
                     break;
                 }
@@ -562,6 +591,12 @@ public class BloodBlink extends Module {
                 this.roomPriority.remove(5);
             }
         }
+    }
+
+    private void sendStartPearling(int roof) {
+        if (mc.getConnection() == null) return;
+        if (!SwapManager.swapItem("ENDER_PEARL")) return;
+        mc.getConnection().send(new ServerboundCustomPayloadPacket(new BloodClipHelperStartPacket(roof)));
     }
 
     record Entry(UniqueRoom room, int priority) {}

@@ -19,6 +19,9 @@ import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
 import com.ricedotwho.rsa.module.impl.player.BonzoHelper;
 import com.ricedotwho.rsa.module.impl.player.CancelInteract;
 import com.ricedotwho.rsa.module.impl.render.*;
+import com.ricedotwho.rsa.packet.sb.BloodClipHelperStartPacket;
+import com.ricedotwho.rsa.packet.sb.BloodClipHelperStopPacket;
+import com.ricedotwho.rsa.utils.Util;
 import com.ricedotwho.rsa.utils.render3d.type.Ring;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.addon.Addon;
@@ -28,6 +31,7 @@ import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -55,6 +59,11 @@ public class RSA implements Addon {
     @Override
     public void onInitialize() {
         // todo: auth prob
+
+        // packet reg
+        PayloadTypeRegistry.playC2S().register(BloodClipHelperStartPacket.TYPE, BloodClipHelperStartPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(BloodClipHelperStopPacket.TYPE, BloodClipHelperStopPacket.CODEC);
+
         EffectsAndRender.init();
 
         AutoroutesFileManager.init(RSM.getModule(AutoRoutes.class));
