@@ -1,13 +1,12 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3;
 
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.AutoTerms;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
 import com.ricedotwho.rsa.utils.InteractUtils;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
-import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.data.Phase7;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;

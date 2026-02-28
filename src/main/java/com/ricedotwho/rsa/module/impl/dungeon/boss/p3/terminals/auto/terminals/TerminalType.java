@@ -1,4 +1,4 @@
-package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.terminals;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals;
 
 import lombok.Getter;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;

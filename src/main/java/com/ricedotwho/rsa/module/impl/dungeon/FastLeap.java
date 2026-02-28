@@ -9,6 +9,7 @@ import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.EventComponent;
+import com.ricedotwho.rsm.component.impl.GuiComponent;
 import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
@@ -136,13 +137,13 @@ public class FastLeap extends Module {
                 || (System.currentTimeMillis() - lastUsed) < module.cooldown.getValue().longValue()
                 || module.windowOpen
                 || openingGui
-                || !EventComponent.isInTerminal() && mc.screen != null
+                || !GuiComponent.isInTerminal() && mc.screen != null
                 || module.container != null
                 || !Dungeon.isInBoss()
         ) return false;
 
         // todo: queue leap
-        if (EventComponent.isInTerminal()) return false;
+        if (GuiComponent.isInTerminal()) return false;
 
         String leap = getLeap();
         if (leap == null || "NONE".equals(leap) || mc.player.getName().getString().equalsIgnoreCase(leap)) {

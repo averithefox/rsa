@@ -1,7 +1,6 @@
-package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.terminals;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals;
 
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.AutoTerms;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.InvWalk;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.InvWalk;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.utils.Utils;
 import com.ricedotwho.rsm.utils.render.render2d.NVGUtils;
@@ -9,7 +8,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
