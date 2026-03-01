@@ -43,6 +43,7 @@ import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -62,7 +63,7 @@ public class FastLeap extends Module {
         }
     });
 
-    private final NumberSetting cooldown = new NumberSetting("Cooldown", 0, 3500, 3500, 50);
+    private final NumberSetting cooldown = new NumberSetting("Cooldown", 0, 5000, 2000, 50);
 
     private final BooleanSetting flMessage = new BooleanSetting("Chat Message", false);
     private final BooleanSetting flP3 = new BooleanSetting("P3 Only", true);
@@ -164,6 +165,34 @@ public class FastLeap extends Module {
 
     public static void doLeap(DungeonPlayer player){
         doLeap(player.getName());
+    }
+
+    public static boolean doLeapFromOpenMenu(DungeonPlayer player){
+        return doLeapFromOpenMenu(player.getName());
+    }
+
+    public static boolean doLeapFromOpenMenu(String leap) {
+        if (mc.player == null || !(mc.player.containerMenu instanceof ChestMenu menu) || mc.screen == null || !mc.screen.getTitle().getString().equals("Spirit Leap")) return false;
+
+        for (Slot slot : menu.slots) {
+            ItemStack item = slot.getItem();
+            if (!item.getItem().equals(Items.PLAYER_HEAD)) continue;
+
+            String name = ChatFormatting.stripFormatting(item.getHoverName().getString());
+            if (!name.equals(leap)) continue;
+            sendWindowClick(slot.index, mc.player, menu);
+
+            FastLeap fl = RSM.getModule(FastLeap.class);
+            if (fl == null) return true;
+            if (fl.getFlMessage().getValue()) {
+                mc.getConnection().sendCommand("pc Leaping to " + toLeap);
+            }
+            else {
+                fl.modMessage("Leaping to " + toLeap);
+            }
+            return true;
+        }
+        return false;
     }
 
     @SubscribeEvent

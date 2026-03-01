@@ -162,11 +162,13 @@ public class AutoCroesus extends Module {
             return false;
         }
 
-        PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
-            Vec3 eyePos = mc.player.position().add(0.0d, mc.player.getEyeHeight(), 0.0d);
-            Vec3 vec3 = MathUtils.clamp(entity.getBoundingBox(), eyePos).subtract(entity.getX(), entity.getY(), entity.getZ());
-            InteractUtils.interactOnEntity(entity, vec3);
-        });
+//        PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
+//            Vec3 eyePos = mc.player.position().add(0.0d, mc.player.getEyeHeight(), 0.0d);
+//            Vec3 vec3 = MathUtils.clamp(entity.getBoundingBox(), eyePos).subtract(entity.getX(), entity.getY(), entity.getZ());
+//            InteractUtils.interactOnEntity(entity, vec3);
+//        });
+
+        PacketOrderManager.register(PacketOrderManager.STATE.ATTACK, () -> InteractUtils.attackEntity(entity));
         return true;
     }
 

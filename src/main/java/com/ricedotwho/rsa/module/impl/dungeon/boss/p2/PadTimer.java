@@ -1,4 +1,4 @@
-package com.ricedotwho.rsa.module.impl.dungeon.boss;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p2;
 
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.component.impl.location.Island;
@@ -16,7 +16,6 @@ import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.ButtonSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.DragSetting;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.DungeonUtils;
 import com.ricedotwho.rsm.utils.render.render2d.NVGUtils;
 import lombok.Getter;

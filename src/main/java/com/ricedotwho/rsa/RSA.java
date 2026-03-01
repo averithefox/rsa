@@ -1,13 +1,14 @@
 package com.ricedotwho.rsa;
 
 import com.ricedotwho.rsa.command.impl.*;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.InstaMid;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.PadTimer;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p4.InstaMid;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p2.PadTimer;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.AutoP3;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
 import com.ricedotwho.rsa.module.impl.dungeon.FastLeap;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.TermAura;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.solver.Terminals;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p5.Relics;
 import com.ricedotwho.rsa.module.impl.dungeon.croesus.AutoCroesus;
 import com.ricedotwho.rsa.module.impl.dungeon.device.AlignAura;
 import com.ricedotwho.rsa.module.impl.dungeon.device.Auto4;
@@ -21,7 +22,6 @@ import com.ricedotwho.rsa.module.impl.player.CancelInteract;
 import com.ricedotwho.rsa.module.impl.render.*;
 import com.ricedotwho.rsa.packet.sb.BloodClipHelperStartPacket;
 import com.ricedotwho.rsa.packet.sb.BloodClipHelperStopPacket;
-import com.ricedotwho.rsa.utils.Util;
 import com.ricedotwho.rsa.utils.render3d.type.Ring;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.addon.Addon;
@@ -122,7 +122,8 @@ public class RSA implements Addon {
                 AutoP3.class,
                 Freecam.class,
                 AutoUlt.class,
-                Terminals.class
+                Terminals.class,
+                Relics.class
         );
     }
 
