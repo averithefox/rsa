@@ -21,10 +21,12 @@ import com.ricedotwho.rsm.utils.*;
 import com.ricedotwho.rsm.utils.api.PriceData;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ChestMenu;
@@ -32,8 +34,7 @@ import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.*;
 
 import java.util.*;
 import java.util.function.BooleanSupplier;
@@ -168,6 +169,16 @@ public class AutoCroesus extends Module {
 //            InteractUtils.interactOnEntity(entity, vec3);
 //        });
 
+        if (!(Minecraft.getInstance().hitResult instanceof EntityHitResult entityHitResult) || entityHitResult.getType() == HitResult.Type.MISS) {
+            RSA.chat(ChatFormatting.RED + "Not looking at an entity");
+            return false;
+        }
+        Entity e = entityHitResult.getEntity();
+        if (entity.distanceToSqr(e) > 9) {
+            RSA.chat(ChatFormatting.RED + "Blocked by entity!");
+            return false;
+        }
+
         PacketOrderManager.register(PacketOrderManager.STATE.ATTACK, () -> InteractUtils.attackEntity(entity));
         return true;
     }
@@ -284,9 +295,9 @@ public class AutoCroesus extends Module {
         ItemStack modifiers = menu.slots.get(32).getItem();
         List<Component> modiLore = ItemUtils.getLore(modifiers);
 
-        Optional<Component> modifierLine = modiLore.stream().filter(s -> s.getString().contains("Available Modifiers:")).findAny();
+        Optional<Component> kismetLine = modiLore.stream().filter(s -> s.getString().contains("Kismet Feather")).findAny();
 
-        boolean canKismet = modifierLine.isPresent() && !modiLore.get(modiLore.indexOf(modifierLine.get()) + 1).getStyle().isStrikethrough();
+        boolean canKismet = kismetLine.isPresent() && kismetLine.get().getSiblings().size() > 1 && !kismetLine.get().getSiblings().get(1).getStyle().isStrikethrough();
 //        boolean canChestKey = !modiLore.get(5).getStyle().isStrikethrough();
 
         if (bedrock.isPresent() && this.getKismets().getValue() && canKismet && this.getKismetFloors().get(floor.getName())) {

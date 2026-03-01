@@ -93,7 +93,7 @@ public class AutoGfs extends Module {
     public static boolean tryGetItem(int maxStack, String sbId, boolean notExisting) {
         int slot = SwapManager.getItemSlot(sbId);
         if (slot == -1) {
-            if (!notExisting) {
+            if (notExisting) {
                 mc.player.connection.sendCommand("gfs " + sbId + " " + maxStack);
                 return true;
             }

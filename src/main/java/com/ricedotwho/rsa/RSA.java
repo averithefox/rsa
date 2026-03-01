@@ -7,7 +7,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.AutoP3;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
 import com.ricedotwho.rsa.module.impl.dungeon.FastLeap;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.TermAura;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.solver.Terminals;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.solver.TerminalSolver;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p5.Relics;
 import com.ricedotwho.rsa.module.impl.dungeon.croesus.AutoCroesus;
 import com.ricedotwho.rsa.module.impl.dungeon.device.AlignAura;
@@ -122,7 +122,7 @@ public class RSA implements Addon {
                 AutoP3.class,
                 Freecam.class,
                 AutoUlt.class,
-                Terminals.class,
+                TerminalSolver.class,
                 Relics.class
         );
     }

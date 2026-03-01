@@ -8,8 +8,7 @@ import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.RSM;
-import com.ricedotwho.rsm.component.impl.EventComponent;
-import com.ricedotwho.rsm.component.impl.GuiComponent;
+import com.ricedotwho.rsm.component.impl.Terminals;
 import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
@@ -25,7 +24,6 @@ import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.*;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.DungeonUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
 import com.ricedotwho.rsm.utils.Utils;
@@ -138,13 +136,13 @@ public class FastLeap extends Module {
                 || (System.currentTimeMillis() - lastUsed) < module.cooldown.getValue().longValue()
                 || module.windowOpen
                 || openingGui
-                || !GuiComponent.isInTerminal() && mc.screen != null
+                || !Terminals.isInTerminal() && mc.screen != null
                 || module.container != null
                 || !Dungeon.isInBoss()
         ) return false;
 
         // todo: queue leap
-        if (GuiComponent.isInTerminal()) return false;
+        if (Terminals.isInTerminal()) return false;
 
         String leap = getLeap();
         if (leap == null || "NONE".equals(leap) || mc.player.getName().getString().equalsIgnoreCase(leap)) {

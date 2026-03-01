@@ -72,7 +72,7 @@ public class SessionLoginScreen extends Screen implements Accessor {
     @Override
     public void render(GuiGraphics gfx, int mouseX, int mouseY, float deltaTicks) {
         gfx.drawString(mc.font, feedBackMessage, centerX + 50 - (mc.font.width(feedBackMessage) >> 1), centerY, feedBackColor, true);
-        String currentUser = "Current Account : " + mc.getUser().getName();
+        String currentUser = "Current Account: " + mc.getUser().getName();
         gfx.drawString(mc.font, currentUser, centerX + 50 - (mc.font.width(currentUser) >> 1), centerY + 10, 0xFFFFFFFF, true);
         super.render(gfx, mouseX, mouseY, deltaTicks);
     }
@@ -93,7 +93,7 @@ public class SessionLoginScreen extends Screen implements Accessor {
             } catch (MalformedJsonException | JsonSyntaxException json) {
                 feedBackMessage = "Ran out of retries, network error!";
                 feedBackColor = 0xFF8f0000;
-                System.err.println("Failed to parse json! Retries left : " + i);
+                System.err.println("Failed to parse json! Retries left: " + i);
                 continue;
 
             } catch (IOException e) {
