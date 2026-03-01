@@ -13,12 +13,14 @@ import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
+import com.ricedotwho.rsm.component.impl.task.TaskComponent;
 import com.ricedotwho.rsm.data.DungeonClass;
 import com.ricedotwho.rsm.data.DungeonPlayer;
 import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.Phase7;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
+import com.ricedotwho.rsm.event.impl.game.TerminalEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
@@ -93,6 +95,8 @@ public class FastLeap extends Module {
     private static long lastUsed = 0;
     private boolean windowOpen = false;
 
+    private static boolean queuedLeap = false;
+
     private AbstractContainerMenu container;
 
     public FastLeap() {
@@ -119,6 +123,7 @@ public class FastLeap extends Module {
         openingGui = false;
         windowOpen = false;
         container = null;
+        queuedLeap = false;
     }
 
     @SubscribeEvent
@@ -142,7 +147,11 @@ public class FastLeap extends Module {
         ) return false;
 
         // todo: queue leap
-        if (Terminals.isInTerminal()) return false;
+        if (Terminals.isInTerminal()) {
+            queuedLeap = true;
+            module.modMessage("Queued leap");
+            return true;
+        }
 
         String leap = getLeap();
         if (leap == null || "NONE".equals(leap) || mc.player.getName().getString().equalsIgnoreCase(leap)) {
@@ -191,6 +200,13 @@ public class FastLeap extends Module {
             return true;
         }
         return false;
+    }
+
+    @SubscribeEvent
+    public void onTerminalClose(TerminalEvent.Close event) {
+        if (event.isServer()) {
+            TaskComponent.onTick(0, FastLeap::doAutoLeap);
+        }
     }
 
     @SubscribeEvent
