@@ -7,6 +7,8 @@ buildscript {
     }
 }
 
+//  java -jar skidfuscator/skidfuscator.jar obfuscate build/libs/rsa-1.0.0.jar --libs=libs --output build/libs/rsa-obf.jar --notrack --fuckit
+
 plugins {
     id 'fabric-loom' version "${loom_version}"
 	id 'maven-publish'
@@ -19,6 +21,9 @@ base {
 	archivesName = project.archives_base_name
 }
 
+tasks.named("remapJar") {
+    enabled = true
+}
 repositories {
     mavenLocal()
 	// Add repositories to retrieve artifacts from in here.
@@ -89,6 +94,12 @@ jar {
 	}
 }
 
+tasks.register('copyLibs', Copy) {
+    from (configurations.compileClasspath + configurations.runtimeClasspath)
+    into 'libs'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 tasks.register('proguard', proguard.gradle.ProGuardTask) {
 
     // You should probably import a more compact ProGuard-style configuration
@@ -100,7 +111,7 @@ tasks.register('proguard', proguard.gradle.ProGuardTask) {
 
     // Specify the input jars, output jars, and library jars.
 
-    injars 'build/libs/rsa-1.0.0.jar'
+    injars 'build/libs/rsa-1.0.0-remapped.jar'
     outjars 'proguard_out.jar'
 
     // Automatically handle the Java version of this build.
