@@ -83,12 +83,19 @@ public class BreakNode extends Node implements Accessor {
         if (f.isEmpty()) return true;
         running = true;
 
-        for (int i = 0; i < f.size(); i++) {
-            Pos block = f.get(i);
-            TaskComponent.onTick(i, () -> breakBlock(block, true, SwapManager.isDesynced()));
+        if (AutoRoutes.getZeroTickBreak().getValue()) {
+            for (Pos pos : f) {
+                breakBlock(pos, true, SwapManager.isDesynced());
+            }
+            running = false;
+        } else {
+            for (int i = 0; i < f.size(); i++) {
+                Pos block = f.get(i);
+                TaskComponent.onTick(i, () -> breakBlock(block, true, SwapManager.isDesynced()));
+            }
+            TaskComponent.onTick(f.size(), () -> running = false);
         }
 
-        TaskComponent.onTick(f.size(), () -> running = false);
         return cancel();
     }
 

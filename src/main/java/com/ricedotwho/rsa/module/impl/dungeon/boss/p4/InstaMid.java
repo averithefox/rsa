@@ -1,4 +1,4 @@
-package com.ricedotwho.rsa.module.impl.dungeon.boss;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p4;
 
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.component.impl.location.Floor;
@@ -14,7 +14,6 @@ import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.DungeonUtils;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;

@@ -1,4 +1,4 @@
-package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.terminals;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals;
 
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;

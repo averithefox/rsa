@@ -1,7 +1,7 @@
-package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto;
 
 import com.ricedotwho.rsa.component.impl.TickFreeze;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.terminals.TerminalRenderer;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.TerminalRenderer;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
@@ -9,7 +9,6 @@ import com.ricedotwho.rsm.event.impl.render.Render2DEvent;
 import com.ricedotwho.rsm.module.SubModule;
 import com.ricedotwho.rsm.module.api.SubModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.*;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.Utils;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;

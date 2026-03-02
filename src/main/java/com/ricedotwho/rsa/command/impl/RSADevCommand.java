@@ -31,6 +31,12 @@ public class RSADevCommand extends Command {
                                     return 1;
                                 })
                         )
+                )
+                .then(literal("iszero")
+                        .executes(ctx -> {
+                            ChatUtils.chat("Zero: %s", Util.isZero());
+                            return 1;
+                        })
                 );
     }
 }

@@ -21,10 +21,12 @@ import com.ricedotwho.rsm.utils.*;
 import com.ricedotwho.rsm.utils.api.PriceData;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ChestMenu;
@@ -32,8 +34,7 @@ import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.*;
 
 import java.util.*;
 import java.util.function.BooleanSupplier;
@@ -103,7 +104,7 @@ public class AutoCroesus extends Module {
 
     @SubscribeEvent
     public void onUnload(WorldEvent.Load event) {
-        if(!action.equals(Action.IDLE)) {
+        if (!action.equals(Action.IDLE)) {
             modMessage("Stopping!");
         }
         reset();
@@ -139,19 +140,18 @@ public class AutoCroesus extends Module {
         }
 
         running = true;
+        action = Action.CROESUS;
         if (!clickCroesus()) {
             running = false;
             modMessage("Failed to click Croesus!");
             reset();
-            return;
         }
-
-        action = Action.CROESUS;
     }
 
     private boolean clickCroesus() {
+        if (action != Action.CROESUS) return false;
         Player entity = findCroesus();
-        if(entity == null) {
+        if (entity == null) {
             modMessage("No croesus entity returned!");
             return false;
         }
@@ -163,11 +163,23 @@ public class AutoCroesus extends Module {
             return false;
         }
 
-        PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
-            Vec3 eyePos = mc.player.position().add(0.0d, mc.player.getEyeHeight(), 0.0d);
-            Vec3 vec3 = MathUtils.clamp(entity.getBoundingBox(), eyePos).subtract(entity.getX(), entity.getY(), entity.getZ());
-            InteractUtils.interactOnEntity(entity, vec3);
-        });
+//        PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
+//            Vec3 eyePos = mc.player.position().add(0.0d, mc.player.getEyeHeight(), 0.0d);
+//            Vec3 vec3 = MathUtils.clamp(entity.getBoundingBox(), eyePos).subtract(entity.getX(), entity.getY(), entity.getZ());
+//            InteractUtils.interactOnEntity(entity, vec3);
+//        });
+
+        if (!(Minecraft.getInstance().hitResult instanceof EntityHitResult entityHitResult) || entityHitResult.getType() == HitResult.Type.MISS) {
+            RSA.chat(ChatFormatting.RED + "Not looking at an entity");
+            return false;
+        }
+        Entity e = entityHitResult.getEntity();
+        if (entity.distanceToSqr(e) > 9) {
+            RSA.chat(ChatFormatting.RED + "Blocked by entity!");
+            return false;
+        }
+
+        PacketOrderManager.register(PacketOrderManager.STATE.ATTACK, () -> InteractUtils.attackEntity(entity));
         return true;
     }
 
@@ -251,9 +263,6 @@ public class AutoCroesus extends Module {
         String title = mc.screen.getTitle().getString();
 
         RunType type = RunType.findByTitle(title);
-
-        modMessage("Type: " + type);
-
         if(type == RunType.NONE) return;
 
         Floor floor = Floor.findByIndex(NumberUtils.convertRomanToArabic(title.split("- Floor")[1].trim()));
@@ -286,9 +295,9 @@ public class AutoCroesus extends Module {
         ItemStack modifiers = menu.slots.get(32).getItem();
         List<Component> modiLore = ItemUtils.getLore(modifiers);
 
-        Optional<Component> modifierLine = modiLore.stream().filter(s -> s.getString().contains("Available Modifiers:")).findAny();
+        Optional<Component> kismetLine = modiLore.stream().filter(s -> s.getString().contains("Kismet Feather")).findAny();
 
-        boolean canKismet = modifierLine.isPresent() && !modiLore.get(modiLore.indexOf(modifierLine.get()) + 1).getStyle().isStrikethrough();
+        boolean canKismet = kismetLine.isPresent() && kismetLine.get().getSiblings().size() > 1 && !kismetLine.get().getSiblings().get(1).getStyle().isStrikethrough();
 //        boolean canChestKey = !modiLore.get(5).getStyle().isStrikethrough();
 
         if (bedrock.isPresent() && this.getKismets().getValue() && canKismet && this.getKismetFloors().get(floor.getName())) {
@@ -297,7 +306,7 @@ public class AutoCroesus extends Module {
                 action = Action.CHEST;
 
                 if(bedrock.get().slot < 0 || bedrock.get().slot > 45) {
-                    modMessage(ChatFormatting.DARK_RED + "Invalid slot!!! (" + bedrock.get().slot + ")");
+                    modMessage(ChatFormatting.DARK_RED + "Invalid slot! (" + bedrock.get().slot + ")");
                     reset();
                     return;
                 }
@@ -308,8 +317,8 @@ public class AutoCroesus extends Module {
         }
         Reward best = alwaysBuy.orElseGet(() -> getBestProfit(chests));
 
-        if(best.slot < 0 || best.slot > 45) {
-            modMessage(ChatFormatting.DARK_RED + "Invalid slot!!! (" + best.slot + ")");
+        if (best.slot < 0 || best.slot > 45) {
+            modMessage(ChatFormatting.DARK_RED + "Invalid slot! (" + best.slot + ")");
             reset();
             return;
         }
@@ -332,7 +341,6 @@ public class AutoCroesus extends Module {
                 || !running
                 || action != Action.CHEST
                 || mc.screen == null
-                || !mc.screen.getTitle().getString().contains("Chest")
                 || !Location.getArea().is(Island.DungeonHub)) return;
 
         String title = mc.screen.getTitle().getString();
@@ -340,7 +348,7 @@ public class AutoCroesus extends Module {
         ChestType chestType = Utils.findEnumByName(ChestType.class, ChatFormatting.stripFormatting(title.split(" ")[0]), ChestType.NONE);
         if(chestType == ChestType.NONE) return;
 
-        if(kismetting) {
+        if (kismetting) {
             kismetting = false;
             ItemStack kismetStack = menu.slots.get(50).getItem();
             if(ItemUtils.getCleanLore(kismetStack).stream().anyMatch(s -> s.contains("Bring a Kismet Feather"))) {
@@ -380,7 +388,7 @@ public class AutoCroesus extends Module {
     private boolean inChest() {
         if (mc.screen == null) return false;
         String title = ChatFormatting.stripFormatting(mc.screen.getTitle().getString());
-        return title.contains("Chest") && Utils.findEnumByName(ChestType.class, title.split(" ")[0].trim(), ChestType.NONE) != ChestType.NONE;
+        return Utils.findEnumByName(ChestType.class, title.split(" ")[0].trim(), ChestType.NONE) != ChestType.NONE;
     }
 
     private void close() {
@@ -414,9 +422,7 @@ public class AutoCroesus extends Module {
     }
 
     private void clickOnDelay(int slot, BooleanSupplier supplier) {
-        TaskComponent.onMilli(this.getClickDelay().getValue().longValue(), () -> {
-            click(slot, supplier.getAsBoolean());
-        });
+        TaskComponent.onMilli(this.getClickDelay().getValue().longValue(), () -> click(slot, supplier.getAsBoolean()));
     }
 
     private Reward getBestProfit(List<Reward> rewards, Reward ...excluding) {

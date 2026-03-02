@@ -1,11 +1,11 @@
-package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto;
 
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Shorts;
 import com.google.common.primitives.SignedBytes;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.event.impl.RawTickEvent;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autoterms.terminals.*;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.*;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;

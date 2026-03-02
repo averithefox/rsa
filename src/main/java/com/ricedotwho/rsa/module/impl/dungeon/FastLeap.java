@@ -8,23 +8,24 @@ import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.RSM;
-import com.ricedotwho.rsm.component.impl.EventComponent;
+import com.ricedotwho.rsm.component.impl.Terminals;
 import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
+import com.ricedotwho.rsm.component.impl.task.TaskComponent;
 import com.ricedotwho.rsm.data.DungeonClass;
 import com.ricedotwho.rsm.data.DungeonPlayer;
 import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.Phase7;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
+import com.ricedotwho.rsm.event.impl.game.TerminalEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.*;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.DungeonUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
 import com.ricedotwho.rsm.utils.Utils;
@@ -42,6 +43,7 @@ import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -61,7 +63,7 @@ public class FastLeap extends Module {
         }
     });
 
-    private final NumberSetting cooldown = new NumberSetting("Cooldown", 0, 3500, 3500, 50);
+    private final NumberSetting cooldown = new NumberSetting("Cooldown", 0, 5000, 2000, 50);
 
     private final BooleanSetting flMessage = new BooleanSetting("Chat Message", false);
     private final BooleanSetting flP3 = new BooleanSetting("P3 Only", true);
@@ -93,6 +95,8 @@ public class FastLeap extends Module {
     private static long lastUsed = 0;
     private boolean windowOpen = false;
 
+    private static boolean queuedLeap = false;
+
     private AbstractContainerMenu container;
 
     public FastLeap() {
@@ -119,6 +123,7 @@ public class FastLeap extends Module {
         openingGui = false;
         windowOpen = false;
         container = null;
+        queuedLeap = false;
     }
 
     @SubscribeEvent
@@ -136,13 +141,17 @@ public class FastLeap extends Module {
                 || (System.currentTimeMillis() - lastUsed) < module.cooldown.getValue().longValue()
                 || module.windowOpen
                 || openingGui
-                || !EventComponent.isInTerminal() && mc.screen != null
+                || !Terminals.isInTerminal() && mc.screen != null
                 || module.container != null
                 || !Dungeon.isInBoss()
         ) return false;
 
         // todo: queue leap
-        if (EventComponent.isInTerminal()) return false;
+        if (Terminals.isInTerminal()) {
+            queuedLeap = true;
+            module.modMessage("Queued leap");
+            return true;
+        }
 
         String leap = getLeap();
         if (leap == null || "NONE".equals(leap) || mc.player.getName().getString().equalsIgnoreCase(leap)) {
@@ -163,6 +172,41 @@ public class FastLeap extends Module {
 
     public static void doLeap(DungeonPlayer player){
         doLeap(player.getName());
+    }
+
+    public static boolean doLeapFromOpenMenu(DungeonPlayer player){
+        return doLeapFromOpenMenu(player.getName());
+    }
+
+    public static boolean doLeapFromOpenMenu(String leap) {
+        if (mc.player == null || !(mc.player.containerMenu instanceof ChestMenu menu) || mc.screen == null || !mc.screen.getTitle().getString().equals("Spirit Leap")) return false;
+
+        for (Slot slot : menu.slots) {
+            ItemStack item = slot.getItem();
+            if (!item.getItem().equals(Items.PLAYER_HEAD)) continue;
+
+            String name = ChatFormatting.stripFormatting(item.getHoverName().getString());
+            if (!name.equals(leap)) continue;
+            sendWindowClick(slot.index, mc.player, menu);
+
+            FastLeap fl = RSM.getModule(FastLeap.class);
+            if (fl == null) return true;
+            if (fl.getFlMessage().getValue()) {
+                mc.getConnection().sendCommand("pc Leaping to " + toLeap);
+            }
+            else {
+                fl.modMessage("Leaping to " + toLeap);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @SubscribeEvent
+    public void onTerminalClose(TerminalEvent.Close event) {
+        if (event.isServer()) {
+            TaskComponent.onTick(0, FastLeap::doAutoLeap);
+        }
     }
 
     @SubscribeEvent

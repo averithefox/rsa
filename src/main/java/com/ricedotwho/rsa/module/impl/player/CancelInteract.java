@@ -1,6 +1,7 @@
 package com.ricedotwho.rsa.module.impl.player;
 
 import com.ricedotwho.rsm.RSM;
+import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
@@ -55,7 +56,7 @@ public class CancelInteract extends Module {
 
     public static boolean shouldCancelInteract(BlockHitResult hit, LocalPlayer player, ItemStack item) {
         CancelInteract module = RSM.getModule(CancelInteract.class);
-        if (!module.isEnabled()) return false;
+        if (!module.isEnabled() || !Location.isInSkyblock()) return false;
         BlockState state = player.level().getBlockState(hit.getBlockPos());
         if (WHITELIST.stream().anyMatch(c -> c.isInstance(state.getBlock())) || WHITELIST_TAGS.stream().anyMatch(state::is)) return false;
         if ("ENDER_PEARL".equals(ItemUtils.getID(item))) return true;
