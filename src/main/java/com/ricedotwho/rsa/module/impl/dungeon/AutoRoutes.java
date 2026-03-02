@@ -57,6 +57,7 @@ public class AutoRoutes extends Module implements Accessor {
     private final HashMap<String, List<Node>> redoMap = new HashMap<>();
 
     @Getter private static final BooleanSetting centerOnly = new BooleanSetting("Center Only", false);
+    @Getter private static final BooleanSetting zeroTickBreak = new BooleanSetting("0t Break", false);
     private final BooleanSetting editMode = new BooleanSetting("Edit Mode", false);
     private final KeybindSetting triggerBind = new KeybindSetting("Trigger Bind", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, this::onTrigger));
     private final KeybindSetting addBlockBind = new KeybindSetting("Add Block Bind", new Keybind(GLFW.GLFW_KEY_SEMICOLON, true, this::addBlockToInNode));
@@ -78,7 +79,6 @@ public class AutoRoutes extends Module implements Accessor {
     private Node inNode;
     @Getter
     private boolean isRouting = false;
-    private boolean receivedS08;
     private byte crouchDataShiftRegister = 0;
     public int lastBlockC08 = 0;
 
@@ -110,6 +110,7 @@ public class AutoRoutes extends Module implements Accessor {
         this.registerProperty(
                 editMode,
                 centerOnly,
+                zeroTickBreak,
                 triggerBind,
                 addBlockBind,
                 render
@@ -121,7 +122,6 @@ public class AutoRoutes extends Module implements Accessor {
     @SubscribeEvent
     public void onWorldLoad(WorldEvent.Load event) {
         this.inNode = null;
-        this.receivedS08 = false;
         this.activeNodes.clear();
         this.crouchDataShiftRegister = 0;
         this.lastBlockC08 = 0;
@@ -200,7 +200,6 @@ public class AutoRoutes extends Module implements Accessor {
     public void reload() {
         this.activeNodes.clear();
         this.inNode = null;
-        this.receivedS08 = false;
         if (!Location.getArea().is(Island.Dungeon)) return;
         Room room = Map.getCurrentRoom();
         if (room == null || room.getUniqueRoom() == null) return;

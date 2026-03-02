@@ -180,7 +180,7 @@ public class Relics extends Module {
     }
 
     @SubscribeEvent
-    public void onTick(ClientTickEvent event) {
+    public void onTick(ClientTickEvent.Start event) {
         if (!aura.getValue() || !Location.getArea().is(Island.Dungeon) || !DungeonUtils.isPhase(Phase7.P5) || !Dungeon.isInBoss() || mc.player == null || mc.level == null) return;
         long now = System.currentTimeMillis();
         if (now - lastClick <  delay.getValue().longValue()) return;
@@ -194,6 +194,7 @@ public class Relics extends Module {
 
                 InteractUtils.interactOnBlock(BlockPos.containing(type.place), true);
                 lastClick = now;
+                walk = false;
                 return;
             }
         }
@@ -206,6 +207,7 @@ public class Relics extends Module {
             for (ArmorStand stand : stands) {
                 String name = ChatFormatting.stripFormatting(stand.getDisplayName().getString());
                 Type type = Type.getTypeByName(name);
+                RSA.chat("Relic: %s, name: %s", type, name);
                 if (type == Type.NONE) continue;
                 double dist = mc.player.distanceToSqr(stand);
                 if (dist > max) continue;

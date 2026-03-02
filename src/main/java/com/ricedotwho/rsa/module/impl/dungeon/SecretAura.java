@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.component.impl.location.Floor;
@@ -8,19 +9,19 @@ import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.data.Keybind;
+import com.ricedotwho.rsm.data.Pair;
 import com.ricedotwho.rsm.data.Phase7;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
+import com.ricedotwho.rsm.event.impl.game.ChatEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
+import com.ricedotwho.rsm.event.impl.world.BlockChangeEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.*;
-import com.ricedotwho.rsm.utils.ChatUtils;
-import com.ricedotwho.rsm.utils.DungeonUtils;
-import com.ricedotwho.rsm.utils.EtherUtils;
-import com.ricedotwho.rsm.utils.RotationUtils;
+import com.ricedotwho.rsm.utils.*;
 import it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import lombok.Getter;
@@ -29,10 +30,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
-import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
-import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.protocol.game.*;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -194,6 +199,7 @@ public class SecretAura extends Module {
 
             if (!isValidBlock(block) && (block != Blocks.PLAYER_HEAD || !isValidSkull(blockPos, level))) continue;
             if (Dungeon.isInBoss() && block == Blocks.PLAYER_HEAD) continue;
+            if (getSkullType(blockPos, level).equals(SkullType.KEY)) hasRedstoneKey = false;
 
             if (!clickedBlocks.containsKey(hash)) {
                 if (delay > 0) {
@@ -241,7 +247,7 @@ public class SecretAura extends Module {
 
     // Only pass in LeverBlock here, otherwise it will crash
     private boolean checkF7BossBlock(BlockPos pos, BlockState block) {
-        return this.BOSS_LEVERS.contains(pos.hashCode()) || (this.LIGHTS_DEV.contains(pos.hashCode()) && !block.getValue(LeverBlock.POWERED));
+        return this.BOSS_LEVERS.contains(pos.hashCode()) || (this.LIGHTS_DEV.contains(pos.hashCode())/* ts pmo && !block.getValue(LeverBlock.POWERED) */);
     }
 
     private boolean isValidBlock(Block block) {
@@ -250,14 +256,38 @@ public class SecretAura extends Module {
     }
 
     public static boolean isValidSkull(BlockPos blockPos, ClientLevel level) {
+        return isValidSkull(blockPos, level, false);
+    }
+
+    public static boolean isValidSkull(BlockPos blockPos, ClientLevel level, boolean keyOnly) {
         BlockEntity entity = level.getBlockEntity(blockPos);
         if (!(entity instanceof SkullBlockEntity skullBlockEntity)) return false;
-        ResolvableProfile gameProfile = skullBlockEntity.getOwnerProfile();
+        return isValidProfile(skullBlockEntity.getOwnerProfile(), keyOnly);
+    }
+
+    public static boolean isValidProfile(ResolvableProfile gameProfile, boolean keyOnly) {
         if (gameProfile == null) return false;
         String uuid = gameProfile.partialProfile().id().toString();
+        if (keyOnly) return uuid.equals(REDSTONE_KEY_ID);
         return switch (uuid) {
             case WITHER_ESSENCE_ID, REDSTONE_KEY_ID -> true;
             default -> false;
+        };
+    }
+
+    public static SkullType getSkullType(BlockPos blockPos, ClientLevel level) {
+        BlockEntity entity = level.getBlockEntity(blockPos);
+        if (!(entity instanceof SkullBlockEntity skullBlockEntity)) return SkullType.NONE;
+        return getSkullType(skullBlockEntity.getOwnerProfile());
+    }
+
+    public static SkullType getSkullType(ResolvableProfile gameProfile) {
+        if (gameProfile == null) return SkullType.NONE;
+        String uuid = gameProfile.partialProfile().id().toString();
+        return switch (uuid) {
+            case WITHER_ESSENCE_ID -> SkullType.ESSENCE;
+            case REDSTONE_KEY_ID -> SkullType.KEY;
+            default -> SkullType.NONE;
         };
     }
 
@@ -281,7 +311,52 @@ public class SecretAura extends Module {
         return (blockPos.getY() & 0xFF) | (((blockPos.getX() + 2048) & 0xFFF) << 8) | (((blockPos.getZ() + 2048) & 0xFFF) << 20);
     }
 
-    private void clear() {
+    @SubscribeEvent
+    public void onPacket(PacketEvent.Receive event) {
+        if (mc.player == null || mc.level == null || type.is("None")) return;
+        if (event.getPacket() instanceof ClientboundBlockEventPacket packet) {
+            //RSA.chat("block event: " + packet.getBlock());
+            // ???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+            if (packet.getBlock().equals(Blocks.CHERRY_LOG)) {
+                blocksDone.add(getBlockPosHash(packet.getPos()));
+            }
+        } else if (event.getPacket() instanceof ClientboundSetEquipmentPacket packet) {
+            Entity entity = mc.level.getEntity(packet.getEntity());
+            if (!(entity instanceof ArmorStand) || packet.getSlots().size() < 4) return;
+            ItemStack stack = packet.getSlots().get(4).getSecond();
+            if (!stack.is(Items.PLAYER_HEAD)) return;
+            Optional<? extends ResolvableProfile> profile = stack.getComponentsPatch().get(DataComponents.PROFILE);
+            if (profile == null || profile.isEmpty() || !isValidProfile(profile.get(), true)) return;
+            blocksDone.add(getBlockPosHash(new BlockPos(entity.getBlockX(), entity.getBlockY() + 2, entity.getBlockZ())));
+        }
+    }
+
+    @SubscribeEvent
+    public void onChat(ChatEvent.Chat event) {
+        if (mc.player == null || mc.level == null || type.is("None") || !inBoss.getValue()) return;
+        String content = ChatFormatting.stripFormatting(event.getMessage().getString());
+        if ("[BOSS] Goldor: Who dares trespass into my domain?".equals(content)) {
+            clear();
+            RSA.chat("Blocks cleared!");
+        }
+    }
+
+    @SubscribeEvent
+    public void onBlockChange(BlockChangeEvent event) {
+        if (mc.player == null || mc.level == null || type.is("None")) return;
+        if (event.getOldState().is(Blocks.LEVER)) {
+            blocksDone.add(getBlockPosHash(event.getBlockPos()));
+        } else if (event.getOldState().is(Blocks.PLAYER_HEAD)) {
+            if (!event.getNewState().is(Blocks.AIR)) return;
+            if (isValidSkull(event.getBlockPos(), mc.level, true)) {
+                hasRedstoneKey = true;
+            }
+        } else if (event.getOldState().is(Blocks.REDSTONE_BLOCK)) {
+            blocksDone.add(getBlockPosHash(event.getBlockPos()));
+        }
+    }
+
+    public void clear() {
         blocksDone.clear();
         hasRedstoneKey = false;
     }
@@ -296,4 +371,9 @@ public class SecretAura extends Module {
 
     }
 
+    public enum SkullType {
+        ESSENCE,
+        KEY,
+        NONE
+    }
 }

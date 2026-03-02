@@ -140,7 +140,8 @@ public class RSA implements Addon {
                 BloodBlinkCommand.class,
                 BBGCommand.class,
                 RSADevCommand.class,
-                AutoCroesusCommand.class
+                AutoCroesusCommand.class,
+                SecretAuraCommand.class
         );
     }
 

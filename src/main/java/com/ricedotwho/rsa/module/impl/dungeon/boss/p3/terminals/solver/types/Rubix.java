@@ -14,7 +14,7 @@ public class Rubix extends com.ricedotwho.rsm.module.impl.dungeon.boss.p3.termin
     protected boolean canClick(int slot, int button) {
         TermSol sol = getBySlot(slot);
         if (sol == null || !solution.contains(sol) || TerminalSolver.getBlockAll().getValue()) return false;
-
+        if (TerminalSolver.getMode().is("Queue")) return this.getHoveredSlot() == slot;
         long now = System.currentTimeMillis();
         if (now - Terminals.getOpenedAt() < TerminalSolver.getFirstDelay().getValue().longValue() || now - Terminals.getClickedAt() < TerminalSolver.getClickDelay().getValue().longValue()) return false;
         if (TerminalSolver.getMode().is("Zero Ping")) {
@@ -28,7 +28,6 @@ public class Rubix extends com.ricedotwho.rsm.module.impl.dungeon.boss.p3.termin
     @Override
     public void clickSlot(int slot, int button) {
         if (!canClick(slot, button)) return;
-        clicked = true;
 
         if (TerminalSolver.getMode().getIndex() != 0) {
             TermSol sol = getBySlot(slot);
@@ -52,10 +51,14 @@ public class Rubix extends com.ricedotwho.rsm.module.impl.dungeon.boss.p3.termin
                     sol.setClicks(sol.getClicks() - 1);
                 }
             }
-
             onZeroPingClick(slot, button, sol);
         }
 
+        if (TerminalSolver.getMode().is("Queue")) {
+            onQueueClick();
+            return;
+        }
+        clicked = true;
         this.click(slot, button);
     }
 
