@@ -6,8 +6,6 @@ import com.ricedotwho.rsm.component.impl.camera.ClientRotationProvider;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
-import com.ricedotwho.rsm.data.Phase7;
-import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
@@ -17,7 +15,6 @@ import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
-import com.ricedotwho.rsm.utils.DungeonUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -56,22 +53,46 @@ public class AutoP3 extends Module implements ClientRotationProvider {
             ClientRotationHandler.setYaw(Minecraft.getInstance().player.getYRot());
             //ChatUtils.chat("registering!");
         }
+        if (!Minecraft.getInstance().player.getLastSentInput().shift()) {
+            event.getInputConsumer().accept(new Input(false, false, false, false, false, true, false));
+            return;
+        }
         bl = true;
 
         if (Minecraft.getInstance().player.getDeltaMovement().x != 0 || Minecraft.getInstance().player.getDeltaMovement().z != 0) return;
 
         Minecraft.getInstance().player.setYRot(yaws.poll());
-        event.getInputConsumer().accept(new Input(true, false, false, false, false, false, false));
+        event.getInputConsumer().accept(new Input(true, false, false, false, false, true, false));
     }
 
     @SubscribeEvent
     public void onTick(ClientTickEvent.Start event) {
         if (!dungeonCheck() || Minecraft.getInstance().player == null) return;
+
         Vec3 playerPos = Minecraft.getInstance().player.position();
         Ring ring = rings.stream().filter(r -> r.updateState(playerPos)).max(Comparator.comparingInt(Ring::getPriority)).orElse(null);
         if (ring == null) return;
         ring.setTriggered(true);
         ring.run();
+    }
+
+
+    private static double getVelocity(int tickIndex, double walkSpeed) {
+        // I plotted some velocities and solved for the exponential function
+        // https://www.desmos.com/calculator/tpikdildj1
+        return Math.pow(0.546000082, tickIndex) * 0.098 * walkSpeed; // Don't mind the constants
+    }
+
+    // Walkspeed should be 1 when normal, may need to mult by 10
+    // this function assumes it is normalized
+    public static double getDisplacement(int movementTicks, double walkSpeed, boolean sneaking) {
+        double lnBase = Math.log(0.546000082);
+        if (sneaking) walkSpeed = walkSpeed * 0.3;
+
+        double upper = getVelocity(movementTicks, walkSpeed);
+        double lower = getVelocity(0, walkSpeed);
+
+        return ((upper - lower) / lnBase) / 0.75;
     }
 
     @SubscribeEvent

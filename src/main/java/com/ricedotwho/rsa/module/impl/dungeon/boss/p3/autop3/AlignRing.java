@@ -27,7 +27,9 @@ public class AlignRing extends Ring {
         Vec3 vel = Minecraft.getInstance().player.getDeltaMovement();
         Vec3 delta = target.subtract(position).subtract(vel.x, 0, vel.z);
         double deltaLength = delta.length();
-        if (deltaLength > 2 * AutoP3.UNIT_VECTOR_LENGTH) {
+        double displacement = AutoP3.getDisplacement(6, Minecraft.getInstance().player.getSpeed() * 10, true);
+
+        if (deltaLength > 2 * displacement) {
             AutoP3.chat("Too far!");
             reset();
             return;
@@ -45,7 +47,7 @@ public class AlignRing extends Ring {
 
 
         double yaw = (float) Math.atan2(-delta.z, delta.x);
-        double theta = Math.acos(deltaLength / (2 * AutoP3.UNIT_VECTOR_LENGTH));
+        double theta = Math.acos(deltaLength / (2 * displacement));
 
         AutoP3 autoP3 = RSM.getModule(AutoP3.class);
         autoP3.queueYaw((float) -Math.toDegrees(yaw + theta) - 90f);

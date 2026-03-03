@@ -10,6 +10,7 @@ import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
 import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.map.RoomType;
+import com.ricedotwho.rsm.event.impl.game.ChatEvent;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
@@ -45,7 +46,8 @@ public class BBGCommand extends Command {
         Vec3 target = new Vec3(Mth.floor(position.x) + 0.5d, position.y, Mth.floor(position.z) + 0.5d);
         Vec3 delta = target.subtract(position);
         double deltaLength = delta.length();
-        if (deltaLength > 2 * AutoP3.UNIT_VECTOR_LENGTH) {
+        double displacement = AutoP3.getDisplacement(6, Minecraft.getInstance().player.getSpeed() * 10, true);
+        if (deltaLength > 2 * displacement) {
             AutoP3.chat("Too far!");
             return 0;
         }
@@ -55,7 +57,7 @@ public class BBGCommand extends Command {
 
 
         double yaw = (float) Math.atan2(-delta.z, delta.x);
-        double theta = Math.acos(deltaLength / (2 * AutoP3.UNIT_VECTOR_LENGTH));
+        double theta = Math.acos(deltaLength / (2 * displacement));
 
         AutoP3 autoP3 = RSM.getModule(AutoP3.class);
         autoP3.queueYaw((float) -Math.toDegrees(yaw + theta) - 90f);
@@ -65,13 +67,13 @@ public class BBGCommand extends Command {
 
     private int test(CommandContext<ClientSuggestionProvider> ctx) {
         AutoP3 autoP3 = RSM.getModule(AutoP3.class);
-        Vec3 pos = Minecraft.getInstance().player.position();
-        if (lastMovement != null) {
-            ChatUtils.chat(pos.subtract(lastMovement).length());
+        if (lastMovement != null && Minecraft.getInstance().player != null) {
+            ChatUtils.chat("Delta : " + Minecraft.getInstance().player.position().subtract(lastMovement).length());
+            ChatUtils.chat("Guess : " + AutoP3.getDisplacement(6, Minecraft.getInstance().player.getSpeed() * 10, true));
         }
-        lastMovement = pos;
-
-        AutoP3.chat("Test!");
+        if (Minecraft.getInstance().player != null)
+            lastMovement = Minecraft.getInstance().player.position();
+        autoP3.queueYaw(0f);
         return 1;
     }
 }
