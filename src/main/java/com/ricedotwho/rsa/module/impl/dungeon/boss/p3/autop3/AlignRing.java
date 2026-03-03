@@ -27,7 +27,7 @@ public class AlignRing extends Ring {
         Vec3 vel = Minecraft.getInstance().player.getDeltaMovement();
         Vec3 delta = target.subtract(position).subtract(vel.x, 0, vel.z);
         double deltaLength = delta.length();
-        double displacement = AutoP3.getDisplacement(6, Minecraft.getInstance().player.getSpeed() * 10, true);
+        double displacement = AutoP3.getDisplacement(Minecraft.getInstance().player.getSpeed() * 10, true);
 
         if (deltaLength > 2 * displacement) {
             AutoP3.chat("Too far!");

@@ -85,14 +85,16 @@ public class AutoP3 extends Module implements ClientRotationProvider {
 
     // Walkspeed should be 1 when normal, may need to mult by 10
     // this function assumes it is normalized
-    public static double getDisplacement(int movementTicks, double walkSpeed, boolean sneaking) {
-        double lnBase = Math.log(0.546000082);
+    public static double getDisplacement(double walkSpeed, boolean sneaking) {
         if (sneaking) walkSpeed = walkSpeed * 0.3;
+        int movementTicks = getMovementTicks(walkSpeed);
 
-        double upper = getVelocity(movementTicks, walkSpeed);
-        double lower = getVelocity(0, walkSpeed);
+        return 0.098 * walkSpeed * (1.0 - Math.pow(0.546000082, movementTicks)) / (1.0 - 0.546000082); // Don't mind the constants
+    }
 
-        return ((upper - lower) / lnBase) / 0.75;
+    public static int getMovementTicks(double walkSpeed) {
+        // 0.003 is epsilon, check LivingEnntity.aiStep()
+        return (int) Math.ceil(Math.log(0.003 / (0.098 * walkSpeed)) / Math.log(0.546000082));
     }
 
     @SubscribeEvent
