@@ -51,6 +51,8 @@ public class AutoTerms extends Module {
     private final NumberSetting delay = new NumberSetting("Delay", 100d, 250d, 150d, 5d);
     private final NumberSetting breakThreshold = new NumberSetting("Break Threshold", 200d, 800d, 500d, 10d);
 
+    @Getter private static final MultiBoolSetting terminals = new MultiBoolSetting("Terminals", List.of("Colours", "Melody", "Numbers", "Red Green", "Rubix", "Starts With"), List.of("Colours", "Melody", "Numbers", "Red Green", "Rubix", "Starts With"));
+
     private final BooleanSetting melodySkip = new BooleanSetting("Melody Skip", true);
     private final BooleanSetting melodySkipFirst = new BooleanSetting("Don't Skip First", true);
 
@@ -60,6 +62,7 @@ public class AutoTerms extends Module {
     public AutoTerms() {
         this.clickedSlotsTracker = new ClickedSlotsTracker();
         registerProperty(
+                terminals,
                 firstClickDelay,
                 delay,
                 breakThreshold,
@@ -97,6 +100,8 @@ public class AutoTerms extends Module {
             }
             this.predictedState = null;
         }
+
+        if (!terminal.isEnabled()) return;
 
         // todo: DO NOT DO THIS ON RENDER!
 
@@ -196,7 +201,7 @@ public class AutoTerms extends Module {
 
     @SubscribeEvent
     public void onRawTick(RawTickEvent event) {
-        if (isInTerm() && terminal instanceof Melody melody) {
+        if (isInTerm() && terminal instanceof Melody melody && melody.isEnabled()) {
             if (melody.onTickStart(this)) {
                 this.invWalkGroup.getValue().onMelodyClick();
             }

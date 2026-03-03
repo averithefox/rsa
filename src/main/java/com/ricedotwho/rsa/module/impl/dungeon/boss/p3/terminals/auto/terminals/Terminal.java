@@ -28,8 +28,7 @@ public abstract class Terminal {
     protected final AbstractContainerMenu terminalContainer;
 
     @Getter
-    Solution solution;
-
+    protected Solution solution;
 
     protected Terminal(TerminalType type, ClientboundOpenScreenPacket packet, AbstractContainerMenu terminalContainer) {
         this.type = type;
@@ -95,6 +94,8 @@ public abstract class Terminal {
         if (terminalType == null) return null;
         return terminalType.supply(packet, menu);
     }
+
+    public abstract boolean isEnabled();
 
     protected static class HashInfo {
         @Getter

@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals;
 
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
@@ -59,6 +60,11 @@ public class RedGreen extends Terminal {
 
         this.solution = new Solution(solutionClicks);
         this.solveState = SolveState.SOLVED;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return AutoTerms.getTerminals().get("Red Green");
     }
 
     protected static RedGreen supply(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {

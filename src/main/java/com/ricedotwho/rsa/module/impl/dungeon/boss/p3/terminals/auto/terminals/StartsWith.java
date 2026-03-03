@@ -79,6 +79,10 @@ public class StartsWith extends Terminal {
         this.solveState = SolveState.SOLVED;
     }
 
+    @Override
+    public boolean isEnabled() {
+        return AutoTerms.getTerminals().get("Starts With");
+    }
 
     protected static StartsWith supply(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
         return new StartsWith(packet, menu);

@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals;
 
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
@@ -57,6 +58,11 @@ public class Numbers extends Terminal {
 
         this.solution = new Solution(sortedSlots);
         this.solveState = SolveState.SOLVED;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return AutoTerms.getTerminals().get("Numbers");
     }
 
     protected static Numbers supply(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {

@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals;
 
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
@@ -139,6 +140,11 @@ public class Rubix extends Terminal {
                 || item == Items.ORANGE_STAINED_GLASS_PANE
                 || item == Items.YELLOW_STAINED_GLASS_PANE
                 || item == Items.GREEN_STAINED_GLASS_PANE;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return AutoTerms.getTerminals().get("Rubix");
     }
 
     protected static Rubix supply(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {

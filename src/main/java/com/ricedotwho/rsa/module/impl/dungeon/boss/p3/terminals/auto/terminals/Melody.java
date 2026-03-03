@@ -78,7 +78,10 @@ public class Melody extends Terminal {
         }
     }
 
-
+    @Override
+    public boolean isEnabled() {
+        return AutoTerms.getTerminals().get("Melody");
+    }
 
 
     protected static Melody supply(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {

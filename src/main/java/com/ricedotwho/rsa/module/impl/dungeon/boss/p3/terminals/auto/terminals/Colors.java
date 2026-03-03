@@ -90,6 +90,11 @@ public class Colors extends Terminal {
         this.solveState = SolveState.SOLVED;
     }
 
+    @Override
+    public boolean isEnabled() {
+        return AutoTerms.getTerminals().get("Colours");
+    }
+
     private String fixColorItemName(String itemName) {
         for (Map.Entry<String, String> entry : COLOR_REPLACEMENTS.entrySet()) {
             String from = entry.getKey();
