@@ -89,6 +89,7 @@ public class TermAura extends Module {
     public static boolean getEntityVisibility(Entity entity) {
         if (!entity.isInvisible()) return true;
         TermAura termAura = RSM.getModule(TermAura.class);
+        if (termAura == null) return false;
         return termAura.isEnabled() && termAura.showArmorStands.getValue() && termAura.locationCheck();
     }
 
