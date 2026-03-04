@@ -15,6 +15,8 @@ import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 
 @CommandInfo(name = "bbg", description = "Auto P3 command")
@@ -67,9 +69,20 @@ public class BBGCommand extends Command {
     }
 
     private int test(CommandContext<ClientSuggestionProvider> ctx) {
+        if (lastMovement != null && Minecraft.getInstance().player != null) {
+            ChatUtils.chat("Delta : " + Minecraft.getInstance().player.position().subtract(lastMovement).length());
+            ChatUtils.chat("Guess : " + AutoP3.getDisplacement(new Vec2(1f, 1f)));
+        }
+        if (Minecraft.getInstance().player != null) {
+            lastMovement = Minecraft.getInstance().player.position();
+            Minecraft.getInstance().player.setDeltaMovement(1f, Minecraft.getInstance().player.getDeltaMovement().y, 1f);
+        }
+        return 1;
+    }
+
+    private int test1(CommandContext<ClientSuggestionProvider> ctx) {
         AutoP3 autoP3 = RSM.getModule(AutoP3.class);
         if (lastMovement != null && Minecraft.getInstance().player != null) {
-            ChatUtils.chat("Movement ticks: " + AutoP3.getMovementTicks(Minecraft.getInstance().player.getSpeed() * 10));
             ChatUtils.chat("Delta : " + Minecraft.getInstance().player.position().subtract(lastMovement).length());
             ChatUtils.chat("Guess : " + AutoP3.getDisplacement(Minecraft.getInstance().player.getSpeed() * 10, true));
         }

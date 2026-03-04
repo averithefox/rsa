@@ -19,6 +19,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Input;
+import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.*;
@@ -67,6 +68,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
 
     @SubscribeEvent
     public void onTick(ClientTickEvent.Start event) {
+        if (Minecraft.getInstance().player != null) ChatUtils.chat(Minecraft.getInstance().player.onGround());
         if (!dungeonCheck() || Minecraft.getInstance().player == null) return;
 
         Vec3 playerPos = Minecraft.getInstance().player.position();
@@ -87,14 +89,23 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     // this function assumes it is normalized
     public static double getDisplacement(double walkSpeed, boolean sneaking) {
         if (sneaking) walkSpeed = walkSpeed * 0.3;
-        int movementTicks = getMovementTicks(walkSpeed);
+        int movementTicks = getInputMovementTicks(walkSpeed);
 
         return 0.098 * walkSpeed * (1.0 - Math.pow(0.546000082, movementTicks)) / (1.0 - 0.546000082); // Don't mind the constants
     }
 
-    public static int getMovementTicks(double walkSpeed) {
+    public static double getDisplacement(Vec2 velocity) {
+        double magnitude = velocity.length();
+        int movementTicks = (int) Math.ceil(Math.log(0.003 / magnitude) / Math.log(0.546000082));
+
+        if (movementTicks <= 0) return magnitude;
+        return magnitude * (1.0 - Math.pow(0.546000082, movementTicks)) / (1.0 - 0.546000082);
+    }
+
+
+    private static int getInputMovementTicks(double velocity) {
         // 0.003 is epsilon, check LivingEnntity.aiStep()
-        return (int) Math.ceil(Math.log(0.003 / (0.098 * walkSpeed)) / Math.log(0.546000082));
+        return (int) Math.ceil(Math.log(0.003 / (0.098 * velocity)) / Math.log(0.546000082));
     }
 
     @SubscribeEvent
