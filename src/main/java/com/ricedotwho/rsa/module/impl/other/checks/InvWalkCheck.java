@@ -112,7 +112,7 @@ public class InvWalkCheck {
     }
 
     @SubscribeEvent
-    public static void terminalCompletedMsg(ChatEvent event){
+    public static void terminalCompletedMsg(ChatEvent.Chat event){
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
         String unformatted = StringUtil.stripColor(event.getMessage().getString());

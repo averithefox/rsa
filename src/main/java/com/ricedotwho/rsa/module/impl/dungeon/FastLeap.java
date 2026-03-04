@@ -206,8 +206,8 @@ public class FastLeap extends Module {
     public void onTerminalClose(TerminalEvent.Close event) {
         if (event.isServer() && queuedLeap) {
             TaskComponent.onTick(0, FastLeap::doAutoLeap);
-            queuedLeap = false;
         }
+        queuedLeap = false;
     }
 
     @SubscribeEvent

@@ -27,12 +27,10 @@ import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.group.DefaultGroupSetting;
-import com.ricedotwho.rsm.ui.clickgui.settings.group.GroupSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.ColourSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
 import com.ricedotwho.rsm.utils.Accessor;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -58,6 +56,7 @@ public class AutoRoutes extends Module implements Accessor {
 
     @Getter private static final BooleanSetting centerOnly = new BooleanSetting("Center Only", false);
     @Getter private static final BooleanSetting zeroTickBreak = new BooleanSetting("0t Break", false);
+    @Getter private static final BooleanSetting use1_8Height = new BooleanSetting("Use 1.8 height for placing node", false);
     private final BooleanSetting editMode = new BooleanSetting("Edit Mode", false);
     private final KeybindSetting triggerBind = new KeybindSetting("Trigger Bind", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, this::onTrigger));
     private final KeybindSetting addBlockBind = new KeybindSetting("Add Block Bind", new Keybind(GLFW.GLFW_KEY_SEMICOLON, true, this::addBlockToInNode));
@@ -111,6 +110,7 @@ public class AutoRoutes extends Module implements Accessor {
                 editMode,
                 centerOnly,
                 zeroTickBreak,
+                use1_8Height,
                 triggerBind,
                 addBlockBind,
                 render
@@ -356,8 +356,7 @@ public class AutoRoutes extends Module implements Accessor {
     public boolean handleQueue(Pos playerPos, List<Node> nodes) {
         List<Node> activeNodes = new ArrayList<>();
 
-        for (int i = 0; i < nodes.size(); i++) {
-            Node node = nodes.get(i);
+        for (Node node : nodes) {
             if (!node.isInNode(playerPos)) continue;
             this.isRouting = true;
             if (node.isTriggered() || node.hasRanThisTick(tickTime)) continue;
