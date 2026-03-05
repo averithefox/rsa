@@ -23,6 +23,7 @@ import java.util.List;
 public class InvWalk extends SubModule<AutoTerms> {
 
     private final ModeSetting style = new ModeSetting("Style", "Items", Arrays.asList("Solver", "Items"));
+    @Getter private static final BooleanSetting useOverrides = new BooleanSetting("Use Overrides", true);
     private final BooleanSetting renderTitles = new BooleanSetting("Render title thing", true);
     private final BooleanSetting renderClicksLeft = new BooleanSetting("Render clicks left", true);
     private final ColourSetting titleColour = new ColourSetting("Title Colour", new Colour(96,31,158));

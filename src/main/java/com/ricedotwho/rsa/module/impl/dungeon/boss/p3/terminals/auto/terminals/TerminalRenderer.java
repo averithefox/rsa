@@ -32,7 +32,7 @@ public class TerminalRenderer {
 
         int slotCount = Utils.getGuiSlotCount(this.terminalContainer.getType());
 
-        boolean bl = terminal instanceof StartsWith || terminal instanceof Colors;
+        boolean bl = InvWalk.getUseOverrides().getValue() && (terminal instanceof StartsWith || terminal instanceof Colors);
         if (bl && terminal.isSolved())
             tryUpdateOverrides(terminal);
 
@@ -93,6 +93,7 @@ public class TerminalRenderer {
         this.terminalContainer = null;
     }
 
+    //todo: make not look like shit
     public void renderSolver(float g, Terminal terminal) {
         Solution solution = terminal.getSolution();
         if (solution == null || solution.clicks.isEmpty()) return;
