@@ -125,7 +125,8 @@ public class EtherwarpNode extends Node {
 
     public static EtherwarpNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits, boolean start) {
         // Should use client side eye height so it ray traces to the correct block, this may mean some angles fail server side but atleast it will go where you are trying to
-        Vec3 target = EtherUtils.rayTraceBlock(61, player.getYRot(), player.getXRot(), player.position().add(0d, player.getEyeHeight(Pose.CROUCHING), 0d));
+        // NO
+        Vec3 target = EtherUtils.rayTraceBlock(61, player.getYRot(), player.getXRot(), player.position().add(0d, AutoRoutes.getUse1_8Height().getValue() ? EtherUtils.SNEAK_EYE_HEIGHT : player.getEyeHeight(Pose.CROUCHING), 0d));
         if (target == null) return null;
         Room mainRoom = fullRoom.getMainRoom();
         Pos playerRelative = RoomUtils.getRelativePosition(new Pos(player.position()), mainRoom);

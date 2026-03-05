@@ -3,7 +3,7 @@ package com.ricedotwho.rsa;
 import com.ricedotwho.rsa.command.impl.*;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p4.InstaMid;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p2.PadTimer;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.AutoP3;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
 import com.ricedotwho.rsa.module.impl.dungeon.FastLeap;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.TermAura;

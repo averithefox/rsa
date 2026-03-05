@@ -29,6 +29,7 @@ import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ChatEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.event.impl.game.DungeonEvent;
+import com.ricedotwho.rsm.event.impl.game.ServerTickEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
@@ -479,13 +480,6 @@ public class BloodBlink extends Module {
     @SubscribeEvent
     public void onReceivePacket(PacketEvent.Receive event) {
         Packet<?> packet = event.getPacket();
-        if (serverTickTimer > -1 && packet instanceof ClientboundPingPacket) {
-            serverTickTimer++;
-            serverTotalTickTimer++;
-            if (ticksTillStart != -67) ticksTillStart--;
-            return;
-        }
-
         if (packet instanceof ClientboundSetTimePacket timePacket) {
             long time = timePacket.gameTime();
             this.serverTickTimer = (int) (time + deathTickOffset.getValue().intValue()) % 40;
@@ -544,6 +538,15 @@ public class BloodBlink extends Module {
                     break;
                 }
             }
+        }
+    }
+
+    @SubscribeEvent
+    public void onServerTick(ServerTickEvent event) {
+        if (serverTickTimer > -1) {
+            serverTickTimer++;
+            serverTotalTickTimer++;
+            if (ticksTillStart != -67) ticksTillStart--;
         }
     }
 

@@ -1,7 +1,9 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
 
+import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.data.Colour;
-import com.ricedotwho.rsm.data.Pos;
+import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
+import com.ricedotwho.rsm.utils.render.render3d.type.OutlineBox;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.world.phys.AABB;
@@ -42,14 +44,25 @@ public abstract class Ring{
         return false;
     }
 
+    public float getDistanceSq(Vec3 vec3) {
+        float dx = (float) (((this.box.maxX + this.box.minX) / 2f) - vec3.x);
+        float dy = (float) (((this.box.maxY + this.box.minY) / 2f) - vec3.y);
+        float dz = (float) (((this.box.maxZ + this.box.minZ) / 2f) - vec3.z);
+        return dx * dx + dy * dy + dz * dz;
+    }
+
     public void reset() {
         this.triggered = false;
     }
 
-    public abstract void render(boolean depth);
+    public void render(boolean depth) {
+        Renderer3D.addTask(new OutlineBox(this.getBox(), getColour(), depth));
+    }
+
+    // Run will always run before tick
     public abstract void run();
     public abstract Colour getColour();
     public abstract int getPriority();
-
+    public abstract boolean tick(InputPollEvent event, AutoP3 autoP3);
 
 }

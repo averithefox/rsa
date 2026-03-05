@@ -1,6 +1,7 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals;
 
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
+import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
@@ -17,7 +18,7 @@ public class Rubix extends Terminal {
     protected Rubix(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
         super(TerminalType.RUBIX, packet, menu);
     }
-    public static final Item[] COLOR_ORDER = {Items.BLUE_STAINED_GLASS_PANE, Items.RED_STAINED_GLASS_PANE, Items.ORANGE_STAINED_GLASS_PANE, Items.YELLOW_STAINED_GLASS_PANE, Items.GREEN_STAINED_GLASS_PANE};
+    public static final Item[] COLOR_ORDER = {Items.ORANGE_STAINED_GLASS_PANE, Items.YELLOW_STAINED_GLASS_PANE, Items.GREEN_STAINED_GLASS_PANE, Items.BLUE_STAINED_GLASS_PANE, Items.RED_STAINED_GLASS_PANE};
 
     @Override
     public TerminalState getNextState() {
@@ -71,10 +72,8 @@ public class Rubix extends Terminal {
 
         for (Slot slot : this.terminalContainer.slots) {
             ItemStack stack = slot.getItem();
-
             if (stack.isEmpty()) continue;
             if (stack.getItem() == Items.BLACK_STAINED_GLASS_PANE) continue;
-
             if (!isRubixPane(stack.getItem())) continue;
             rubixSlots.add(slot.index);
         }
@@ -83,12 +82,10 @@ public class Rubix extends Terminal {
         int minTotal = Integer.MAX_VALUE;
 
         for (int targetIndex = 0; targetIndex < COLOR_ORDER.length; targetIndex++) {
-
             int totalClicks = 0;
 
             for (Integer slot : rubixSlots) {
                 ItemStack stack = this.terminalContainer.getSlot(slot).getItem();
-
                 int currentIndex = indexOf(COLOR_ORDER, stack.getItem());
 
                 int clockwise = (targetIndex - currentIndex + COLOR_ORDER.length) % COLOR_ORDER.length;
@@ -114,11 +111,11 @@ public class Rubix extends Terminal {
 
             if (clockwise <= counterClockwise) {
                 for (int j = 0; j < clockwise; j++) {
-                    solutionClicks.add(new RubixSolutionClick(ClickType.PICKUP, slot, 0, currentIndex)); // left click
+                    solutionClicks.add(new RubixSolutionClick(ClickType.PICKUP, slot, 0, currentIndex));
                 }
             } else {
                 for (int j = 0; j < counterClockwise; j++) {
-                    solutionClicks.add(new RubixSolutionClick(ClickType.PICKUP, slot, 1, currentIndex)); // right click
+                    solutionClicks.add(new RubixSolutionClick(ClickType.PICKUP, slot, 1, currentIndex));
                 }
             }
         }

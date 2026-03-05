@@ -39,7 +39,7 @@ public class AutoUlt extends Abilities {
     }
 
     @SubscribeEvent
-    public void onChat(ChatEvent event) {
+    public void onChat(ChatEvent.Chat event) {
         if (!Location.getArea().is(Island.Dungeon) || !Dungeon.isStarted()) return;
         String value = ChatFormatting.stripFormatting(event.getMessage().getString());
         if (wishCommand.getValue() && wishPattern.matcher(value).find()) {

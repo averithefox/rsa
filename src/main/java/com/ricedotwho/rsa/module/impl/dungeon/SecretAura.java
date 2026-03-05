@@ -74,6 +74,7 @@ public class SecretAura extends Module {
     private final NumberSetting reclick = new NumberSetting("Re-Click Delay", 200, 10000, 500, 50);
     private final NumberSetting swapSlot = new NumberSetting("Swap Slot Index", 0, 7, 0, 1);
     private final BooleanSetting invWalk = new BooleanSetting("In inventory", true);
+    private final BooleanSetting allowReclick = new BooleanSetting("Allow Re-click", true);
     private final BooleanSetting inBoss = new BooleanSetting("In Boss", true);
     private final BooleanSetting autoClose = new BooleanSetting("Auto Close GUI", false);
     private final BooleanSetting forceSkyblock = new BooleanSetting("Force Skyblock", false);
@@ -92,6 +93,7 @@ public class SecretAura extends Module {
                 reclick,
                 swapSlot,
                 invWalk,
+                allowReclick,
                 inBoss,
                 autoClose,
                 forceSkyblock
@@ -163,7 +165,7 @@ public class SecretAura extends Module {
 
         boolean sneaking = Minecraft.getInstance().player.getLastSentInput().shift();
         Vec3 eyePos = Minecraft.getInstance().player.position().add(0.0d, sneaking ? EtherUtils.SNEAK_EYE_HEIGHT : Minecraft.getInstance().player.getEyeHeight(Pose.STANDING), 0.0d);
-        Vec3 flooredEyePos = eyePos.subtract(0.5d, 0.5d, 0.5d);
+        Vec3 flooredEyePos = eyePos.subtract(0.5d, 0d, 0.5d);
 
         if (type.is("Aura")) {
             AABB box = new AABB(eyePos, eyePos).inflate(CHEST_RANGE, CHEST_RANGE, CHEST_RANGE);
@@ -179,9 +181,9 @@ public class SecretAura extends Module {
         double bestDistance = Double.MAX_VALUE;
         BlockPos bestCandidate = null;
 
+        boolean bl2 = !allowReclick.getValue();
         for (BlockPos blockPos : positions) {
             int hash = getBlockPosHash(blockPos);
-            if (blocksDone.contains(hash)) continue;
 
             BlockState blockState = level.getBlockState(blockPos);
             Block block = blockState.getBlock();
@@ -192,10 +194,14 @@ public class SecretAura extends Module {
                     // Either we aren't in boss or we rejoined boss
                     if (checkF7BossBlock(blockPos, blockState)) {
                         if (!inBoss.getValue()) continue;
+                        bl2 = false; // Allow reclick
                         delay = 0; // No lever delay in boss
                     } else if (checkLightsDev(blockPos)) continue;
                 }
             }
+
+            if (bl2 && blocksDone.contains(hash)) continue; // Allow reclick anyways on boss levers
+
 
             if (!isValidBlock(block) && (block != Blocks.PLAYER_HEAD || !isValidSkull(blockPos, level))) continue;
             if (Dungeon.isInBoss() && block == Blocks.PLAYER_HEAD) continue;
@@ -247,7 +253,7 @@ public class SecretAura extends Module {
 
     // Only pass in LeverBlock here, otherwise it will crash
     private boolean checkF7BossBlock(BlockPos pos, BlockState block) {
-        return this.BOSS_LEVERS.contains(pos.hashCode()) || (this.LIGHTS_DEV.contains(pos.hashCode())/* ts pmo && !block.getValue(LeverBlock.POWERED) */);
+        return this.BOSS_LEVERS.contains(pos.hashCode()) || (this.LIGHTS_DEV.contains(pos.hashCode()) && !block.getValue(LeverBlock.POWERED)); // tf you mean tspmo ?
     }
 
     private boolean isValidBlock(Block block) {
