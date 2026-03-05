@@ -22,6 +22,7 @@ public class MixinDisconnect {
     @Inject(method = "handleDisconnect", at = @At("HEAD"))
     private void onDisconnect(ClientboundDisconnectPacket pPacket, CallbackInfo ci) {
         String msg = pPacket.reason().getString();
+        if(!msg.contains("banned")) return;
         String player = Minecraft.getInstance().player.getName().getString();
         String reason = extract(msg, "Reason: (.+)");
         String duration = extract(msg, "banned for ([\\d]+d\\s[\\d]+h\\s[\\d]+m\\s[\\d]+s)");
