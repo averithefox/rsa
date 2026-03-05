@@ -21,6 +21,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import oshi.util.tuples.Pair;
 
 import java.util.*;
 
@@ -31,7 +32,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
 
     private final BooleanSetting forceSkyblock = new BooleanSetting("Force Skyblock", false);
     private final List<Ring> rings;
-    private final Queue<Float> yaws;
+    private final Queue<Pair<Float, Boolean>> yaws;
     private boolean bl = false;
 
     public AutoP3() {
@@ -60,15 +61,15 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         }
         bl = true;
 
-        if (Minecraft.getInstance().player.getDeltaMovement().x != 0 || Minecraft.getInstance().player.getDeltaMovement().z != 0) return;
+        //if (Minecraft.getInstance().player.getDeltaMovement().x != 0 || Minecraft.getInstance().player.getDeltaMovement().z != 0) return;
 
-        Minecraft.getInstance().player.setYRot(yaws.poll());
-        event.getInputConsumer().accept(new Input(true, false, false, false, false, true, false));
+        Pair<Float, Boolean> entry = yaws.poll();
+        Minecraft.getInstance().player.setYRot(entry.getA());
+        event.getInputConsumer().accept(new Input(true, false, false, false, false, entry.getB(), false));
     }
 
     @SubscribeEvent
     public void onTick(ClientTickEvent.Start event) {
-        if (Minecraft.getInstance().player != null) ChatUtils.chat(Minecraft.getInstance().player.onGround());
         if (!dungeonCheck() || Minecraft.getInstance().player == null) return;
 
         Vec3 playerPos = Minecraft.getInstance().player.position();
@@ -76,36 +77,6 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         if (ring == null) return;
         ring.setTriggered(true);
         ring.run();
-    }
-
-
-    private static double getVelocity(int tickIndex, double walkSpeed) {
-        // I plotted some velocities and solved for the exponential function
-        // https://www.desmos.com/calculator/tpikdildj1
-        return Math.pow(0.546000082, tickIndex) * 0.098 * walkSpeed; // Don't mind the constants
-    }
-
-    // Walkspeed should be 1 when normal, may need to mult by 10
-    // this function assumes it is normalized
-    public static double getDisplacement(double walkSpeed, boolean sneaking) {
-        if (sneaking) walkSpeed = walkSpeed * 0.3;
-        int movementTicks = getInputMovementTicks(walkSpeed);
-
-        return 0.098 * walkSpeed * (1.0 - Math.pow(0.546000082, movementTicks)) / (1.0 - 0.546000082); // Don't mind the constants
-    }
-
-    public static double getDisplacement(Vec2 velocity) {
-        double magnitude = velocity.length();
-        int movementTicks = (int) Math.ceil(Math.log(0.003 / magnitude) / Math.log(0.546000082));
-
-        if (movementTicks <= 0) return magnitude;
-        return magnitude * (1.0 - Math.pow(0.546000082, movementTicks)) / (1.0 - 0.546000082);
-    }
-
-
-    private static int getInputMovementTicks(double velocity) {
-        // 0.003 is epsilon, check LivingEnntity.aiStep()
-        return (int) Math.ceil(Math.log(0.003 / (0.098 * velocity)) / Math.log(0.546000082));
     }
 
     @SubscribeEvent
@@ -118,8 +89,8 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         return this.forceSkyblock.getValue() || (Minecraft.getInstance().player != null && Location.getArea().is(Island.Dungeon) && Dungeon.isInBoss());
     }
 
-    public void queueYaw(float yaw) {
-        yaws.add(yaw);
+    public void queueYaw(float yaw, boolean sneak) {
+        yaws.add(new Pair<>(yaw, sneak));
     }
 
     public static void chat(Object message, Object... objects) {

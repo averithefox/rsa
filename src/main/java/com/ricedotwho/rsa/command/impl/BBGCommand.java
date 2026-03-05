@@ -5,6 +5,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.ricedotwho.rsa.module.impl.dungeon.BloodBlink;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.AutoP3;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AlignRing;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.MovementPredictor;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
@@ -44,11 +45,17 @@ public class BBGCommand extends Command {
 
     private int center(CommandContext<ClientSuggestionProvider> ctx) {
         if (Minecraft.getInstance().player == null) return 0;
-        Vec3 position = Minecraft.getInstance().player.position();
+        Vec3 initialVelocity = Minecraft.getInstance().player.getDeltaMovement();
+        Vec2 initialDisplacement = MovementPredictor.getDisplacementVector(new Vec2((float) initialVelocity.x, (float) initialVelocity.z));
+
+        Vec3 position = Minecraft.getInstance().player.position().add(initialDisplacement.x, 0d, initialDisplacement.y);
         Vec3 target = new Vec3(Mth.floor(position.x) + 0.5d, position.y, Mth.floor(position.z) + 0.5d);
         Vec3 delta = target.subtract(position);
         double deltaLength = delta.length();
-        double displacement = AutoP3.getDisplacement(Minecraft.getInstance().player.getSpeed() * 10, true);
+        double displacement = MovementPredictor.getDisplacementFromInput(Minecraft.getInstance().player.getSpeed() * 10, true);
+
+
+
         ChatUtils.chat("Guess : " + displacement);
         if (deltaLength > 2 * displacement) {
             AutoP3.chat("Too far!");
@@ -63,15 +70,15 @@ public class BBGCommand extends Command {
         double theta = Math.acos(deltaLength / (2 * displacement));
 
         AutoP3 autoP3 = RSM.getModule(AutoP3.class);
-        autoP3.queueYaw((float) -Math.toDegrees(yaw + theta) - 90f);
-        autoP3.queueYaw((float) -Math.toDegrees(yaw - theta) - 90f);
+        autoP3.queueYaw((float) -Math.toDegrees(yaw + theta) - 90f, true);
+        autoP3.queueYaw((float) -Math.toDegrees(yaw - theta) - 90f, true);
         return 1;
     }
 
     private int test(CommandContext<ClientSuggestionProvider> ctx) {
         if (lastMovement != null && Minecraft.getInstance().player != null) {
             ChatUtils.chat("Delta : " + Minecraft.getInstance().player.position().subtract(lastMovement).length());
-            ChatUtils.chat("Guess : " + AutoP3.getDisplacement(new Vec2(1f, 1f)));
+            ChatUtils.chat("Guess : " + MovementPredictor.getDisplacementMagnitude(new Vec2(1f, 1f)));
         }
         if (Minecraft.getInstance().player != null) {
             lastMovement = Minecraft.getInstance().player.position();
@@ -84,11 +91,11 @@ public class BBGCommand extends Command {
         AutoP3 autoP3 = RSM.getModule(AutoP3.class);
         if (lastMovement != null && Minecraft.getInstance().player != null) {
             ChatUtils.chat("Delta : " + Minecraft.getInstance().player.position().subtract(lastMovement).length());
-            ChatUtils.chat("Guess : " + AutoP3.getDisplacement(Minecraft.getInstance().player.getSpeed() * 10, true));
+            ChatUtils.chat("Guess : " + MovementPredictor.getDisplacementFromInput(Minecraft.getInstance().player.getSpeed() * 10, true));
         }
         if (Minecraft.getInstance().player != null)
             lastMovement = Minecraft.getInstance().player.position();
-        autoP3.queueYaw(0f);
+        autoP3.queueYaw(0f, false);
         return 1;
     }
 }
