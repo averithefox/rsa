@@ -1,28 +1,34 @@
 package com.ricedotwho.rsa.command.impl;
 
+import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import com.ricedotwho.rsa.module.impl.dungeon.BloodBlink;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.AutoP3;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AlignRing;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.MovementPredictor;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.*;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
-import com.ricedotwho.rsm.component.impl.map.Map;
-import com.ricedotwho.rsm.component.impl.map.map.RoomType;
-import com.ricedotwho.rsm.event.impl.game.ChatEvent;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 @CommandInfo(name = "bbg", description = "Auto P3 command")
 public class BBGCommand extends Command {
-    private Vec3 lastMovement = null;
 
     @Override
     public LiteralArgumentBuilder<ClientSuggestionProvider> build() {
@@ -30,72 +36,101 @@ public class BBGCommand extends Command {
                 .then(literal("center")
                         .executes(this::center)
                 )
-                .then(literal("add")
-                        .executes(this::addRing)
+                .then(literal("remove")
+                        .executes(this::removeRing)
                 )
-                .then(literal("test")
-                        .executes(this::test)
+                .then(literal("add")
+                        .then(argument("ring", BBGCommand.RingArgumentType.ringArgument())
+                            .executes(this::addRing)
+                        )
                 );
     }
 
     private int addRing(CommandContext<ClientSuggestionProvider> ctx) {
-        RSM.getModule(AutoP3.class).addRing(new AlignRing(Minecraft.getInstance().player.position()));
+        RingType type = BBGCommand.RingArgumentType.getRing(ctx, "ring");
+
+        RSM.getModule(AutoP3.class).addRing(type.supply(Minecraft.getInstance().player.position()));
+        return 1;
+    }
+
+    private int removeRing(CommandContext<ClientSuggestionProvider> ctx) {
+        if (Minecraft.getInstance().player == null) return 0;
+
+        Vec3 position = Minecraft.getInstance().player.position();
+        RSM.getModule(AutoP3.class).removeNearest(position);
         return 1;
     }
 
     private int center(CommandContext<ClientSuggestionProvider> ctx) {
-        if (Minecraft.getInstance().player == null) return 0;
-        Vec3 initialVelocity = Minecraft.getInstance().player.getDeltaMovement();
-        Vec2 initialDisplacement = MovementPredictor.getDisplacementVector(new Vec2((float) initialVelocity.x, (float) initialVelocity.z));
+        if (Minecraft.getInstance().player == null || !Minecraft.getInstance().isSingleplayer()) return 0;
 
-        Vec3 position = Minecraft.getInstance().player.position().add(initialDisplacement.x, 0d, initialDisplacement.y);
+        Vec3 position = Minecraft.getInstance().player.position();
         Vec3 target = new Vec3(Mth.floor(position.x) + 0.5d, position.y, Mth.floor(position.z) + 0.5d);
-        Vec3 delta = target.subtract(position);
-        double deltaLength = delta.length();
-        double displacement = MovementPredictor.getDisplacementFromInput(Minecraft.getInstance().player.getSpeed() * 10, true);
-
-
-
-        ChatUtils.chat("Guess : " + displacement);
-        if (deltaLength > 2 * displacement) {
-            AutoP3.chat("Too far!");
-            return 0;
-        }
-
-        AutoP3.chat("Centering!");
-        if (deltaLength < 0.01) return 1;
-
-
-        double yaw = (float) Math.atan2(-delta.z, delta.x);
-        double theta = Math.acos(deltaLength / (2 * displacement));
-
-        AutoP3 autoP3 = RSM.getModule(AutoP3.class);
-        autoP3.queueYaw((float) -Math.toDegrees(yaw + theta) - 90f, true);
-        autoP3.queueYaw((float) -Math.toDegrees(yaw - theta) - 90f, true);
+        Minecraft.getInstance().player.setPos(target);
         return 1;
     }
 
-    private int test(CommandContext<ClientSuggestionProvider> ctx) {
-        if (lastMovement != null && Minecraft.getInstance().player != null) {
-            ChatUtils.chat("Delta : " + Minecraft.getInstance().player.position().subtract(lastMovement).length());
-            ChatUtils.chat("Guess : " + MovementPredictor.getDisplacementMagnitude(new Vec2(1f, 1f)));
-        }
-        if (Minecraft.getInstance().player != null) {
-            lastMovement = Minecraft.getInstance().player.position();
-            Minecraft.getInstance().player.setDeltaMovement(1f, Minecraft.getInstance().player.getDeltaMovement().y, 1f);
-        }
-        return 1;
-    }
+//    private int test(CommandContext<ClientSuggestionProvider> ctx) {
+//        if (lastMovement != null && Minecraft.getInstance().player != null) {
+//            ChatUtils.chat("Delta : " + Minecraft.getInstance().player.position().subtract(lastMovement).length());
+//            ChatUtils.chat("Guess : " + MovementPredictor.getDisplacementMagnitude(new Vec2(1f, 1f)));
+//        }
+//        if (Minecraft.getInstance().player != null) {
+//            lastMovement = Minecraft.getInstance().player.position();
+//            Minecraft.getInstance().player.setDeltaMovement(1f, Minecraft.getInstance().player.getDeltaMovement().y, 1f);
+//        }
+//        return 1;
+//    }
+//
+//    private int test1(CommandContext<ClientSuggestionProvider> ctx) {
+//        AutoP3 autoP3 = RSM.getModule(AutoP3.class);
+//        if (lastMovement != null && Minecraft.getInstance().player != null) {
+//            ChatUtils.chat("Delta : " + Minecraft.getInstance().player.position().subtract(lastMovement).length());
+//            ChatUtils.chat("Guess : " + MovementPredictor.getDisplacementFromInput(Minecraft.getInstance().player.getSpeed() * 10, true));
+//        }
+//        if (Minecraft.getInstance().player != null)
+//            lastMovement = Minecraft.getInstance().player.position();
+//        autoP3.queueYaw(0f, false);
+//        return 1;
+//    }
 
-    private int test1(CommandContext<ClientSuggestionProvider> ctx) {
-        AutoP3 autoP3 = RSM.getModule(AutoP3.class);
-        if (lastMovement != null && Minecraft.getInstance().player != null) {
-            ChatUtils.chat("Delta : " + Minecraft.getInstance().player.position().subtract(lastMovement).length());
-            ChatUtils.chat("Guess : " + MovementPredictor.getDisplacementFromInput(Minecraft.getInstance().player.getSpeed() * 10, true));
+    private static class RingArgumentType implements ArgumentType<RingType> {
+        private static final Collection<String> EXAMPLES = Stream.of(RingType.ALIGN, RingType.WALK)
+                .map(RingType::getName)
+                .collect(Collectors.toList());
+        private static final RingType[] VALUES = RingType.values();
+        private static final DynamicCommandExceptionType INVALID_NODE_EXCEPTION = new DynamicCommandExceptionType(
+                ring -> Component.literal("Invalid ring type : " + ring)
+        );
+
+        public RingType parse(StringReader stringReader) throws CommandSyntaxException {
+            String string = stringReader.readUnquotedString();
+            RingType ring = RingType.byName(string);
+            if (ring == null) {
+                throw INVALID_NODE_EXCEPTION.createWithContext(stringReader, string);
+            } else {
+                return ring;
+            }
         }
-        if (Minecraft.getInstance().player != null)
-            lastMovement = Minecraft.getInstance().player.position();
-        autoP3.queueYaw(0f, false);
-        return 1;
+
+        @Override
+        public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
+            return context.getSource() instanceof SharedSuggestionProvider
+                    ? SharedSuggestionProvider.suggest(Arrays.stream(VALUES).map(RingType::getName), builder)
+                    : Suggestions.empty();
+        }
+
+        @Override
+        public Collection<String> getExamples() {
+            return EXAMPLES;
+        }
+
+        public static BBGCommand.RingArgumentType ringArgument() {
+            return new BBGCommand.RingArgumentType();
+        }
+
+        public static RingType getRing(CommandContext<ClientSuggestionProvider> context, String name) {
+            return context.getArgument(name, RingType.class);
+        }
     }
 }
