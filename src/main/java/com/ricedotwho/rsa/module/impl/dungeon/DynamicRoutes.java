@@ -181,7 +181,10 @@ public class DynamicRoutes extends Module {
         this.currentPathfinder = pathfinder;
         this.pathfinderThread = new Thread(() -> {
             Path path = pathfinder.calculate();
-            if (path == null) return;
+            if (path == null) {
+                this.cancelPathing();
+                return;
+            }
 
             this.queueSequence = path.consumeNodes(this::addNode, DynamicEtherwarpNode::fromBlockPos, this.queueSequence);
             this.currentPathfinder = null;

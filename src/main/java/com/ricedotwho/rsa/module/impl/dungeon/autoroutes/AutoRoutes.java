@@ -3,10 +3,14 @@ package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
 import com.ricedotwho.rsa.RSA;
+import com.ricedotwho.rsa.component.impl.pathfinding.*;
+import com.ricedotwho.rsa.module.impl.dungeon.DynamicRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BatNode;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BreakNode;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.DynamicEtherwarpNode;
+import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.Map;
@@ -28,16 +32,15 @@ import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.group.DefaultGroupSetting;
-import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
-import com.ricedotwho.rsm.ui.clickgui.settings.impl.ColourSetting;
-import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
-import com.ricedotwho.rsm.ui.clickgui.settings.impl.SaveSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.*;
 import com.ricedotwho.rsm.utils.Accessor;
+import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.FileUtils;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -53,6 +56,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.function.Consumer;
 
 @Getter
 @ModuleInfo(aliases = "Auto Routes", id = "Autoroutes", category = Category.DUNGEONS)
@@ -66,6 +70,7 @@ public class AutoRoutes extends Module implements Accessor {
     private final BooleanSetting editMode = new BooleanSetting("Edit Mode", false);
     private final KeybindSetting triggerBind = new KeybindSetting("Trigger Bind", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, this::onTrigger));
     private final KeybindSetting addBlockBind = new KeybindSetting("Add Block Bind", new Keybind(GLFW.GLFW_KEY_SEMICOLON, false, this::addBlockToInNode));
+    private final KeybindSetting routeStartBind = new KeybindSetting("Route to start Bind", new Keybind(GLFW.GLFW_KEY_ENTER, false, this::routeToStart));
 
     // uhh surely this won't cause issues...
     private final DefaultGroupSetting render = new DefaultGroupSetting("Render", this);
@@ -126,6 +131,7 @@ public class AutoRoutes extends Module implements Accessor {
                 use1_8Height,
                 triggerBind,
                 addBlockBind,
+                routeStartBind,
                 data,
                 render
         );
@@ -406,6 +412,39 @@ public class AutoRoutes extends Module implements Accessor {
             return;
         }
         opt.get().addOrRemoveBlock();
+    }
+
+    private void routeToStart() {
+        if (mc.player == null || hasGuiOpen()) return;
+        if (!Location.getArea().is(Island.Dungeon) || Dungeon.isInBoss() || this.activeNodes.isEmpty()) return;
+
+        Room currentRoom = Map.getCurrentRoom();
+        if (currentRoom == null || !this.activeNodes.containsKey(currentRoom.getData())) return;
+
+        BlockPos startPos = mc.player.blockPosition().below();
+
+        Node closestStart = this.activeNodes.get(currentRoom.getData())
+                .stream()
+                .filter(Node::isStart)
+                .min(Comparator.comparingDouble(n -> n.getRealPos().squaredDistanceTo(startPos.getCenter())))
+                .orElse(null);
+
+        if (closestStart == null) {
+            RSA.chat("Couldn't find a start node.");
+            return;
+        }
+
+        Pos goalPos = closestStart.getRealPos();
+        Goal goal = new GoalXYZ(goalPos.asBlockPos().below());
+
+        DynamicRoutes dynamicRoutes = RSM.getModule(DynamicRoutes.class);
+        if (!dynamicRoutes.isEnabled()) {
+            RSA.chat("Couldn't use dynamic routes (disabled).");
+            return;
+        }
+
+        dynamicRoutes.cancelPathing();
+        dynamicRoutes.executePath(startPos, goal);
     }
 
     public void save() {
