@@ -14,16 +14,20 @@ import java.util.Arrays;
 import java.util.function.Function;
 
 public enum RingType {
-    ALIGN("align", AlignRing::new),
-    WALK("walk", WalkRing::new),
-    STOP("stop", StopRing::new);
+    ALIGN("align", AlignRing::new, 0f),
+    WALK("walk", WalkRing::new, 0.01f),
+    STOP("stop", StopRing::new, 0.02f),
+    JUMP("jump", JumpRing::new, 0.03f);
 
     @Getter
     private final String name;
     private final Function<Vec3, Ring> factory;
+    @Getter
+    private final float renderSizeOffset;
 
-    RingType(String s, Function<Vec3, Ring> factory) {
+    RingType(String s, Function<Vec3, Ring> factory, float renderSizeOffset) {
         this.name = s;
+        this.renderSizeOffset = renderSizeOffset;
         this.factory = factory;
     }
 
