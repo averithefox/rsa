@@ -1,7 +1,12 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals;
 
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.InvWalk;
+import com.ricedotwho.rsm.component.impl.Terminals;
 import com.ricedotwho.rsm.data.Colour;
+import com.ricedotwho.rsm.module.impl.dungeon.boss.p3.terminal.TermSol;
+import com.ricedotwho.rsm.module.impl.dungeon.boss.p3.terminal.TerminalSolver;
+import com.ricedotwho.rsm.module.impl.dungeon.boss.p3.terminal.types.Melody;
+import com.ricedotwho.rsm.module.impl.dungeon.boss.p3.terminal.types.Term;
 import com.ricedotwho.rsm.utils.Utils;
 import com.ricedotwho.rsm.utils.render.render2d.NVGUtils;
 import net.minecraft.client.Minecraft;
@@ -93,46 +98,9 @@ public class TerminalRenderer {
         this.terminalContainer = null;
     }
 
-    //todo: make not look like shit
-    public void renderSolver(float g, Terminal terminal) {
-        Solution solution = terminal.getSolution();
-        if (solution == null || solution.clicks.isEmpty()) return;
-
-        boolean bl = terminal instanceof StartsWith || terminal instanceof Colors;
-        if (bl && terminal.isSolved())
-            tryUpdateOverrides(terminal);
-
-        float gap = g + 16;
-
-        switch (terminal.getType()) {
-            case COLORS, STARTSWITH, REDGREEN -> solution.clicks.forEach(click -> renderRect(gap, click.index(), InvWalk.getSolutionColour().getValue()));
-            case NUMBERS -> renderOrder(gap, solution);
-            case RUBIX -> renderRubix(gap, solution);
-        }
+    public void renderSolver(float gap) {
+        if (!Terminals.isInTerminal()) return;
+        Terminals.getCurrent().render(0, 0, gap, true);
     }
 
-    private void renderOrder(float gap, Solution solution) {
-        renderRect(gap, solution.clicks.getFirst().index(), InvWalk.getOrderColour1().getValue());
-
-        if (solution.clicks.size() > 1) {
-            renderRect(gap, solution.clicks.get(1).index(), InvWalk.getOrderColour2().getValue());
-        }
-        if (solution.clicks.size() > 2) {
-            renderRect(gap, solution.clicks.get(2).index(), InvWalk.getOrderColour3().getValue());
-        }
-    }
-
-    private void renderRubix(float gap, Solution solution) {
-        solution.clicks.forEach(click -> {
-            if (click instanceof RubixSolutionClick c) {
-                renderRect(gap, click.index(), c.button() == 0 ? InvWalk.getSolutionColour().getValue() : InvWalk.getOppositeColour().getValue());
-            }
-        });
-    }
-
-    private void renderRect(float gap, int index, Colour colour) {
-        float x = index % 9 * gap;
-        float y = (float) (Math.floor((double) index / 9) * gap);
-        NVGUtils.drawRect(x, y, 16, 16, colour);
-    }
 }
