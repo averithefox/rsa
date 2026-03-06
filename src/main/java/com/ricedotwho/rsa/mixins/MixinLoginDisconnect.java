@@ -19,8 +19,8 @@ public class MixinLoginDisconnect {
 
     @Inject(method = "handleDisconnect", at = @At("HEAD"))
     private void onLoginDisconnect(ClientboundLoginDisconnectPacket pPacket, CallbackInfo ci) {
-
         String msg = pPacket.reason().getString();
+        if(!msg.contains("banned")) return;
         String reason = extract(msg, "Reason: (.+)");
         String duration = extract(msg, "banned for ([\\d]+d\\s[\\d]+h\\s[\\d]+m\\s[\\d]+s)");
         String banId = extract(msg, "Ban ID: #([A-F0-9]+)");
