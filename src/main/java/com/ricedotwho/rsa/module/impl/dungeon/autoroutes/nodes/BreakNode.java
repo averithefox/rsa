@@ -3,14 +3,15 @@ package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes;
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
 import com.ricedotwho.rsa.RSA;
-import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
-import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.DungeonBreaker;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.NodeType;
+import com.ricedotwho.rsa.utils.InteractUtils;
 import com.ricedotwho.rsa.utils.render3d.type.Ring;
+import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
@@ -20,23 +21,17 @@ import com.ricedotwho.rsm.component.impl.task.TaskComponent;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.Accessor;
-import com.ricedotwho.rsm.utils.ChatUtils;
-import com.ricedotwho.rsm.utils.EtherUtils;
+import com.ricedotwho.rsm.utils.FileUtils;
 import com.ricedotwho.rsm.utils.render.render3d.type.FilledBox;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.ArrayList;
@@ -52,8 +47,6 @@ public class BreakNode extends Node implements Accessor {
         super(localPos, awaits, start);
         this.blocks = blocks;
     }
-
-    private static final double MAX_REACH = 5 * 5;
 
     @Getter
     @Expose
@@ -77,7 +70,7 @@ public class BreakNode extends Node implements Accessor {
             BlockPos bp = p.asBlockPos();
             BlockState state = mc.level.getBlockState(bp);
             VoxelShape shape = state.getShape(mc.level, bp);
-            return !shape.isEmpty() && DungeonBreaker.canInstantMine(state) && faceDistance(p.asVec3(), mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0)) <= MAX_REACH;
+            return !shape.isEmpty() && DungeonBreaker.canInstantMine(state) && InteractUtils.faceDistance(p.asVec3(), mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0)) <= InteractUtils.BLOCK_RANGE;
         }).toList();
 
         if (f.isEmpty()) return true;
@@ -85,13 +78,13 @@ public class BreakNode extends Node implements Accessor {
 
         if (AutoRoutes.getZeroTickBreak().getValue()) {
             for (Pos pos : f) {
-                breakBlock(pos, true, SwapManager.isDesynced());
+                InteractUtils.breakBlock(pos, true, SwapManager.isDesynced());
             }
             running = false;
         } else {
             for (int i = 0; i < f.size(); i++) {
                 Pos block = f.get(i);
-                TaskComponent.onTick(i, () -> breakBlock(block, true, SwapManager.isDesynced()));
+                TaskComponent.onTick(i, () -> InteractUtils.breakBlock(block, true, SwapManager.isDesynced()));
             }
             TaskComponent.onTick(f.size(), () -> running = false);
         }
@@ -102,13 +95,6 @@ public class BreakNode extends Node implements Accessor {
     public boolean cancel() {
         this.reset();
         return false;
-    }
-
-    @Override
-    public JsonObject serialize() {
-        JsonObject json = super.serialize();
-        json.add("blocks", AutoroutesFileManager.gson.toJsonTree(this.blocks));
-        return json;
     }
 
     @Override
@@ -141,6 +127,13 @@ public class BreakNode extends Node implements Accessor {
         return this.isStart() ? AutoRoutes.getStartColour().getValue() : AutoRoutes.getBreakColour().getValue();
     }
 
+    @Override
+    public JsonObject serialize() {
+        JsonObject json = super.serialize();
+        json.add("blocks", FileUtils.getGson().toJsonTree(this.blocks));
+        return json;
+    }
+
     public static BreakNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits, boolean start) {
         Room mainRoom = fullRoom.getMainRoom();
         Pos playerRelative = RoomUtils.getRelativePosition(new Pos(player.position()), mainRoom);
@@ -170,96 +163,8 @@ public class BreakNode extends Node implements Accessor {
         }
         this.calculate(Map.getCurrentRoom().getUniqueRoom());
 
-        AutoroutesFileManager.save();
+        RSM.getModule(AutoRoutes.class).save();
+        //AutoroutesFileManager.save();
     }
 
-    //todo: move to another class
-    public static void breakBlock(Pos pos, boolean remove, boolean sync) {
-        if (faceDistance(pos.asVec3(), mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0)) > MAX_REACH) return;
-        Direction dir = closestFace(pos.asVec3(), mc.player.getEyePosition());
-        PacketOrderManager.register(PacketOrderManager.STATE.ATTACK, () -> {
-            BlockPos bp = pos.asBlockPos();
-            SwapManager.sendC07(bp, ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, dir, true, sync);
-            if (remove) mc.level.setBlock(bp, Blocks.AIR.defaultBlockState(), 0);
-        });
-    }
-
-    private static double faceDistance(Vec3 pos, Vec3 player) {
-        double minDist = Double.MAX_VALUE;
-        for (Direction face : Direction.values()) {
-            double offsetX = 0;
-            double offsetY = 0;
-            double offsetZ = 0;
-
-            switch (face) {
-                case DOWN:
-                    offsetY = -0.5;
-                    break;
-                case UP:
-                    offsetY = 0.5;
-                    break;
-                case NORTH:
-                    offsetZ = -0.5;
-                    break;
-                case SOUTH:
-                    offsetZ = 0.5;
-                    break;
-                case WEST:
-                    offsetX = -0.5;
-                    break;
-                case EAST:
-                    offsetX = 0.5;
-                    break;
-            }
-
-            Vec3 faceVec = pos.add(0.5 + offsetX, 0.5 + offsetY, 0.5 + offsetZ);
-            double dist = player.distanceToSqr(faceVec);
-
-            if (dist < minDist) {
-                minDist = dist;
-            }
-        }
-        return minDist;
-    }
-
-    private static Direction closestFace(Vec3 pos, Vec3 player) {
-        double minDist = Double.MAX_VALUE;
-        Direction closest = Direction.UP;
-
-        for (Direction face : Direction.values()) {
-            double offsetX = 0;
-            double offsetY = 0;
-            double offsetZ = 0;
-
-            switch (face) {
-                case DOWN:
-                    offsetY = -0.5;
-                    break;
-                case UP:
-                    offsetY = 0.5;
-                    break;
-                case NORTH:
-                    offsetZ = -0.5;
-                    break;
-                case SOUTH:
-                    offsetZ = 0.5;
-                    break;
-                case WEST:
-                    offsetX = -0.5;
-                    break;
-                case EAST:
-                    offsetX = 0.5;
-                    break;
-            }
-
-            Vec3 faceVec = pos.add(0.5 + offsetX, 0.5 + offsetY, 0.5 + offsetZ);
-            double dist = player.distanceToSqr(faceVec);
-
-            if (dist < minDist) {
-                minDist = dist;
-                closest = face;
-            }
-        }
-        return closest;
-    }
 }

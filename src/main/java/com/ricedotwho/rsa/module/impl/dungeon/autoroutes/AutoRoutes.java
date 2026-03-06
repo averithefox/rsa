@@ -1,8 +1,8 @@
-package com.ricedotwho.rsa.module.impl.dungeon;
+package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.GsonBuilder;
 import com.ricedotwho.rsa.RSA;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BatNode;
@@ -10,6 +10,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BreakNode;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.Map;
+import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.map.RoomData;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
@@ -30,7 +31,9 @@ import com.ricedotwho.rsm.ui.clickgui.settings.group.DefaultGroupSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.ColourSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.SaveSetting;
 import com.ricedotwho.rsm.utils.Accessor;
+import com.ricedotwho.rsm.utils.FileUtils;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -42,15 +45,18 @@ import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 
+@Getter
 @ModuleInfo(aliases = "Auto Routes", id = "Autoroutes", category = Category.DUNGEONS)
 public class AutoRoutes extends Module implements Accessor {
-
-    @Getter
-    private final HashMap<String, List<Node>> savedNodes = new HashMap<>();
     private final HashMap<RoomData, List<Node>> activeNodes = new HashMap<>();
     private final HashMap<String, List<Node>> redoMap = new HashMap<>();
 
@@ -59,19 +65,26 @@ public class AutoRoutes extends Module implements Accessor {
     @Getter private static final BooleanSetting use1_8Height = new BooleanSetting("Use 1.8 height for placing node", false);
     private final BooleanSetting editMode = new BooleanSetting("Edit Mode", false);
     private final KeybindSetting triggerBind = new KeybindSetting("Trigger Bind", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, this::onTrigger));
-    private final KeybindSetting addBlockBind = new KeybindSetting("Add Block Bind", new Keybind(GLFW.GLFW_KEY_SEMICOLON, true, this::addBlockToInNode));
+    private final KeybindSetting addBlockBind = new KeybindSetting("Add Block Bind", new Keybind(GLFW.GLFW_KEY_SEMICOLON, false, this::addBlockToInNode));
 
     // uhh surely this won't cause issues...
     private final DefaultGroupSetting render = new DefaultGroupSetting("Render", this);
     @Getter private static final BooleanSetting startDepth = new BooleanSetting("Start Depth", false);
     @Getter private static final BooleanSetting nodeDepth = new BooleanSetting("Node Depth", true);
-    @Getter private static final ColourSetting startColour = new ColourSetting("Start", Colour.GREEN);
-    @Getter private static final ColourSetting etherwarpColour = new ColourSetting("Etherwarp", Colour.CYAN);
-    @Getter private static final ColourSetting breakColour = new ColourSetting("Break", Colour.YELLOW);
-    @Getter private static final ColourSetting boomColour = new ColourSetting("Boom", Colour.RED);
-    @Getter private static final ColourSetting batColour = new ColourSetting("Bat", Colour.BLUE);
-    @Getter private static final ColourSetting aotvColour = new ColourSetting("Aotv", Colour.MAGENTA);
-    @Getter private static final ColourSetting useColour = new ColourSetting("Use", Colour.WHITE); // idk
+    @Getter private static final ColourSetting startColour = new ColourSetting("Start", Colour.GREEN.copy());
+    @Getter private static final ColourSetting etherwarpColour = new ColourSetting("Etherwarp", Colour.CYAN.copy());
+    @Getter private static final ColourSetting breakColour = new ColourSetting("Break", Colour.YELLOW.copy());
+    @Getter private static final ColourSetting boomColour = new ColourSetting("Boom", Colour.RED.copy());
+    @Getter private static final ColourSetting batColour = new ColourSetting("Bat", Colour.BLUE.copy());
+    @Getter private static final ColourSetting aotvColour = new ColourSetting("Aotv", Colour.MAGENTA.copy());
+    @Getter private static final ColourSetting useColour = new ColourSetting("Use", Colour.WHITE.copy()); // idk
+
+    private final SaveSetting<HashMap<String, List<Node>>> data = new SaveSetting<>("Nodes", "routes", "routes.json", HashMap::new,
+            new TypeToken<HashMap<String, List<Node>>>() {}.getType(),
+            new GsonBuilder()
+                    .registerTypeHierarchyAdapter(Node.class, new NodeAdapter())
+                    .setPrettyPrinting().create(),
+            true, this::reload, null);
 
     private int tickTime = 0;
     private boolean forceNextNotSneak = false;
@@ -113,10 +126,12 @@ public class AutoRoutes extends Module implements Accessor {
                 use1_8Height,
                 triggerBind,
                 addBlockBind,
+                data,
                 render
         );
         render.add(startDepth, nodeDepth, startColour, etherwarpColour, breakColour, boomColour, batColour, aotvColour);
         this.inNode = null;
+        createBackup();
     }
 
     @SubscribeEvent
@@ -190,7 +205,7 @@ public class AutoRoutes extends Module implements Accessor {
     }
 
     private void cacheRoomNodes(Room room) {
-        List<Node> nodes = savedNodes.get(room.getData().name());
+        List<Node> nodes = data.getValue().get(room.getData().name());
         if (nodes == null || nodes.isEmpty()) return;
         UniqueRoom uniqueRoom = room.getUniqueRoom();
         nodes.forEach(n -> n.calculate(uniqueRoom));
@@ -215,7 +230,7 @@ public class AutoRoutes extends Module implements Accessor {
         List<Node> nodes = activeNodes.get(uniqueRoom.getMainRoom().getData());
         if (nodes.isEmpty()) return false;
         nodes.clear();
-        AutoroutesFileManager.save();
+        save();
         return true;
     }
 
@@ -237,7 +252,7 @@ public class AutoRoutes extends Module implements Accessor {
 
         if (bestIndex < 0) return false;
         nodes.remove(bestIndex);
-        AutoroutesFileManager.save();
+        save();
         return true;
     }
 
@@ -251,9 +266,8 @@ public class AutoRoutes extends Module implements Accessor {
         }
 
         Node node = nodes.removeLast();
-
         redoMap.get(uniqueRoom.getName()).add(node);
-        AutoroutesFileManager.save();
+        save();
 
         RSA.chat("Undid %s at %s", node.getName(), node.getRealPos().toChatString());
         return true;
@@ -267,22 +281,22 @@ public class AutoRoutes extends Module implements Accessor {
         if (redo.isEmpty()) return false;
         Node node = redo.removeLast();
         nodes.add(node);
-        AutoroutesFileManager.save();
+        save();
 
         RSA.chat("Redid %s at %s", node.getName(), node.getRealPos().toChatString());
         return true;
     }
 
     public void addNode(Node node, UniqueRoom uniqueRoom) {
-        this.savedNodes.putIfAbsent(uniqueRoom.getName(), new ArrayList<>());
-        List<Node> nodes = savedNodes.get(uniqueRoom.getName());
+        this.data.getValue().putIfAbsent(uniqueRoom.getName(), new ArrayList<>());
+        List<Node> nodes = data.getValue().get(uniqueRoom.getName());
         node.calculate(uniqueRoom);
         nodes.add(node); // Don't add to active nodes list because they share the same list objects
         if (!activeNodes.containsKey(uniqueRoom.getMainRoom().getData())) {
             // But we might need to add the list in the first place
             activeNodes.put(uniqueRoom.getMainRoom().getData(), nodes);
         }
-        AutoroutesFileManager.save();
+        save();
     }
 
     public void setForceSneak(boolean bl) {
@@ -309,7 +323,7 @@ public class AutoRoutes extends Module implements Accessor {
 
 
         if (this.inNode == null || Map.getCurrentRoom() == null) return;
-        if (!this.inNode.hasAwaits() || !this.inNode.getAwaitManager().hasAwait(AwaitSecrets.class)) return;
+        if (!this.inNode.hasAwaits() || !this.inNode.getAwaitManager().hasAwait(AwaitType.SECRETS)) return;
         if (!(event.getPacket() instanceof ServerboundUseItemOnPacket useItemOnPacket)) return;
         Block block = Minecraft.getInstance().level.getBlockState(useItemOnPacket.getHitResult().getBlockPos()).getBlock();
         if (block != Blocks.CHEST && block != Blocks.TRAPPED_CHEST && block != Blocks.PLAYER_HEAD && block != Blocks.LEVER) return;
@@ -324,7 +338,7 @@ public class AutoRoutes extends Module implements Accessor {
                 || this.inNode == null
                 || mc.level == null
                 || !this.inNode.hasAwaits()
-                || !this.inNode.getAwaitManager().hasAwait(AwaitSecrets.class)
+                || !this.inNode.getAwaitManager().hasAwait(AwaitType.SECRETS)
         ) return;
 
         if (event.getPacket() instanceof ClientboundTakeItemEntityPacket packet) {
@@ -383,7 +397,7 @@ public class AutoRoutes extends Module implements Accessor {
 
     private void addBlockToInNode() {
         Room currentRoom = Map.getCurrentRoom();
-        if (!Location.getArea().is(Island.Dungeon) || currentRoom == null || this.activeNodes.isEmpty() || mc.player == null || !this.activeNodes.containsKey(currentRoom.getData())) return;
+        if (!Location.getArea().is(Island.Dungeon) || Dungeon.isInBoss() || currentRoom == null || this.activeNodes.isEmpty() || mc.player == null || !this.activeNodes.containsKey(currentRoom.getData())) return;
         Pos playerPos = new Pos(mc.player.position());
         Optional<BreakNode> opt = this.activeNodes.get(currentRoom.getData())
                 .stream().filter(n -> n.isInNode(playerPos) && n instanceof BreakNode).map(n -> (BreakNode) n).findFirst();
@@ -394,4 +408,54 @@ public class AutoRoutes extends Module implements Accessor {
         opt.get().addOrRemoveBlock();
     }
 
+    public void save() {
+        data.save();
+    }
+
+    public void createBackup() {
+        File backUpDir = FileUtils.getCategoryFolder(data.getPath() + "/backups");
+        List<Long> timeStamps = getTimeStamps(backUpDir);
+        pruneBackups(backUpDir, timeStamps, 9);
+
+        File newBackup = new File(backUpDir, System.currentTimeMillis() + ".json");
+        try {
+            Files.copy(data.getFile().toPath(), newBackup.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            RSA.getLogger().error("Failed to create autoroute backup!", e);
+            return;
+        }
+        RSA.getLogger().info("Created autoroute backup");
+    }
+
+    private static @NotNull List<Long> getTimeStamps(File backUpDir) {
+        List<Long> timeStamps = new ArrayList<>();
+
+        for (File file : Objects.requireNonNull(backUpDir.listFiles())) {
+            String name = file.getName();
+            if (!name.endsWith(".json")) continue;
+            String timeString = name.substring(0, name.length() - 5);
+            if (timeString.isEmpty()) continue;
+            try {
+                timeStamps.add(Long.parseLong(timeString));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return timeStamps;
+    }
+
+    private static void pruneBackups(File backUpDir, List<Long> timeStamps, int maxSize) {
+        if (timeStamps.size() <= maxSize) return;
+
+        // Increasing order
+        timeStamps.sort(Long::compareTo);
+
+        for (int i = 0; i < timeStamps.size() - maxSize; i++) {
+            Long ts = timeStamps.get(i);
+            File file = new File(backUpDir, ts + ".json.bak");
+
+            if (file.exists() && !file.delete()) {
+                RSA.getLogger().error("Failed to delete old backup: {}", file.getName());
+            }
+        }
+    }
 }

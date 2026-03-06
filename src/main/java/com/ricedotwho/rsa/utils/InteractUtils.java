@@ -2,12 +2,15 @@ package com.ricedotwho.rsa.utils;
 
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.Accessor;
 import com.ricedotwho.rsm.utils.MathUtils;
 import com.ricedotwho.rsm.utils.RotationUtils;
 import lombok.experimental.UtilityClass;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -22,6 +25,8 @@ import net.minecraft.world.phys.Vec3;
 
 @UtilityClass
 public class InteractUtils implements Accessor {
+    public final double BLOCK_RANGE = 5.7 * 5.7;
+    public final double ENTITY_RANGE = 4d;
 
     /// Call this from {@link PacketOrderManager#register(PacketOrderManager.STATE, Runnable)} or risk a ban!
     public boolean interactOnEntity(Entity entity) {
@@ -89,5 +94,94 @@ public class InteractUtils implements Accessor {
         mc.gameMode.attack(mc.player, entity);
         mc.player.swing(InteractionHand.MAIN_HAND);
         return true;
+    }
+
+    public void breakBlock(Pos pos, boolean remove, boolean sync) {
+        if (faceDistance(pos.asVec3(), mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0)) > BLOCK_RANGE) return;
+        Direction dir = closestFace(pos.asVec3(), mc.player.getEyePosition());
+        PacketOrderManager.register(PacketOrderManager.STATE.ATTACK, () -> {
+            BlockPos bp = pos.asBlockPos();
+            SwapManager.sendC07(bp, ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, dir, true, sync);
+            if (remove) mc.level.setBlock(bp, Blocks.AIR.defaultBlockState(), 0);
+        });
+    }
+
+    public double faceDistance(Vec3 pos, Vec3 player) {
+        double minDist = Double.MAX_VALUE;
+        for (Direction face : Direction.values()) {
+            double offsetX = 0;
+            double offsetY = 0;
+            double offsetZ = 0;
+
+            switch (face) {
+                case DOWN:
+                    offsetY = -0.5;
+                    break;
+                case UP:
+                    offsetY = 0.5;
+                    break;
+                case NORTH:
+                    offsetZ = -0.5;
+                    break;
+                case SOUTH:
+                    offsetZ = 0.5;
+                    break;
+                case WEST:
+                    offsetX = -0.5;
+                    break;
+                case EAST:
+                    offsetX = 0.5;
+                    break;
+            }
+
+            Vec3 faceVec = pos.add(0.5 + offsetX, 0.5 + offsetY, 0.5 + offsetZ);
+            double dist = player.distanceToSqr(faceVec);
+
+            if (dist < minDist) {
+                minDist = dist;
+            }
+        }
+        return minDist;
+    }
+
+    public Direction closestFace(Vec3 pos, Vec3 player) {
+        double minDist = Double.MAX_VALUE;
+        Direction closest = Direction.UP;
+
+        for (Direction face : Direction.values()) {
+            double offsetX = 0;
+            double offsetY = 0;
+            double offsetZ = 0;
+
+            switch (face) {
+                case DOWN:
+                    offsetY = -0.5;
+                    break;
+                case UP:
+                    offsetY = 0.5;
+                    break;
+                case NORTH:
+                    offsetZ = -0.5;
+                    break;
+                case SOUTH:
+                    offsetZ = 0.5;
+                    break;
+                case WEST:
+                    offsetX = -0.5;
+                    break;
+                case EAST:
+                    offsetX = 0.5;
+                    break;
+            }
+
+            Vec3 faceVec = pos.add(0.5 + offsetX, 0.5 + offsetY, 0.5 + offsetZ);
+            double dist = player.distanceToSqr(faceVec);
+
+            if (dist < minDist) {
+                minDist = dist;
+                closest = face;
+            }
+        }
+        return closest;
     }
 }

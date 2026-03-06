@@ -5,10 +5,10 @@ import com.google.gson.annotations.Expose;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
-import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.NodeType;
 import com.ricedotwho.rsa.utils.render3d.type.Ring;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
@@ -18,32 +18,30 @@ import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.Accessor;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
+import com.ricedotwho.rsm.utils.FileUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
-import com.ricedotwho.rsm.utils.render.render3d.type.Line;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.entity.Pose;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 
 public class AotvNode extends Node implements Accessor {
     @Expose
-    private final Pos localRotationVector;
+    private final Pos rotationVec;
     private Pos realRotationVector;
 
     public AotvNode(Pos localPos, Pos localRotationVector, AwaitManager awaits, boolean start) {
         super(localPos, awaits, start);
-        this.localRotationVector = localRotationVector;
+        this.rotationVec = localRotationVector;
         this.realRotationVector = null;
     }
 
     @Override
     public void calculate(UniqueRoom room) {
         super.calculate(room);
-        this.realRotationVector = RoomUtils.rotateRealFixed(this.localRotationVector, room.getRotation());
+        this.realRotationVector = RoomUtils.rotateRealFixed(this.rotationVec, room.getRotation());
     }
 
     @Override
@@ -93,13 +91,6 @@ public class AotvNode extends Node implements Accessor {
     }
 
     @Override
-    public JsonObject serialize() {
-        JsonObject json = super.serialize();
-        json.add("rotationVec", AutoroutesFileManager.gson.toJsonTree(localRotationVector));
-        return json;
-    }
-
-    @Override
     public int getPriority() {
         return 8; // Slightly lower
     }
@@ -112,6 +103,13 @@ public class AotvNode extends Node implements Accessor {
     @Override
     public Colour getColour() {
         return this.isStart() ? AutoRoutes.getStartColour().getValue() : AutoRoutes.getAotvColour().getValue();
+    }
+
+    @Override
+    public JsonObject serialize() {
+        JsonObject json = super.serialize();
+        json.add("rotationVec", FileUtils.getGson().toJsonTree(rotationVec));
+        return json;
     }
 
     public static AotvNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits, boolean start) {

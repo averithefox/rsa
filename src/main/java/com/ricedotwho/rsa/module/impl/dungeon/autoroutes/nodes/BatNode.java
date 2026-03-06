@@ -4,9 +4,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
-import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.NodeType;
 import com.ricedotwho.rsa.utils.render3d.type.Ring;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.component.impl.map.Map;
@@ -70,14 +71,6 @@ public class BatNode extends Node {
     }
 
     @Override
-    public JsonObject serialize() {
-        JsonObject json = super.serialize();
-        json.addProperty("yaw", yaw);
-        json.addProperty("pitch", pitch);
-        return json;
-    }
-
-    @Override
     public void render(boolean depth) {
         Renderer3D.addTask(new Ring(new Vec3(getRealPos().x, getRealPos().y + 0.3f, getRealPos().z), depth, this.getRadius(), this.getColour()));
     }
@@ -95,6 +88,14 @@ public class BatNode extends Node {
     @Override
     public Colour getColour() {
         return this.isStart() ? AutoRoutes.getStartColour().getValue() : AutoRoutes.getBatColour().getValue();
+    }
+
+    @Override
+    public JsonObject serialize() {
+        JsonObject json = super.serialize();
+        json.addProperty("yaw", yaw);
+        json.addProperty("pitch", pitch);
+        return json;
     }
 
     public static BatNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits, boolean start) {

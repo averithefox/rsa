@@ -5,10 +5,10 @@ import com.google.gson.annotations.Expose;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
-import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.NodeType;
 import com.ricedotwho.rsa.utils.render3d.type.Ring;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
@@ -16,8 +16,8 @@ import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Pos;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
+import com.ricedotwho.rsm.utils.FileUtils;
 import com.ricedotwho.rsm.utils.RotationUtils;
 import com.ricedotwho.rsm.utils.render.render3d.type.FilledOutlineBox;
 import net.minecraft.client.KeyMapping;
@@ -94,13 +94,6 @@ public class BoomNode extends Node {
     }
 
     @Override
-    public JsonObject serialize() {
-        JsonObject json = super.serialize();
-        json.add("target", AutoroutesFileManager.gson.toJsonTree(target));
-        return json;
-    }
-
-    @Override
     public void render(boolean depth) {
         Colour c = AutoRoutes.getBoomColour().getValue();
         Renderer3D.addTask(new Ring(new Vec3(getRealPos().x, getRealPos().y + 0.2f, getRealPos().z), depth, this.getRadius(), this.getColour()));
@@ -120,6 +113,13 @@ public class BoomNode extends Node {
     @Override
     public Colour getColour() {
         return this.isStart() ? AutoRoutes.getStartColour().getValue() : AutoRoutes.getBoomColour().getValue();
+    }
+
+    @Override
+    public JsonObject serialize() {
+        JsonObject json = super.serialize();
+        json.add("target", FileUtils.getGson().toJsonTree(target));
+        return json;
     }
 
     public static BoomNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits, boolean start) {

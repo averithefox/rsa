@@ -6,10 +6,10 @@ import com.google.gson.annotations.Expose;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
-import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.NodeType;
 import com.ricedotwho.rsa.utils.render3d.type.Ring;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
@@ -18,8 +18,8 @@ import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Pos;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
+import com.ricedotwho.rsm.utils.FileUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
 import lombok.Setter;
 import net.minecraft.client.KeyMapping;
@@ -30,7 +30,7 @@ import net.minecraft.world.phys.Vec3;
 
 public class UseNode extends Node {
     @Expose
-    private final Pos localRotationVector;
+    private final Pos rotationVec;
     @Expose
     private final String itemID;
     @Expose
@@ -41,7 +41,7 @@ public class UseNode extends Node {
 
     public UseNode(Pos localPos, Pos localRotationVector, String itemID, boolean sneak, AwaitManager awaits, boolean start) {
         super(localPos, awaits, start);
-        this.localRotationVector = localRotationVector;
+        this.rotationVec = localRotationVector;
         this.itemID = itemID;
         this.sneak = sneak;
         this.realRotationVector = null;
@@ -50,7 +50,7 @@ public class UseNode extends Node {
     @Override
     public void calculate(UniqueRoom room) {
         super.calculate(room);
-        this.realRotationVector = RoomUtils.rotateRealFixed(this.localRotationVector, room.getRotation());
+        this.realRotationVector = RoomUtils.rotateRealFixed(this.rotationVec, room.getRotation());
     }
 
     @Override
@@ -79,7 +79,6 @@ public class UseNode extends Node {
             float[] angles = EtherUtils.getYawAndPitch(realRotationVector.x, realRotationVector.y, realRotationVector.z);
             if (!SwapManager.sendAirC08(angles[0], angles[1], swap, false)) {
                 RSA.chat("Failed to send use C08!");
-                return;
             }
         });
 
@@ -95,15 +94,6 @@ public class UseNode extends Node {
     }
 
     @Override
-    public JsonObject serialize() {
-        JsonObject json = super.serialize();
-        json.add("rotationVec", AutoroutesFileManager.gson.toJsonTree(localRotationVector));
-        json.add("itemID", new JsonPrimitive(this.itemID));
-        json.add("sneak", new JsonPrimitive(this.sneak));
-        return json;
-    }
-
-    @Override
     public int getPriority() {
         return 8; // Slightly lower
     }
@@ -116,6 +106,15 @@ public class UseNode extends Node {
     @Override
     public Colour getColour() {
         return this.isStart() ? AutoRoutes.getStartColour().getValue() : AutoRoutes.getUseColour().getValue();
+    }
+
+    @Override
+    public JsonObject serialize() {
+        JsonObject json = super.serialize();
+        json.add("rotationVec", FileUtils.getGson().toJsonTree(rotationVec));
+        json.addProperty("itemID", this.itemID);
+        json.addProperty("sneak", this.sneak);
+        return json;
     }
 
     public static UseNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits, boolean start) {

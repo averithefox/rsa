@@ -2,10 +2,10 @@ package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits;
 
 import com.google.gson.JsonObject;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitCondition;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitType;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.EtherwarpNode;
 import com.ricedotwho.rsm.data.Pos;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
@@ -14,7 +14,7 @@ public class AwaitEWRaytrace extends AwaitCondition<EtherwarpNode> {
 
 
     public AwaitEWRaytrace() {
-
+        super(AwaitType.ETHERWARP_TRACE);
     }
 
     public boolean test(Node node) {
@@ -31,8 +31,6 @@ public class AwaitEWRaytrace extends AwaitCondition<EtherwarpNode> {
         return blockPos.equals(etherPos);
     }
 
-
-
     @Override
     public void onEnter() {
 
@@ -43,13 +41,13 @@ public class AwaitEWRaytrace extends AwaitCondition<EtherwarpNode> {
 
     }
 
-    public void serialize(JsonObject json) {
-        json.addProperty("awaitEWRaytrace", true);
-    }
-
-
     protected void consume(EtherwarpNode node) {
         // Never called
+    }
+
+    @Override
+    public void serialize(JsonObject json) {
+        json.addProperty(getType().getName(), true);
     }
 
 }

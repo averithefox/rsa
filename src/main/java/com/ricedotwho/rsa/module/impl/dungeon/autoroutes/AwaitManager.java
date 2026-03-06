@@ -2,14 +2,20 @@ package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
 
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
+import lombok.Getter;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 public class AwaitManager {
     @Expose
-    private final HashMap<Class<? extends AwaitCondition<?>>, AwaitCondition<?>> awaits;
+    private final HashMap<AwaitType, AwaitCondition<?>> awaits;
+
+    public AwaitManager(HashMap<AwaitType, AwaitCondition<?>> awaits) {
+        this.awaits = awaits;
+    }
 
     public AwaitManager(Collection<AwaitCondition<?>> awaits) {
         if (awaits.isEmpty()) {
@@ -19,7 +25,7 @@ public class AwaitManager {
 
         this.awaits = new HashMap<>();
         for (AwaitCondition<?> await : awaits) {
-            this.awaits.putIfAbsent((Class<? extends AwaitCondition<?>>) await.getClass(), await);
+            this.awaits.putIfAbsent(await.getType(), await);
         }
     }
 
@@ -31,14 +37,8 @@ public class AwaitManager {
 
         this.awaits = new HashMap<>();
         for (AwaitCondition<?> await : conditions) {
-            awaits.putIfAbsent((Class<? extends AwaitCondition<?>>) await.getClass(), await);
+            awaits.putIfAbsent(await.getType(), await);
         }
-    }
-
-    public JsonObject serialize() {
-        JsonObject json = new JsonObject();
-        getAwaits().forEach(await -> await.serialize(json));
-        return json;
     }
 
     public void onEnterNode() {
@@ -61,8 +61,8 @@ public class AwaitManager {
         return this.awaits != null && !this.awaits.isEmpty();
     }
 
-    public boolean hasAwait(Class<? extends AwaitCondition<?>> clzz) {
-        return this.awaits.containsKey(clzz);
+    public boolean hasAwait(AwaitType type) {
+        return this.awaits.containsKey(type);
     }
 
     public  <T> void consume(Class<? extends AwaitCondition<T>> clzz, T value) {
@@ -71,11 +71,17 @@ public class AwaitManager {
         condition.consume(value);
     }
 
-    public <T extends AwaitCondition<?>> T getAwait(Class<T> clzz) {
-        AwaitCondition<?> await = awaits.get(clzz);
+    public <T extends AwaitCondition<?>> T getAwait(Class<T> clazz) {
+        AwaitCondition<?> await = awaits.get(AwaitType.byClass(clazz));
         if (await == null) return null;
-        return clzz.cast(await);
+        return clazz.cast(await);
     }
 
-
+    public JsonObject serialize() {
+        JsonObject obj = new JsonObject();
+        for (AwaitCondition<?> await : awaits.values()) {
+            await.serialize(obj);
+        }
+        return obj;
+    }
 }

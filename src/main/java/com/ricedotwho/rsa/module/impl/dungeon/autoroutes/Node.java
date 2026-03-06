@@ -2,19 +2,20 @@ package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
 
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
-import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Pos;
+import com.ricedotwho.rsm.utils.FileUtils;
 import lombok.Getter;
 import lombok.Setter;
 
 public abstract class Node {
     @Expose
     protected final Pos localPos;
+    @Getter
     @Expose
-    private final float r;
+    private final float radius;
     @Expose
     @Getter
     private final AwaitManager awaitManager;
@@ -29,7 +30,7 @@ public abstract class Node {
     private int lastTickTime;
 
     @Getter
-    protected Pos realPos;
+    protected transient Pos realPos;
 
     public Node(Pos localPos) {
         this(localPos, null);
@@ -45,7 +46,7 @@ public abstract class Node {
 
     public Node(Pos localPos, AwaitManager awaitManager, float r, boolean start) {
         this.localPos = localPos;
-        this.r = r;
+        this.radius = r;
         this.awaitManager = awaitManager;
         this.start = start;
 
@@ -74,10 +75,6 @@ public abstract class Node {
         return false;
     }
 
-    public float getRadius() {
-        return r;
-    }
-
     public int getPriority() {
         return 8;
     }
@@ -88,7 +85,7 @@ public abstract class Node {
                     && playerPos.y() >= this.realPos.y() && playerPos.y() <= this.realPos.y() + 0.05
                     && this.realPos.z() == playerPos.z();
         }
-        return playerPos.squaredDistanceTo(this.realPos) <= r * r;
+        return playerPos.squaredDistanceTo(this.realPos) <= radius * radius;
     }
 
     public void updateLastTickTime(int lastTickTime) {
@@ -125,8 +122,8 @@ public abstract class Node {
     public JsonObject serialize() {
         JsonObject json = new JsonObject();
         json.addProperty("type", this.getName());
-        json.add("localPos", AutoroutesFileManager.gson.toJsonTree(localPos));
-        json.addProperty("radius", r);
+        json.add("localPos", FileUtils.getGson().toJsonTree(localPos));
+        json.addProperty("radius", radius);
         json.addProperty("start", start);
         if (this.awaitManager == null || !this.awaitManager.hasAwaits()) return json;
         json.add("awaits", this.awaitManager.serialize());

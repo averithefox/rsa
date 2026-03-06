@@ -5,20 +5,20 @@ import com.google.gson.annotations.Expose;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
-import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoroutesFileManager;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.NodeType;
 import com.ricedotwho.rsa.utils.render3d.type.Ring;
-import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Pos;
-import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.module.impl.movement.Ether;
 import com.ricedotwho.rsm.utils.EtherUtils;
+import com.ricedotwho.rsm.utils.FileUtils;
 import com.ricedotwho.rsm.utils.render.render3d.type.Line;
 import lombok.Getter;
 import net.minecraft.client.KeyMapping;
@@ -28,23 +28,24 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
+import org.apache.commons.lang3.reflect.FieldUtils;
 
 public class EtherwarpNode extends Node {
     @Expose
-    protected final Pos localTargetPos;
+    protected final Pos localTarget;
     @Getter
     protected Pos realTargetPos;
 
     public EtherwarpNode(Pos localPos, Pos localTargetPos, AwaitManager awaits, boolean start) {
         super(localPos, awaits, start);
-        this.localTargetPos = localTargetPos;
+        this.localTarget = localTargetPos;
         this.realTargetPos = null;
     }
 
     @Override
     public void calculate(UniqueRoom room) {
         super.calculate(room);
-        this.realTargetPos = RoomUtils.getRealPosition(this.localTargetPos, room.getMainRoom());
+        this.realTargetPos = RoomUtils.getRealPosition(this.localTarget, room.getMainRoom());
     }
 
     @Override
@@ -102,13 +103,6 @@ public class EtherwarpNode extends Node {
     }
 
     @Override
-    public JsonObject serialize() {
-        JsonObject json = super.serialize();
-        json.add("localTarget", AutoroutesFileManager.gson.toJsonTree(localTargetPos));
-        return json;
-    }
-
-    @Override
     public int getPriority() {
         return 5; // Slightly lower
     }
@@ -121,6 +115,13 @@ public class EtherwarpNode extends Node {
     @Override
     public Colour getColour() {
         return this.isStart() ? AutoRoutes.getStartColour().getValue() : AutoRoutes.getEtherwarpColour().getValue();
+    }
+
+    @Override
+    public JsonObject serialize() {
+        JsonObject json = super.serialize();
+        json.add("localTarget", FileUtils.getGson().toJsonTree(localTarget));
+        return json;
     }
 
     public static EtherwarpNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits, boolean start) {

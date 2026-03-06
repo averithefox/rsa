@@ -12,11 +12,12 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.ricedotwho.rsa.RSA;
-import com.ricedotwho.rsa.module.impl.dungeon.AutoRoutes;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.*;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitEWRaytrace;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.UseNode;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
@@ -25,7 +26,6 @@ import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
@@ -81,27 +81,31 @@ public class RouteCommand extends Command {
                 .then(literal("redo")
                         .executes(RouteCommand::redoNode)
                 )
-                .then(literal("backup")
-                        .executes((ctx) -> {
-                            AutoroutesFileManager.createBackup();
-                            RSA.chat("Made backup!");
-                            return 1;
-                        })
-                )
+//                .then(literal("backup")
+//                        .executes((ctx) -> {
+//                            AutoroutesFileManager.createBackup();
+//                            RSA.chat("Made backup!");
+//                            return 1;
+//                        })
+//                )
                 .then(literal("undo")
                         .executes(RouteCommand::undoNode)
                 );
     }
 
     private static int loadNodes(CommandContext<ClientSuggestionProvider> ctx) {
-        boolean bl = AutoroutesFileManager.load();
-        if (bl) {
-            // Should recalculate positions?
-            RSA.chat("Loaded nodes!");
-            return 1;
-        }
-        RSA.chat("Failed to load nodes! Check logs!");
-        return 0;
+
+        RSM.getModule(AutoRoutes.class).reload();
+        RSA.chat("Loaded nodes");
+        return 1;
+        //boolean bl = AutoroutesFileManager.load();
+//        if (bl) {
+//            // Should recalculate positions?
+//            RSA.chat("Loaded nodes!");
+//            return 1;
+//        }
+//        RSA.chat("Failed to load nodes! Check logs!");
+//        return 0;
     }
 
     private static int clearNodes(CommandContext<ClientSuggestionProvider> ctx) {
