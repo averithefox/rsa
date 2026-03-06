@@ -10,6 +10,11 @@ public class WalkRing extends Ring {
     @Getter
     private float yaw;
 
+    @Override
+    public RingType getType() {
+        return RingType.WALK;
+    }
+
     public WalkRing(Vec3 pos) {
         super(pos, 0.5, RingType.WALK.getRenderSizeOffset());
         this.yaw = Minecraft.getInstance().gameRenderer.getMainCamera().yaw();

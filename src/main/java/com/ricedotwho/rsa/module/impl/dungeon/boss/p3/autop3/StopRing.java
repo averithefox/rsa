@@ -13,6 +13,11 @@ public class StopRing extends Ring {
     }
 
     @Override
+    public RingType getType() {
+        return RingType.STOP;
+    }
+
+    @Override
     public boolean run() {
         KeyMapping.releaseAll();
         return false;

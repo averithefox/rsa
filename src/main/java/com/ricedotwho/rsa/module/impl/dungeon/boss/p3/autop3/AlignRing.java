@@ -28,6 +28,11 @@ public class AlignRing extends Ring {
     }
 
     @Override
+    public RingType getType() {
+        return RingType.ALIGN;
+    }
+
+    @Override
     public boolean run() {
         yaws = null; // need to set for checking if has run
         if (Minecraft.getInstance().player == null || !Minecraft.getInstance().player.onGround()) {

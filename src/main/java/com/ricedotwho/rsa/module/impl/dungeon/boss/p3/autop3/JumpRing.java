@@ -10,6 +10,11 @@ public class JumpRing extends Ring {
         super(pos, 0.5, RingType.JUMP.getRenderSizeOffset());
     }
 
+    @Override
+    public RingType getType() {
+        return RingType.JUMP;
+    }
+
 
     @Override
     public boolean run() {

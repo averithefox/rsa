@@ -1,5 +1,7 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.GsonBuilder;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationHandler;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationProvider;
 import com.ricedotwho.rsm.component.impl.location.Island;
@@ -15,6 +17,7 @@ import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.SaveSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -32,7 +35,14 @@ public class AutoP3 extends Module implements ClientRotationProvider {
 
     private final BooleanSetting forceSkyblock = new BooleanSetting("Force Skyblock", false);
 
-    private final List<Ring> rings;
+    private final SaveSetting<List<Ring>> data = new SaveSetting<>("Rings", "", "rings.json", ArrayList::new,
+            new TypeToken<List<Ring>>() {}.getType(),
+            new GsonBuilder()
+                    .registerTypeHierarchyAdapter(Ring.class, new RingAdapter())
+                    .setPrettyPrinting().create(),
+            true, this::reload, null);
+
+    private List<Ring> rings;
     private boolean desync = false;
     private boolean lastDesync = false;
     private final List<Ring> activeRings;
@@ -76,6 +86,11 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         if (mutableInput.isModified()) {
             event.getInputConsumer().accept(mutableInput.toInput());
         }
+    }
+
+    private void reload() {
+        this.rings.clear();
+        this.rings.addAll(data.getValue());
     }
 
     protected void onDesyncEnable() {
@@ -127,12 +142,16 @@ public class AutoP3 extends Module implements ClientRotationProvider {
 
     public void addRing(Ring ring) {
         ring.setTriggered(true); // So it doesn't activate instantly
+        List<Ring> saveRings;
         synchronized (rings) {
             this.rings.add(ring);
+            saveRings = List.copyOf(this.rings); // need to copy over so it doesn't block render thread when saving to disk
         }
+        AutoP3Loader.save(saveRings);
     }
 
     public void removeNearest(Vec3 pos) {
+        List<Ring> saveRings;
         synchronized (rings) {
             int index = IntStream.range(0, rings.size())
                 .boxed()
@@ -140,7 +159,9 @@ public class AutoP3 extends Module implements ClientRotationProvider {
                 .orElse(-1);
             if (index < 0) return;
             rings.remove(index);
+            saveRings = List.copyOf(this.rings); // need to copy over so it doesn't block render thread when saving to disk
         }
+        AutoP3Loader.save(saveRings);
     }
 
     protected void setDesync(boolean bl) {

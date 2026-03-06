@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
 
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.NodeType;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
@@ -54,6 +55,8 @@ public abstract class Ring{
         float dz = (float) (((this.box.maxZ + this.box.minZ) / 2f) - vec3.z);
         return dx * dx + dy * dy + dz * dz;
     }
+
+    public abstract RingType getType();
 
     public void reset() {
         this.triggered = false;

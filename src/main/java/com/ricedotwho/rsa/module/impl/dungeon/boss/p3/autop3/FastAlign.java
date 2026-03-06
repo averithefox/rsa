@@ -11,6 +11,11 @@ public class FastAlign extends AlignRing {
     }
 
     @Override
+    public RingType getType() {
+        return RingType.FAST_ALIGN;
+    }
+
+    @Override
     protected double getPrecision() {
         return 0.25d * 0.25d; // The velocity will carry and it will end up much better than 0.25
     }

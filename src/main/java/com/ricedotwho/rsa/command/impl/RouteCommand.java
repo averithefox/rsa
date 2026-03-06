@@ -94,7 +94,6 @@ public class RouteCommand extends Command {
     }
 
     private static int loadNodes(CommandContext<ClientSuggestionProvider> ctx) {
-
         RSM.getModule(AutoRoutes.class).reload();
         RSA.chat("Loaded nodes");
         return 1;

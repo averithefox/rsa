@@ -3,6 +3,7 @@ package com.ricedotwho.rsa;
 import com.ricedotwho.rsa.command.impl.*;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.BreakerAura;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.VelocityBuffer;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p4.InstaMid;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p2.PadTimer;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
@@ -124,6 +125,7 @@ public class RSA implements Addon {
                 AutoUlt.class,
                 TerminalSolver.class,
                 Relics.class,
+                VelocityBuffer.class,
                 BreakerAura.class
         );
     }
