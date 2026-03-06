@@ -1,7 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals;
 
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.InvWalk;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.types.Colors;
 import com.ricedotwho.rsm.component.impl.Terminals;
 import com.ricedotwho.rsm.utils.Utils;
 import net.minecraft.client.Minecraft;

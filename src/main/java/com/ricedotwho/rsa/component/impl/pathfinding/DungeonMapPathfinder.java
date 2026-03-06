@@ -127,8 +127,8 @@ public class DungeonMapPathfinder {
 
                 int doorX = this.x * 2 + d[0];
                 int doorZ = this.z * 2 + d[1];
-                //ChatUtils.chat("X room : " + this.x * 2 + ", door : " + doorX);
-                //ChatUtils.chat("Y room : " + this.z * 2 + ", door : " + doorZ);
+                //RSA.chat("X room : " + this.x * 2 + ", door : " + doorX);
+                //RSA.chat("Y room : " + this.z * 2 + ", door : " + doorZ);
 
                 if (newX >= 0 && newZ >= 0 && newX < 6 && newZ < 6 && doorX >= 0 && doorZ >= 0 && doorX < 11 && doorZ < 11) {
                     Tile tile = DungeonInfo.getDungeonList()[newX * 2 + newZ * 22];
@@ -136,14 +136,14 @@ public class DungeonMapPathfinder {
 
                     if (newRoom.getUniqueRoom() != this.room.getUniqueRoom()) {
                         if (!(DungeonInfo.getDungeonList()[doorX + doorZ * 11] instanceof Door door)) {
-                            //ChatUtils.chat("No door found!");
+                            //RSA.chat("No door found!");
                             continue;
                         }
 
                         //if (door.getType() == DoorType.BLOOD || door.getType() == DoorType.WITHER) continue;
 
-                        //ChatUtils.chat("Found door at : " + door.getX() + ", " + door.getZ());
-                        //ChatUtils.chat(door.getType());
+                        //RSA.chat("Found door at : " + door.getX() + ", " + door.getZ());
+                        //RSA.chat(door.getType());
                     }
 
 
