@@ -1,11 +1,14 @@
 package com.ricedotwho.rsa.component.impl.managers;
 
+import net.minecraft.server.commands.SpawnArmorTrimsCommand;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PacketOrderManager {
-    private static final HashMap<STATE, List<Runnable>> packets = new HashMap<>();
+    private static final ConcurrentHashMap<STATE, List<Runnable>> packets = new ConcurrentHashMap<>();
     private PacketOrderManager() {
 
     }
@@ -16,16 +19,25 @@ public class PacketOrderManager {
     }
 
     public static void register(STATE state, Runnable runnable) {
-        if (!packets.containsKey(state)) packets.put(state, new ArrayList<>());
-        packets.get(state).add(runnable);
+        synchronized (packets) {
+            if (!packets.containsKey(state)) packets.put(state, new ArrayList<>());
+        }
+
+        List<Runnable> list = packets.get(state);
+        synchronized (list) {
+            list.add(runnable);
+        }
     }
 
     public static void execute(STATE state) {
         if (!packets.containsKey(state)) return;
+
         List<Runnable> runnables = packets.get(state);
-        if (runnables.isEmpty()) return;
-        runnables.forEach(Runnable::run);
-        runnables.clear();
+        synchronized (runnables) {
+            if (runnables.isEmpty()) return;
+            runnables.forEach(Runnable::run);
+            runnables.clear();
+        }
     }
 
 }
