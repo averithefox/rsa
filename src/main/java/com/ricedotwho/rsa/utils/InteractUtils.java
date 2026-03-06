@@ -73,9 +73,7 @@ public class InteractUtils implements Accessor {
         BlockHitResult result = RotationUtils.collisionRayTrace(pos, blockAABB, eyePos, center);
         if (result == null) return false;
 
-        PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
-            SwapManager.sendBlockC08(result.getLocation(), result.getDirection(), swing, true);
-        });
+        SwapManager.sendBlockC08(result.getLocation(), result.getDirection(), swing, true);
         return true;
     }
 

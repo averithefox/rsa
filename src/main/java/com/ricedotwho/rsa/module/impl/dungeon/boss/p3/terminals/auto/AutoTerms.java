@@ -7,6 +7,8 @@ import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.event.impl.RawTickEvent;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.*;
 import com.ricedotwho.rsm.RSM;
+import com.ricedotwho.rsm.component.impl.Terminals;
+import com.ricedotwho.rsm.event.api.EventPriority;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
@@ -208,7 +210,8 @@ public class AutoTerms extends Module {
         }
     }
 
-    @SubscribeEvent
+    /// This should run before {@link Terminals#onPacketRaw(PacketEvent.Receive)}
+    @SubscribeEvent(priority = EventPriority.HIGH) 
     public void onReceivePacket(PacketEvent.Receive event) {
         if (event.getPacket() instanceof ClientboundOpenScreenPacket packet) {
             if (packet.getContainerId() < 1 || packet.getContainerId() > 100) return;
