@@ -14,6 +14,7 @@ import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -30,6 +31,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     private static final MutableComponent PREFIX = Component.literal("§6[§8byebyebalding§6] §r");
 
     private final BooleanSetting forceSkyblock = new BooleanSetting("Force Skyblock", false);
+
     private final List<Ring> rings;
     private boolean desync = false;
     private boolean lastDesync = false;

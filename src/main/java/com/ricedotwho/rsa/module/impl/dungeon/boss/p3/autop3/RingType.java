@@ -15,9 +15,10 @@ import java.util.function.Function;
 
 public enum RingType {
     ALIGN("align", AlignRing::new, 0f),
-    WALK("walk", WalkRing::new, 0.01f),
+    FAST_ALIGN("fastalign", FastAlign::new, 0.01f),
     STOP("stop", StopRing::new, 0.02f),
-    JUMP("jump", JumpRing::new, 0.03f);
+    WALK("walk", WalkRing::new, 0.03f),
+    JUMP("jump", JumpRing::new, 0.04f);
 
     @Getter
     private final String name;

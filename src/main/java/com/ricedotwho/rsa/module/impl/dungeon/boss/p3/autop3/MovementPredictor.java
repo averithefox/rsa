@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
 
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 
@@ -18,6 +19,16 @@ public class MovementPredictor {
         int movementTicks = getInputMovementTicks(walkSpeed);
 
         return 0.098 * walkSpeed * (1.0 - Math.pow(0.546000082, movementTicks)) / (1.0 - 0.546000082); // Don't mind the constants
+    }
+
+    public static double squaredAfterTick(double fwd, double right, double dFwd, double dRight) {
+        double nf = (fwd + dFwd) * 0.546000082;
+        double nr = (right + dRight) * 0.546000082;
+        return nf * nf + nr * nr;
+    }
+
+    public static int getMovementTicks(float dx, float dy) {
+        return (int) Math.ceil(Math.log(0.003 / Mth.sqrt(dx * dx + dy + dy)) / Math.log(0.546000082));
     }
 
     public static double getDisplacementMagnitude(Vec2 velocity) {

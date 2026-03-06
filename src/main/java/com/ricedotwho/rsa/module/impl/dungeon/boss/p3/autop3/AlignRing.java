@@ -2,6 +2,7 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
 
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.data.Colour;
+import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.client.KeyMapping;
@@ -19,7 +20,11 @@ public class AlignRing extends Ring {
     private Queue<Pair<Float, Boolean>> yaws;
 
     public AlignRing(Vec3 pos) {
-        super(pos, 0.5, RingType.ALIGN.getRenderSizeOffset());
+        this(pos, RingType.ALIGN.getRenderSizeOffset());
+    }
+
+    public AlignRing(Vec3 pos, double renderOffset) {
+        super(pos, 0.5, renderOffset);
     }
 
     @Override
@@ -34,7 +39,8 @@ public class AlignRing extends Ring {
         Vec2 initialDisplacement = MovementPredictor.getDisplacementVector(new Vec2((float) initialVelocity.x, (float) initialVelocity.z));
 
         Vec3 position = Minecraft.getInstance().player.position();
-        Vec3 target = new Vec3(Mth.floor(position.x) + 0.5d, position.y, Mth.floor(position.z) + 0.5d);
+        Vec3 boxCenter = this.getBox().getCenter();
+        Vec3 target = new Vec3(boxCenter.x, position.y, boxCenter.z);
         Vec3 delta = target.subtract(position.add(initialDisplacement.x, 0d, initialDisplacement.y));
         double deltaLength = delta.length();
 
@@ -76,6 +82,10 @@ public class AlignRing extends Ring {
         return 100;
     }
 
+    protected double getPrecision() {
+        return 0.01 * 0.01;
+    }
+
     @Override
     public boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3) {
         if (yaws == null) {
@@ -87,7 +97,13 @@ public class AlignRing extends Ring {
         }
 
         if (yaws.isEmpty()) {
-            return Minecraft.getInstance().player.getDeltaMovement().x == 0 && Minecraft.getInstance().player.getDeltaMovement().z == 0;
+            Vec3 vel = Minecraft.getInstance().player.getDeltaMovement();
+            if (vel.x == 0 && vel.z == 0) return true;
+            if (vel.lengthSqr() > (0.3 * 0.3d)) return false; // Too high yet, can't stop early
+
+            Vec3 boxCenter = this.getBox().getCenter();
+            Vec3 target = new Vec3(boxCenter.x, Minecraft.getInstance().player.position().y, boxCenter.z);
+            return Minecraft.getInstance().player.position().distanceToSqr(target) <= getPrecision();
         }
 
         if (yaws.peek().getB() && !Minecraft.getInstance().player.getLastSentInput().shift()) {
