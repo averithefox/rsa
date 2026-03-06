@@ -2,6 +2,7 @@ package com.ricedotwho.rsa.command.impl;
 
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.TickFreeze;
 import com.ricedotwho.rsa.utils.Util;
 import com.ricedotwho.rsm.command.Command;
@@ -34,7 +35,7 @@ public class RSADevCommand extends Command {
                 )
                 .then(literal("iszero")
                         .executes(ctx -> {
-                            ChatUtils.chat("Zero: %s", Util.isZero());
+                            RSA.chat("Zero: %s", Util.isZero());
                             return 1;
                         })
                 );

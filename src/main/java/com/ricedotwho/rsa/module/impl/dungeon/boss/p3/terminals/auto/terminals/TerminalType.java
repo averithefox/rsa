@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals;
 
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.types.*;
 import lombok.Getter;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.world.inventory.AbstractContainerMenu;

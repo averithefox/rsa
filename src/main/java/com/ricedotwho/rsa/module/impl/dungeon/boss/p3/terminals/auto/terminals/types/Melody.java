@@ -1,6 +1,7 @@
-package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.types;
 
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.*;
 import com.ricedotwho.rsm.RSM;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;

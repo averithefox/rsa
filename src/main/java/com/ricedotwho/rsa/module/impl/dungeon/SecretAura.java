@@ -32,6 +32,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Pose;
@@ -65,6 +66,9 @@ public class SecretAura extends Module {
 
     private static final String REDSTONE_KEY_ID = "fed95410-aba1-39df-9b95-1d4f361eb66e";
     private static final String WITHER_ESSENCE_ID = "e0f3e929-869e-3dca-9504-54c666ee6f23";
+    private static final Component CHEST_KEY = Component.translatable("container.chest");
+    private static final Component LARGE_CHEST_KEY = Component.translatable("container.chestDouble");
+
     private final HashSet<Integer> BOSS_LEVERS = new HashSet<>();
     private final HashSet<Integer> LIGHTS_DEV = new HashSet<>();
 
@@ -138,8 +142,7 @@ public class SecretAura extends Module {
     public void onReceivePacket(PacketEvent.Receive event) {
         if (!this.autoClose.getValue() || !Location.getArea().is(Island.Dungeon)) return;
         if (!(event.getPacket() instanceof ClientboundOpenScreenPacket openScreenPacket) || Minecraft.getInstance().getConnection() == null) return;
-        String name = openScreenPacket.getTitle().getString();
-        if (!name.equals("Chest") && !name.equals("Large Chest")) return;
+        if (!Utils.equalsOneOf(openScreenPacket.getTitle(), CHEST_KEY, LARGE_CHEST_KEY)) return;
 
         int windowId = openScreenPacket.getContainerId();
         Minecraft.getInstance().getConnection().send(new ServerboundContainerClosePacket(windowId));

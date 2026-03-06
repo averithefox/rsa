@@ -1,13 +1,7 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
 
-import com.mojang.datafixers.util.Function4;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitManager;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.*;
-import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.Arrays;

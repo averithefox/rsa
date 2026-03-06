@@ -1,7 +1,7 @@
-package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.types;
 
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
-import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.*;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;

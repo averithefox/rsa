@@ -82,7 +82,7 @@ public class InvWalk extends SubModule<AutoTerms> {
             if (!module.isInTerm()) return;
             int slots = Utils.getGuiSlotCount(module.getTerminalContainer().getType());
 
-            if (this.renderClicksLeft.getValue()) {
+            if (this.renderClicksLeft.getValue() && Terminals.getCurrent() != null) {
                 String remainingText = "Clicks remaining: ";
                 String clicks = Terminals.getCurrent() instanceof Melody mel ? mel.getProgress() + "/4" : String.valueOf(Terminals.getCurrent().getSolution().size());
                 if (clicksMCFont.getValue()) {

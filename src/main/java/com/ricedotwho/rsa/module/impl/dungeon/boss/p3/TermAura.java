@@ -7,6 +7,7 @@ import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
+import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.data.Phase7;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
@@ -27,13 +28,13 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 
-@ModuleInfo(aliases = "Term Aura", id = "Term Aura", category = Category.DUNGEONS)
+@ModuleInfo(aliases = "Term Aura", id = "TermAura", category = Category.DUNGEONS)
 public class TermAura extends Module {
     private static final double AURA_RANGE = 4d; // Vanilla is 3.0F
     private static final double AURA_RANGE_SQ = AURA_RANGE * AURA_RANGE;
 
     private final NumberSetting delay = new NumberSetting("Delay", 50d, 5000d, 500d, 50d);
-    private final BooleanSetting showArmorStands = new BooleanSetting("Show Hitboxes", true);
+    private final BooleanSetting showArmorStands = new BooleanSetting("Show Hitboxes", false);
     private final BooleanSetting forceSkyblock = new BooleanSetting("Force Skyblock", false);
 
     private long lastClick = 0L;
@@ -48,6 +49,7 @@ public class TermAura extends Module {
 
     @SubscribeEvent
     public void onTick(ClientTickEvent.Start event) {
+        if (mc.screen != null) return;
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, this::rapeArmorstands);
     }
 
@@ -74,7 +76,7 @@ public class TermAura extends Module {
         }
 
         if (bestCandidate == null) return;
-        ChatUtils.chat(bestDistance);
+        //RSA.chat(bestDistance);
 
 
         Vec3 vec3 = MathUtils.clamp(bestCandidate.getBoundingBox(), eyePos).subtract(bestCandidate.getX(), bestCandidate.getY(), bestCandidate.getZ());
@@ -94,7 +96,7 @@ public class TermAura extends Module {
     }
 
     private boolean locationCheck() {
-        return forceSkyblock.getValue() || (Location.getArea().is(Island.Dungeon) && (Location.getFloor() == Floor.F7 || Location.getFloor() == Floor.M7) && DungeonUtils.isPhase(Phase7.P3)); // && Dungeon.isInBoss() broke shit on rejoin
+        return forceSkyblock.getValue() || (Location.getArea().is(Island.Dungeon) && (Location.getFloor() == Floor.F7 || Location.getFloor() == Floor.M7) && DungeonUtils.isPhase(Phase7.P3) && Dungeon.isInBoss());
     }
 
 

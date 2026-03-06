@@ -1,14 +1,9 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals;
 
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.InvWalk;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.types.Colors;
 import com.ricedotwho.rsm.component.impl.Terminals;
-import com.ricedotwho.rsm.data.Colour;
-import com.ricedotwho.rsm.module.impl.dungeon.boss.p3.terminal.TermSol;
-import com.ricedotwho.rsm.module.impl.dungeon.boss.p3.terminal.TerminalSolver;
-import com.ricedotwho.rsm.module.impl.dungeon.boss.p3.terminal.types.Melody;
-import com.ricedotwho.rsm.module.impl.dungeon.boss.p3.terminal.types.Term;
 import com.ricedotwho.rsm.utils.Utils;
-import com.ricedotwho.rsm.utils.render.render2d.NVGUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;

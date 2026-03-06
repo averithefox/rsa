@@ -6,10 +6,7 @@ import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import org.apache.commons.io.function.IOQuadFunction;
-import org.apache.commons.lang3.function.TriFunction;
 
-import java.io.IOException;
 import java.util.Arrays;
 
 public enum NodeType {

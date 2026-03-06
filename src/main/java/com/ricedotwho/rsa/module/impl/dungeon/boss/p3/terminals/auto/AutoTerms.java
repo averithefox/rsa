@@ -6,6 +6,8 @@ import com.google.common.primitives.SignedBytes;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.event.impl.RawTickEvent;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.*;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.types.Colors;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.types.Melody;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.Terminals;
 import com.ricedotwho.rsm.event.api.EventPriority;
