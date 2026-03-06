@@ -6,23 +6,27 @@ import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
 import com.ricedotwho.rsm.utils.render.render3d.type.OutlineBox;
 import lombok.Getter;
 import lombok.Setter;
+import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public abstract class Ring{
     @Getter
     private AABB box;
+    @Getter
+    private AABB renderBox;
     @Setter
     @Getter
     private boolean triggered;
 
 
-    protected Ring(Vec3 pos, double radius) {
-        this(pos.subtract(radius, 0, radius), pos.add(radius, radius * 2, radius)); // Centered at bottom
+    protected Ring(Vec3 pos, double radius, double renderOffset) {
+        this(pos.subtract(radius, 0, radius), pos.add(radius, radius * 2, radius), renderOffset); // Centered at bottom
     }
 
-    protected Ring(Vec3 min, Vec3 max) {
+    protected Ring(Vec3 min, Vec3 max, double renderOffset) {
         this.box = new AABB(min, max);
+        this.renderBox = box.contract(renderOffset, renderOffset, renderOffset);
         this.triggered = false;
     }
 
@@ -56,13 +60,13 @@ public abstract class Ring{
     }
 
     public void render(boolean depth) {
-        Renderer3D.addTask(new OutlineBox(this.getBox(), getColour(), depth));
+        Renderer3D.addTask(new OutlineBox(this.getRenderBox(), getColour(), depth));
     }
 
     // Run will always run before tick
-    public abstract void run();
+    public abstract boolean run(); // Return true if can process another ring
     public abstract Colour getColour();
     public abstract int getPriority();
-    public abstract boolean tick(InputPollEvent event, AutoP3 autoP3);
+    public abstract boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3);
 
 }

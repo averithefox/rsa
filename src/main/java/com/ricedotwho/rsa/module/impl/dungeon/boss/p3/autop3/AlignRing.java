@@ -3,6 +3,7 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
+import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
@@ -18,15 +19,15 @@ public class AlignRing extends Ring {
     private Queue<Pair<Float, Boolean>> yaws;
 
     public AlignRing(Vec3 pos) {
-        super(pos, 0.5);
+        super(pos, 0.5, RingType.ALIGN.getRenderSizeOffset());
     }
 
     @Override
-    public void run() {
+    public boolean run() {
         yaws = null; // need to set for checking if has run
         if (Minecraft.getInstance().player == null || !Minecraft.getInstance().player.onGround()) {
             reset();
-            return;
+            return false;
         }
 
         Vec3 initialVelocity = Minecraft.getInstance().player.getDeltaMovement();
@@ -41,7 +42,8 @@ public class AlignRing extends Ring {
         double displacement = MovementPredictor.getDisplacementFromInput(Minecraft.getInstance().player.getSpeed() * 10, sneaking);
 
         if (deltaLength < 0.01) {
-            return;
+            yaws = new LinkedList<>();
+            return false;
         }
 
         if (deltaLength > 2 * displacement) {
@@ -50,7 +52,7 @@ public class AlignRing extends Ring {
             if (deltaLength > 2 * displacement) {
                 AutoP3.chat("Too far!");
                 reset();
-                return;
+                return false;
             }
         }
         KeyMapping.releaseAll();
@@ -61,6 +63,7 @@ public class AlignRing extends Ring {
         yaws = new LinkedList<>();
         yaws.add(new Pair<>((float) -Math.toDegrees(yaw + theta) - 90f, sneaking));
         yaws.add(new Pair<>((float) -Math.toDegrees(yaw - theta) - 90f, sneaking));
+        return false;
     }
 
     @Override
@@ -74,17 +77,21 @@ public class AlignRing extends Ring {
     }
 
     @Override
-    public boolean tick(InputPollEvent event, AutoP3 autoP3) {
+    public boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3) {
         if (yaws == null) {
-            return false; // Not run yet
+            return Minecraft.getInstance().player != null && !Minecraft.getInstance().player.onGround(); // Not run yet
         }
 
-        if (yaws.isEmpty() || Minecraft.getInstance().player == null) {
+        if (Minecraft.getInstance().player == null) {
             return true;
         }
 
+        if (yaws.isEmpty()) {
+            return Minecraft.getInstance().player.getDeltaMovement().x == 0 && Minecraft.getInstance().player.getDeltaMovement().z == 0;
+        }
+
         if (yaws.peek().getB() && !Minecraft.getInstance().player.getLastSentInput().shift()) {
-            event.getInputConsumer().accept(new Input(false, false, false, false, false, true, false));
+            mutableInput.shift(true);
             return false;
         }
 
@@ -92,7 +99,8 @@ public class AlignRing extends Ring {
 
         Pair<Float, Boolean> entry = yaws.poll();
         Minecraft.getInstance().player.setYRot(entry.getA());
-        event.getInputConsumer().accept(new Input(true, false, false, false, false, entry.getB(), false));
-        return yaws.isEmpty();
+        mutableInput.shift(entry.getB());
+        mutableInput.forward(true);
+        return false;
     }
 }

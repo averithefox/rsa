@@ -34,7 +34,10 @@ public class BBGCommand extends Command {
     public LiteralArgumentBuilder<ClientSuggestionProvider> build() {
         return literal(name())
                 .then(literal("center")
-                        .executes(this::center)
+                        .then(argument("centerType", BBGCommand.CenterArgumentType.centerArgument())
+                                .executes(this::center)
+                        )
+                        .executes(r -> this.center(CenterType.ALL)) // Won't center pos on server dw
                 )
                 .then(literal("remove")
                         .executes(this::removeRing)
@@ -47,9 +50,12 @@ public class BBGCommand extends Command {
     }
 
     private int addRing(CommandContext<ClientSuggestionProvider> ctx) {
+        if (Minecraft.getInstance().player == null) return 0;
         RingType type = BBGCommand.RingArgumentType.getRing(ctx, "ring");
 
-        RSM.getModule(AutoP3.class).addRing(type.supply(Minecraft.getInstance().player.position()));
+        Ring ring = type.supply(Minecraft.getInstance().player.position());
+        if (ring == null) return 0;
+        RSM.getModule(AutoP3.class).addRing(ring);
         return 1;
     }
 
@@ -61,14 +67,61 @@ public class BBGCommand extends Command {
         return 1;
     }
 
+    private int center(CenterType centerType) {
+        if (centerType == null) return 0;
+        switch (centerType) {
+            case ALL -> {
+                centerYaw();
+                centerPitch();
+                centerPos();
+                break;
+            }
+
+            case POS -> {
+                centerPos();
+                break;
+            }
+
+            case ANGLES -> {
+                centerYaw();
+                centerPitch();
+                break;
+            }
+
+            case YAW -> {
+                centerYaw();
+            }
+
+            case PITCH -> {
+                centerPitch();
+            }
+        }
+        return 1;
+    }
+
     private int center(CommandContext<ClientSuggestionProvider> ctx) {
-        if (Minecraft.getInstance().player == null || !Minecraft.getInstance().isSingleplayer()) return 0;
+        CenterType centerType = CenterArgumentType.getType(ctx, "centerType");
+        return center(centerType);
+    }
+
+    private void centerYaw() {
+        if (Minecraft.getInstance().player == null) return;
+        Minecraft.getInstance().player.setYRot((Math.round((mc.player.getYRot()) / 45f)) * 45f);
+    }
+
+    private void centerPitch() {
+        if (Minecraft.getInstance().player == null) return;
+        Minecraft.getInstance().player.setXRot(0f);
+    }
+
+    private void centerPos() {
+        if (Minecraft.getInstance().player == null || !Minecraft.getInstance().isSingleplayer()) return;
 
         Vec3 position = Minecraft.getInstance().player.position();
         Vec3 target = new Vec3(Mth.floor(position.x) + 0.5d, position.y, Mth.floor(position.z) + 0.5d);
         Minecraft.getInstance().player.setPos(target);
-        return 1;
     }
+
 
 //    private int test(CommandContext<ClientSuggestionProvider> ctx) {
 //        if (lastMovement != null && Minecraft.getInstance().player != null) {
@@ -99,7 +152,7 @@ public class BBGCommand extends Command {
                 .map(RingType::getName)
                 .collect(Collectors.toList());
         private static final RingType[] VALUES = RingType.values();
-        private static final DynamicCommandExceptionType INVALID_NODE_EXCEPTION = new DynamicCommandExceptionType(
+        private static final DynamicCommandExceptionType INVALID_RING_EXCEPTION = new DynamicCommandExceptionType(
                 ring -> Component.literal("Invalid ring type : " + ring)
         );
 
@@ -107,7 +160,7 @@ public class BBGCommand extends Command {
             String string = stringReader.readUnquotedString();
             RingType ring = RingType.byName(string);
             if (ring == null) {
-                throw INVALID_NODE_EXCEPTION.createWithContext(stringReader, string);
+                throw INVALID_RING_EXCEPTION.createWithContext(stringReader, string);
             } else {
                 return ring;
             }
@@ -131,6 +184,46 @@ public class BBGCommand extends Command {
 
         public static RingType getRing(CommandContext<ClientSuggestionProvider> context, String name) {
             return context.getArgument(name, RingType.class);
+        }
+    }
+
+    private static class CenterArgumentType implements ArgumentType<CenterType> {
+        private static final Collection<String> EXAMPLES = Stream.of(CenterType.POS, CenterType.ANGLES)
+                .map(CenterType::getName)
+                .collect(Collectors.toList());
+        private static final CenterType[] VALUES = CenterType.values();
+        private static final DynamicCommandExceptionType INVALID_CENTER_EXCEPTION = new DynamicCommandExceptionType(
+                ring -> Component.literal("Invalid center type : " + ring)
+        );
+
+        public CenterType parse(StringReader stringReader) throws CommandSyntaxException {
+            String string = stringReader.readUnquotedString();
+            CenterType ring = CenterType.fromName(string);
+            if (ring == null) {
+                throw INVALID_CENTER_EXCEPTION.createWithContext(stringReader, string);
+            } else {
+                return ring;
+            }
+        }
+
+        @Override
+        public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
+            return context.getSource() instanceof SharedSuggestionProvider
+                    ? SharedSuggestionProvider.suggest(Arrays.stream(VALUES).map(CenterType::getName), builder)
+                    : Suggestions.empty();
+        }
+
+        @Override
+        public Collection<String> getExamples() {
+            return EXAMPLES;
+        }
+
+        public static BBGCommand.CenterArgumentType centerArgument() {
+            return new BBGCommand.CenterArgumentType();
+        }
+
+        public static CenterType getType(CommandContext<ClientSuggestionProvider> context, String name) {
+            return context.getArgument(name, CenterType.class);
         }
     }
 }

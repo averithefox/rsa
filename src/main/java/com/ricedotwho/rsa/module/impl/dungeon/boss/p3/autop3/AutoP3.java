@@ -9,6 +9,7 @@ import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.event.impl.render.Render3DEvent;
+import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
@@ -32,7 +33,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     private final List<Ring> rings;
     private boolean desync = false;
     private boolean lastDesync = false;
-    private Ring currentNode;
+    private final List<Ring> activeRings;
 
     public AutoP3() {
         this.registerProperty(
@@ -40,6 +41,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         );
         //this.yaws = new LinkedList<>();
         this.rings = new ArrayList<>();
+        this.activeRings = new ArrayList<>(5);
     }
 
     @SubscribeEvent
@@ -52,14 +54,26 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     }
 
     @SubscribeEvent
-    public void onWorldLoad() {
-        this.currentNode = null;
+    public void onWorldLoad(WorldEvent.Load event) {
+        this.activeRings.clear();
     }
 
     @SubscribeEvent
     public void onPollInputs(InputPollEvent event) {
         if (!dungeonCheck()) return;
-        if (currentNode != null && currentNode.tick(event, this)) currentNode = null;
+        if (activeRings.isEmpty()) return;
+
+        MutableInput mutableInput = new MutableInput();
+
+        for (int i = 0 ; i < activeRings.size(); i++) {
+            boolean bl2 = activeRings.get(i).tick(mutableInput, event.getClientInput(), this);
+            if (!bl2) continue;
+            activeRings.remove(i--);
+        }
+
+        if (mutableInput.isModified()) {
+            event.getInputConsumer().accept(mutableInput.toInput());
+        }
     }
 
     protected void onDesyncEnable() {
@@ -76,15 +90,21 @@ public class AutoP3 extends Module implements ClientRotationProvider {
 
         Vec3 playerPos = Minecraft.getInstance().player.position();
 
-        Ring ring;
+        List<Ring> sorted;
         synchronized (rings) {
-            ring = rings.stream().filter(r -> r.updateState(playerPos) && (currentNode == null || r.getPriority() >= currentNode.getPriority())).max(Comparator.comparingInt(Ring::getPriority)).orElse(null);
+            sorted = rings.stream().filter(r -> r.updateState(playerPos) && (activeRings.isEmpty() || activeRings.stream().allMatch(active -> r.getPriority() >= active.getPriority()))).sorted(Comparator.comparingInt(Ring::getPriority).reversed()).toList();
         }
 
-        if (ring == null) return;
-        currentNode = ring;
-        ring.setTriggered(true);
-        ring.run();
+        if (sorted.isEmpty()) return;
+
+        activeRings.clear();
+
+        for (int i = 0; i < sorted.size(); i++) {
+            Ring ring = sorted.get(i);
+            activeRings.add(ring);
+            ring.setTriggered(true);
+            if (!ring.run()) break;
+        }
     }
 
     @SubscribeEvent
