@@ -4,11 +4,16 @@ import com.google.gson.JsonObject;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.MutableInput;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubAction;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.Accessor;
 import com.ricedotwho.rsm.utils.FileUtils;
+import com.ricedotwho.rsm.utils.render.render3d.type.FilledBox;
 import com.ricedotwho.rsm.utils.render.render3d.type.OutlineBox;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,18 +21,29 @@ import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public abstract class Ring implements Accessor {
     @Getter
-    private AABB box;
+    private final AABB box;
     @Getter
-    private AABB renderBox;
-    @Setter
+    private final AABB renderBox;
+    private final AABB fillBox;
+    private final AABB inlineBox;
     @Getter
     private boolean triggered;
-
+    @Getter
+    private boolean active = false;
+    @Getter
+    private final SubActionManager subManager;
+    @Getter
+    private final ArgumentManager argManager;
 
     protected Ring(Pos pos, double radius, double renderOffset) {
-        this(pos.subtract(radius, 0, radius), pos.add(radius, radius * 2, radius), renderOffset); // Centered at bottom
+        this(pos.subtract(radius, 0, radius), pos.add(radius, radius * 2, radius), renderOffset, null, null); // Centered at bottom
     }
 
     protected Ring(Vec3 pos, double radius, double renderOffset) {
@@ -38,12 +54,24 @@ public abstract class Ring implements Accessor {
         this.box = new AABB(min, max);
         this.renderBox = box.contract(renderOffset, renderOffset, renderOffset);
         this.triggered = false;
+        this.subManager = null;
+        this.argManager = null;
+
+        this.fillBox = new AABB(min.x(), min.y(), min.z(), max.x(), min.y() + 0.05, max.z());
+        Vec3 diff = max.subtract(min).multiply(0.15, 0, 0.15);
+        this.inlineBox = new AABB(min.x() +  diff.x(), min.y(), min.z() + diff.z(), max.x() - diff.x(), min.y() + 0.05, max.z() - diff.z());
     }
 
-    protected Ring(Pos min, Pos max, double renderOffset) {
+    protected Ring(Pos min, Pos max, double renderOffset, ArgumentManager manager, SubActionManager subManager) {
         this.box = new AABB(min.x(), min.y(), min.z(), max.x(), max.y(), max.z());
         this.renderBox = box.contract(renderOffset, renderOffset, renderOffset);
         this.triggered = false;
+        this.subManager = subManager;
+        this.argManager = manager;
+
+        this.fillBox = new AABB(min.x(), min.y(), min.z(), max.x(), min.y() + 0.05, max.z());
+        Pos diff = max.subtract(min).multiply(0.15, 0, 0.15);
+        this.inlineBox = new AABB(min.x() +  diff.x(), min.y(), min.z() + diff.z(), max.x() - diff.x(), min.y() + 0.05, max.z() - diff.z());
     }
 
     public boolean isInNode(Vec3 curr, Vec3 prev) {
@@ -51,6 +79,18 @@ public abstract class Ring implements Accessor {
         boolean intercept = box.intersects(curr, prev);
         boolean intersects = box.intersects(feet);
         return intercept || intersects;
+    }
+
+    public void setTriggered() {
+        this.triggered = true;
+    }
+
+    public void setActive() {
+        this.active = true;
+    }
+
+    public void setInactive() {
+        this.active = false;
     }
 
     public boolean updateState(Vec3 playerPos, Vec3 oldPos) {
@@ -81,20 +121,42 @@ public abstract class Ring implements Accessor {
     }
 
     public void render(boolean depth) {
-        Renderer3D.addTask(new OutlineBox(this.getRenderBox(), getColour(), depth));
+        //Renderer3D.addTask(new OutlineBox(this.getRenderBox(), getColour(), depth));
+        Renderer3D.addTask(new FilledBox(fillBox, getColour().alpha(50), depth));
+        Renderer3D.addTask(new OutlineBox(inlineBox, getColour(), depth));
     }
 
     // Run will always run before tick
     public abstract boolean run(); // Return true if can process another ring
+
+    public boolean execute() {
+        if (subManager != null) subManager.run();
+        return run();
+    }
+
+    public boolean checkArg() {
+        return argManager != null && argManager.check();
+    }
+
     public abstract Colour getColour();
     public abstract int getPriority();
     public abstract boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3);
+    public abstract void feedback();
 
     public JsonObject serialize() {
         JsonObject obj = new JsonObject();
         obj.addProperty("type", this.getType().name());
         obj.add("min", FileUtils.getGson().toJsonTree(new Pos(box.minX, box.minY, box.minZ)));
         obj.add("max", FileUtils.getGson().toJsonTree(new Pos(box.maxX, box.maxY, box.maxZ)));
+
+        if (argManager != null && !argManager.getArgs().isEmpty()) {
+            obj.add("args", argManager.serialize());
+        }
+
+        if (subManager != null && !subManager.getActions().isEmpty()) {
+            obj.add("sub", subManager.serialize());
+        }
+
         return obj;
     }
 

@@ -1,0 +1,38 @@
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type;
+
+import com.google.gson.JsonObject;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.RingArgType;
+
+public class DelayArg extends Argument {
+    private final long delay;
+    private long ran = 0;
+    public DelayArg(long delay) {
+        super(RingArgType.DELAY);
+        this.delay = delay;
+    }
+
+    @Override
+    public boolean check() {
+        long ago = System.currentTimeMillis() - ran;
+        if (ran == 0 || ago > delay + 200) {
+            ran = System.currentTimeMillis();
+            return false;
+        }
+        return ago >= delay;
+    }
+
+    public static DelayArg create(String obj) {
+        return new DelayArg(Long.parseLong(obj));
+    }
+
+    @Override
+    public void serialize(JsonObject json) {
+        json.addProperty(getType().name(), delay);
+    }
+
+    @Override
+    public String stringValue() {
+        return "delay " + delay;
+    }
+}

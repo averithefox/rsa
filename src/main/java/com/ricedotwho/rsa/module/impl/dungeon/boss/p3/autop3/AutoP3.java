@@ -2,12 +2,15 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.Ring;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationHandler;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationProvider;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
+import com.ricedotwho.rsm.component.impl.task.TaskComponent;
+import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
@@ -17,21 +20,37 @@ import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.SaveSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.Utils;
+import lombok.Getter;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec3;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
 import java.util.stream.IntStream;
 
 @ModuleInfo(aliases = "Auto P3", id = "AutoP3", category = Category.DUNGEONS)
 public class AutoP3 extends Module implements ClientRotationProvider {
-    private static final MutableComponent PREFIX = Component.literal("§6[§8byebyebalding§6] §r");
+
+    private static final MutableComponent PREFIX = Component.empty()
+            .append(Component.literal("[").withStyle(ChatFormatting.GOLD))
+            .append(Component.literal("byebyebalding").withStyle(ChatFormatting.DARK_GRAY))
+            .append(Component.literal("] ").withStyle(ChatFormatting.GOLD))
+            .append(Component.empty().withStyle(ChatFormatting.WHITE));
 
     private final BooleanSetting forceSkyblock = new BooleanSetting("Force Skyblock", false);
+    private final BooleanSetting yap = new BooleanSetting("Feedback", false);
+    private final KeybindSetting triggerBind = new KeybindSetting("Trigger", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, () -> clickOverride = true));
+    @Getter private static final NumberSetting edgeDist = new NumberSetting("Edge Dist", 0, 0.1, 0.001, 0.001);
+    private final BooleanSetting depth = new BooleanSetting("Depth", false);
 
     private final SaveSetting<List<Ring>> data = new SaveSetting<>("Rings", "dungeon/ap3", "rings.json", ArrayList::new,
             new TypeToken<List<Ring>>() {}.getType(),
@@ -43,10 +62,17 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     private final List<Ring> rings;
     private boolean desync = false;
     private boolean lastDesync = false;
+    @Getter
     private final List<Ring> activeRings;
+    private final List<Ring> redoList = new ArrayList<>();
+    private static boolean clickOverride = false;
 
     public AutoP3() {
         this.registerProperty(
+                yap,
+                triggerBind,
+                edgeDist,
+                depth,
                 forceSkyblock,
                 data
         );
@@ -66,6 +92,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     @SubscribeEvent
     public void onWorldLoad(WorldEvent.Load event) {
         this.activeRings.clear();
+        reload();
     }
 
     @SubscribeEvent
@@ -74,10 +101,13 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         if (activeRings.isEmpty()) return;
 
         MutableInput mutableInput = new MutableInput();
+        Input input = event.getClientInput();
 
         for (int i = 0 ; i < activeRings.size(); i++) {
-            boolean bl2 = activeRings.get(i).tick(mutableInput, event.getClientInput(), this);
+            Ring r = activeRings.get(i);
+            boolean bl2 = r.isActive() && r.tick(mutableInput, input, this);
             if (!bl2) continue;
+            r.setInactive();
             activeRings.remove(i--);
         }
 
@@ -113,20 +143,26 @@ public class AutoP3 extends Module implements ClientRotationProvider {
 
         if (sorted.isEmpty()) return;
 
+        boolean feedback = yap.getValue();
+        activeRings.forEach(Ring::setInactive);
         activeRings.clear();
 
         for (Ring ring : sorted) {
             activeRings.add(ring);
-            ring.setTriggered(true);
-            if (!ring.run()) break;
+            if (!clickOverride && ring.checkArg()) continue;
+            ring.setTriggered();
+            ring.setActive();
+            if (feedback) ring.feedback();
+            if (!ring.execute()) break;
         }
+        clickOverride = false;
     }
 
     @SubscribeEvent
     public void onRender(Render3DEvent.Extract event) {
         if (!dungeonCheck()) return;
         synchronized (rings) {
-            this.rings.forEach(r -> r.render(false));
+            this.rings.forEach(r -> r.render(this.depth.getValue()));
         }
     }
 
@@ -139,12 +175,12 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     }
 
     public void addRing(Ring ring) {
-        ring.setTriggered(true); // So it doesn't activate instantly
+        ring.setTriggered(); // So it doesn't activate instantly
         synchronized (rings) {
             this.rings.add(ring);
-            data.setValue(List.copyOf(this.rings));
         }
         save();
+        modMessage("Added %s %s%s", Utils.capitalise(ring.getType().getName()), ChatFormatting.GRAY, ring.getArgManager().getList(ring.getSubManager().getList()));
     }
 
     public void removeNearest(Vec3 pos) {
@@ -154,10 +190,32 @@ public class AutoP3 extends Module implements ClientRotationProvider {
                 .min(Comparator.comparingDouble(i -> rings.get(i).getDistanceSq(pos)))
                 .orElse(-1);
             if (index < 0) return;
-            rings.remove(index);
-            data.setValue(List.copyOf(this.rings));
+            Ring ring = rings.remove(index);
+            save();
+            modMessage("Removed %s", Utils.capitalise(ring.getType().getName()));
         }
+    }
+
+    public void undo() {
+        if (rings.isEmpty()) {
+            modMessage("No Rings!");
+            return;
+        }
+        Ring ring = rings.removeLast();
+        redoList.add(ring);
         save();
+        modMessage("Undid %s", Utils.capitalise(ring.getType().getName()));
+    }
+
+    public void redo() {
+        if (redoList.isEmpty()) {
+            modMessage("No Rings!");
+            return;
+        }
+        Ring ring = redoList.removeLast();
+        rings.add(ring);
+        save();
+        modMessage("Redid %s", Utils.capitalise(ring.getType().getName()));
     }
 
     public void setDesync(boolean bl) {
@@ -184,10 +242,16 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     }
 
     public void save() {
+        data.setValue(List.copyOf(this.rings));
         data.save();
     }
 
     public void load() {
         data.load();
+    }
+
+
+    public static void modMessage(Object message, Object ... objects) {
+        ChatUtils.chatClean(PREFIX.copy().append(String.format(message.toString(), objects)));
     }
 }

@@ -1,6 +1,10 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.*;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubAction;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Pos;
 import net.minecraft.client.KeyMapping;
@@ -10,26 +14,21 @@ import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import oshi.util.tuples.Pair;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 
 public class AlignRing extends Ring {
     private Queue<Pair<Float, Boolean>> yaws;
-
-    public AlignRing(Vec3 pos) {
-        this(pos, RingType.ALIGN.getRenderSizeOffset());
-    }
 
     public AlignRing(Vec3 pos, double renderOffset) {
         super(pos, 0.5, renderOffset);
     }
 
-    public AlignRing(Pos min, Pos max, double renderOffset) {
-        super(min, max, renderOffset);
+    public AlignRing(Pos min, Pos max, double renderOffset, ArgumentManager manager, SubActionManager actions) {
+        super(min, max, renderOffset, manager, actions);
     }
 
-    public AlignRing(Pos min, Pos max) {
-        super(min, max, RingType.ALIGN.getRenderSizeOffset());
+    public AlignRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions) {
+        super(min, max, RingType.ALIGN.getRenderSizeOffset(), manager, actions);
     }
 
     @Override
@@ -128,5 +127,10 @@ public class AlignRing extends Ring {
         mutableInput.shift(entry.getB());
         mutableInput.forward(true);
         return false;
+    }
+
+    @Override
+    public void feedback() {
+        AutoP3.modMessage("Aligning!");
     }
 }

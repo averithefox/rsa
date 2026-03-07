@@ -2,32 +2,46 @@ package com.ricedotwho.rsa.command.impl;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.FloatArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BoomNode;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.*;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.RingArgType;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.Ring;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubAction;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionType;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
+import com.ricedotwho.rsm.data.Pos;
+import com.ricedotwho.rsm.utils.NumberUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
+import org.apache.commons.lang3.EnumUtils;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@CommandInfo(name = "bbg", description = "Auto P3 command")
+@CommandInfo(name = "bbg", aliases = "p3", description = "Auto P3 command")
 public class BBGCommand extends Command {
+    private final Pattern argPattern = Pattern.compile("^(\\w+?)(?:(\\d*\\.?\\d*)|\"([^\"]*)\")$");
 
     @Override
     public LiteralArgumentBuilder<ClientSuggestionProvider> build() {
@@ -38,23 +52,119 @@ public class BBGCommand extends Command {
                         )
                         .executes(r -> this.center(CenterType.ALL)) // Won't center pos on server dw
                 )
+                .then(literal("undo")
+                        .executes(this::undo)
+                )
+                .then(literal("redo")
+                        .executes(this::redo)
+                )
                 .then(literal("remove")
                         .executes(this::removeRing)
                 )
                 .then(literal("add")
                         .then(argument("ring", BBGCommand.RingArgumentType.ringArgument())
-                            .executes(this::addRing)
+                            .executes(ctx -> addRing(ctx, ""))
+//                                .then(argument("w", FloatArgumentType.floatArg(0, 10))
+//                                        .then(argument("h", FloatArgumentType.floatArg(0, 10))
+//                                                .then(argument("l", FloatArgumentType.floatArg(0, 10))
+//                                                        .then(argument("arg", BBGCommand.CenterArgumentType.centerArgument())
+//                                                                .executes(this::center)
+//                                                        )
+//                                                )
+//                                        )
+//                                )
+                                .then(argument("args", StringArgumentType.greedyString())
+                                        .executes(ctx -> {
+                                            String args = StringArgumentType.getString(ctx, "args");
+                                            return addRing(ctx, args);
+                                        })
+                                )
                         )
                 );
     }
 
-    private int addRing(CommandContext<ClientSuggestionProvider> ctx) {
+    private int addRing(CommandContext<ClientSuggestionProvider> ctx, String args) {
         if (Minecraft.getInstance().player == null) return 0;
         RingType type = BBGCommand.RingArgumentType.getRing(ctx, "ring");
 
-        Ring ring = type.supply(Minecraft.getInstance().player.position());
+        Ring ring = createRing(type, args);
         if (ring == null) return 0;
         RSM.getModule(AutoP3.class).addRing(ring);
+        return 1;
+    }
+
+    private Ring createRing(RingType type, String full) {
+        String[] args = full.split(" ");
+        Pos whl = new Pos(0.5, 1, 0.5);
+        boolean exact = false;
+        ArgumentManager manager = new ArgumentManager();
+        SubActionManager subActions = new SubActionManager();
+        for (String arg : args) {
+            Matcher matcher = argPattern.matcher(arg);
+            if (!matcher.find()) continue;
+            String key = matcher.group(1);
+            Double value = NumberUtils.isDouble(matcher.group(2)) ? Double.parseDouble(matcher.group(2)) : null;
+            String stringValue = matcher.group(2);
+
+            switch (key.toLowerCase()) {
+                case "r", "radius" -> {
+                    if (value != null) {
+                        whl.set(value, value, value);
+                    }
+                    continue;
+                }
+                case "exact" -> {
+                    exact = true;
+                    continue;
+                }
+                case "w", "width" -> {
+                    if (value != null) {
+                        whl.x(value);
+                    }
+                    continue;
+                }
+                case "h", "height" -> {
+                    if (value != null) {
+                        whl.y(value);
+                    }
+                    continue;
+                }
+                case "l", "length" -> {
+                    if (value != null) {
+                        whl.z(value);
+                    }
+                    continue;
+                }
+            }
+            RingArgType a = RingArgType.fromAliases(key.toLowerCase());
+            if (a != null) {
+                manager.addArg(a.create(stringValue));
+            } else {
+                SubActionType s = EnumUtils.getEnum(SubActionType.class, key.toUpperCase());
+                if (s == null) continue;
+                subActions.addAction(s.create());
+            }
+        }
+        Pos playerPos = getPlayerPos(exact);
+        return type.supply(playerPos.subtract(whl.x(), 0, whl.z()), playerPos.add(whl), manager, subActions);
+    }
+
+    private Pos getPlayerPos(boolean exact) {
+        Vec3 pos = mc.player.position();
+        if (exact) {
+            return new Pos(pos);
+        } else {
+            return new Pos(Math.round(pos.x() * 2) / 2.0, Math.round(pos.y() * 2) / 2.0, Math.round(pos.z() * 2) / 2.0);
+        }
+    }
+
+    private int undo(CommandContext<ClientSuggestionProvider> ctx) {
+        RSM.getModule(AutoP3.class).undo();
+        return 1;
+    }
+
+    private int redo(CommandContext<ClientSuggestionProvider> ctx) {
+        RSM.getModule(AutoP3.class).redo();
         return 1;
     }
 

@@ -79,6 +79,7 @@ public class SecretAura extends Module {
     private final NumberSetting swapSlot = new NumberSetting("Swap Slot Index", 0, 7, 0, 1);
     private final BooleanSetting invWalk = new BooleanSetting("In inventory", true);
     private final BooleanSetting allowReclick = new BooleanSetting("Allow Re-click", true);
+    private final BooleanSetting allowBossReclick = new BooleanSetting("Allow Boss Re-click", true);
     private final BooleanSetting inBoss = new BooleanSetting("In Boss", true);
     private final BooleanSetting autoClose = new BooleanSetting("Auto Close GUI", false);
     private final BooleanSetting forceSkyblock = new BooleanSetting("Force Skyblock", false);
@@ -98,6 +99,7 @@ public class SecretAura extends Module {
                 swapSlot,
                 invWalk,
                 allowReclick,
+                allowBossReclick,
                 inBoss,
                 autoClose,
                 forceSkyblock
@@ -197,7 +199,7 @@ public class SecretAura extends Module {
                     // Either we aren't in boss or we rejoined boss
                     if (checkF7BossBlock(blockPos, blockState)) {
                         if (!inBoss.getValue()) continue;
-                        bl2 = false; // Allow reclick
+                        if (allowBossReclick.getValue()) bl2 = false; // Allow reclick
                         delay = 0; // No lever delay in boss
                     } else if (checkLightsDev(blockPos)) continue;
                 }

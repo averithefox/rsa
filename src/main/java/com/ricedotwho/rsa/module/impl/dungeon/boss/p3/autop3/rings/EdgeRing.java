@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 
+import com.ricedotwho.rsa.component.impl.Edge;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.MutableInput;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
@@ -10,26 +11,27 @@ import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Pos;
 import net.minecraft.world.entity.player.Input;
 
-public class JumpRing extends Ring {
+public class EdgeRing extends Ring {
 
-    public JumpRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions) {
+    public EdgeRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions) {
         super(min, max, RingType.JUMP.getRenderSizeOffset(), manager, actions);
         this.getArgManager().addArg(new GroundArg());
     }
 
     @Override
     public RingType getType() {
-        return RingType.JUMP;
+        return RingType.EDGE;
     }
 
     @Override
     public boolean run() {
+        Edge.edge();
         return true;
     }
 
     @Override
     public Colour getColour() {
-        return Colour.ORANGE;
+        return Colour.BLACK;
     }
 
     @Override
@@ -39,12 +41,12 @@ public class JumpRing extends Ring {
 
     @Override
     public boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3) {
-        mutableInput.jump(true);
-        return true;
+        return false;
     }
 
     @Override
     public void feedback() {
-        AutoP3.modMessage("Jumping");
+        AutoP3.modMessage("Edging");
     }
+
 }
