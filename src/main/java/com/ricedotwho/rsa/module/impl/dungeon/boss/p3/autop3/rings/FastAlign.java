@@ -10,12 +10,17 @@ import com.ricedotwho.rsm.data.Pos;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class FastAlign extends AlignRing {
     private final Colour colour = Colour.GREEN.darker();
 
     public FastAlign(Pos min, Pos max, ArgumentManager manager, SubActionManager actions) {
+        super(min, max, RingType.FAST_ALIGN.getRenderSizeOffset(), manager, actions);
+    }
+
+    public FastAlign(Pos min, Pos max, ArgumentManager manager, SubActionManager actions, Map<String, Object> ignored) {
         super(min, max, RingType.FAST_ALIGN.getRenderSizeOffset(), manager, actions);
     }
 

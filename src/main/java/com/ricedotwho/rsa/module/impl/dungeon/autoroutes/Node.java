@@ -77,7 +77,7 @@ public abstract class Node {
     public boolean isInNode(Pos playerPos) {
         if (AutoRoutes.getCenterOnly().getValue()) {
             return this.realPos.x() == playerPos.x()
-                    && playerPos.y() >= this.realPos.y() && playerPos.y() <= this.realPos.y() + 0.05
+                    && playerPos.y() >= this.realPos.y() - 0.05 && playerPos.y() <= this.realPos.y() + 0.05
                     && this.realPos.z() == playerPos.z();
         }
         return playerPos.squaredDistanceTo(this.realPos) <= radius * radius;

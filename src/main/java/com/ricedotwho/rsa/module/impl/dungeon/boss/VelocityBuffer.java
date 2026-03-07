@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
@@ -53,7 +54,7 @@ public class VelocityBuffer extends Module {
         Packet<?> packet = event.getPacket();
         if (isMotionPacket(packet, Minecraft.getInstance().player)) {
             queue.add(packet);
-            ChatUtils.chat("Added to queue!");
+            RSA.chat("Added to queue!");
             event.setCancelled(true);
             return;
         }
@@ -86,7 +87,7 @@ public class VelocityBuffer extends Module {
             if (queue.isEmpty()) return;
             while (!queue.isEmpty()) {
                 Packet<?> packet = queue.poll();
-                ((Packet<ClientPacketListener>) packet).handle(Minecraft.getInstance().getConnection()); // prob should not put here, so we can still detect packets through events
+                ((Packet<ClientPacketListener>) packet).handle(Minecraft.getInstance().getConnection()); // prob should not put here, so we can still detect packets through events | u could just call the event bus, idt it matters tho
 
                 if (isMotionPacket(packet, Minecraft.getInstance().player)) {
                     if (queue.stream().anyMatch(p -> isMotionPacket(p, Minecraft.getInstance().player))) break;
@@ -97,7 +98,7 @@ public class VelocityBuffer extends Module {
                 }
             }
         }
-        ChatUtils.chat("Popped from queue!");
+        RSA.chat("Popped from queue!");
     }
 
     private boolean isMotionPacket(Packet<?> packet, LocalPlayer player) {
@@ -111,10 +112,5 @@ public class VelocityBuffer extends Module {
             this.queue.clear();
         }
     }
-
-
-
-
-
 
 }

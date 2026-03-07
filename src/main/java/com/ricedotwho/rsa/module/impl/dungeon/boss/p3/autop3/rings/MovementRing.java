@@ -5,54 +5,43 @@ import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.MutableInput;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubAction;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.recorder.MovementRecorder;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
+import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.Accessor;
 import lombok.Getter;
-import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Input;
-import net.minecraft.world.phys.Vec3;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-public class LookRing extends Ring implements Accessor {
-    @Getter
-    private final float yaw;
-    @Getter
-    private final float pitch;
+public class MovementRing extends Ring implements Accessor {
+    private final String route;
 
     @Override
     public RingType getType() {
-        return RingType.LOOK;
+        return RingType.MOVEMENT;
     }
 
-    public LookRing(Pos min, Pos max, ArgumentManager manage, SubActionManager actions, Map<String, Object> extra) {
-        this(min, max,
-                (Float) extra.getOrDefault("yaw", mc.gameRenderer.getMainCamera().yaw()),
-                mc.gameRenderer.getMainCamera().getXRot(),
-                manage, actions);
+    public MovementRing(Pos min, Pos max, ArgumentManager manage, SubActionManager actions, Map<String, Object> extra) {
+        this(min, max, (String) extra.getOrDefault("route", MovementRecorder.getData().getFileName()), manage, actions);
     }
 
-    public LookRing(Pos min, Pos max, float yaw, float pitch, ArgumentManager manage, SubActionManager actions) {
-        super(min, max, RingType.LOOK.getRenderSizeOffset(), manage, actions);
-        this.yaw = yaw;
-        this.pitch = pitch;
+    public MovementRing(Pos min, Pos max, String route, ArgumentManager manage, SubActionManager actions) {
+        super(min, max, RingType.MOVEMENT.getRenderSizeOffset(), manage, actions);
+        this.route = route;
     }
 
     @Override
     public boolean run() {
-        mc.player.setYRot(yaw);
-        mc.player.setXRot(pitch);
+        MovementRecorder.playRecording(this.route);
         return true;
     }
 
     @Override
     public Colour getColour() {
-        return Colour.GREEN;
+        return Colour.WHITE;
     }
 
     @Override
@@ -68,13 +57,12 @@ public class LookRing extends Ring implements Accessor {
     @Override
     public JsonObject serialize() {
         JsonObject obj = super.serialize();
-        obj.addProperty("yaw", this.yaw);
-        obj.addProperty("pitch", this.pitch);
+        obj.addProperty("route", this.route);
         return obj;
     }
 
     @Override
     public void feedback() {
-        AutoP3.modMessage("Looking");
+        AutoP3.modMessage("Playing \"%s\"", this.route);
     }
 }

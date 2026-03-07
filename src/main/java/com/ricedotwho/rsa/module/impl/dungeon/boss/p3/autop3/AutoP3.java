@@ -3,6 +3,7 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
 import com.ricedotwho.rsa.RSA;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.recorder.MovementRecorder;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.Ring;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationHandler;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationProvider;
@@ -19,6 +20,8 @@ import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
+import com.ricedotwho.rsm.module.impl.dungeon.puzzle.IceFill;
+import com.ricedotwho.rsm.ui.clickgui.settings.group.GroupSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
@@ -37,6 +40,7 @@ import org.lwjgl.glfw.GLFW;
 import java.util.*;
 import java.util.stream.IntStream;
 
+@Getter
 @ModuleInfo(aliases = "Auto P3", id = "AutoP3", category = Category.DUNGEONS)
 public class AutoP3 extends Module implements ClientRotationProvider {
 
@@ -51,6 +55,8 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     private final KeybindSetting triggerBind = new KeybindSetting("Trigger", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, () -> clickOverride = true));
     @Getter private static final NumberSetting edgeDist = new NumberSetting("Edge Dist", 0, 0.1, 0.001, 0.001);
     private final BooleanSetting depth = new BooleanSetting("Depth", false);
+    private final BooleanSetting strafe = new BooleanSetting("45", true);
+    private final GroupSetting<MovementRecorder> movement = new GroupSetting<>("Movement", new MovementRecorder(this));
 
     private final SaveSetting<List<Ring>> data = new SaveSetting<>("Rings", "dungeon/ap3", "rings.json", ArrayList::new,
             new TypeToken<List<Ring>>() {}.getType(),
@@ -73,7 +79,9 @@ public class AutoP3 extends Module implements ClientRotationProvider {
                 triggerBind,
                 edgeDist,
                 depth,
+                strafe,
                 forceSkyblock,
+                movement,
                 data
         );
         this.rings = new ArrayList<>();

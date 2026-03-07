@@ -11,9 +11,16 @@ import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Pos;
 import net.minecraft.world.entity.player.Input;
 
+import java.util.Map;
+
 public class EdgeRing extends Ring {
 
     public EdgeRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions) {
+        super(min, max, RingType.JUMP.getRenderSizeOffset(), manager, actions);
+        this.getArgManager().addArg(new GroundArg());
+    }
+
+    public EdgeRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions, Map<String, Object> ignored) {
         super(min, max, RingType.JUMP.getRenderSizeOffset(), manager, actions);
         this.getArgManager().addArg(new GroundArg());
     }

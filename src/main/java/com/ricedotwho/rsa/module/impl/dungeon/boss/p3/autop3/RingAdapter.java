@@ -51,6 +51,7 @@ public class RingAdapter implements JsonDeserializer<Ring>, JsonSerializer<Ring>
             case ALIGN -> new AlignRing(min, max, args, sub);
             case FAST_ALIGN -> new FastAlign(min, max, args, sub);
             case EDGE -> new EdgeRing(min, max, args, sub);
+            case MOVEMENT -> new MovementRing(min, max, obj.get("route").getAsString(), args, sub);
             case null -> throw new IllegalStateException("Unexpected value: " + obj.get("type"));
         };
     }

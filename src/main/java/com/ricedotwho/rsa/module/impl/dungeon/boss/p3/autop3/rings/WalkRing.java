@@ -15,6 +15,7 @@ import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class WalkRing extends Ring {
@@ -26,8 +27,8 @@ public class WalkRing extends Ring {
         return RingType.WALK;
     }
 
-    public WalkRing(Pos min, Pos max, ArgumentManager manage, SubActionManager actions) {
-        this(min, max, Minecraft.getInstance().gameRenderer.getMainCamera().yaw(), manage, actions);
+    public WalkRing(Pos min, Pos max, ArgumentManager manage, SubActionManager actions, Map<String, Object> extra) {
+        this(min, max, (Float) extra.getOrDefault("yaw", Minecraft.getInstance().gameRenderer.getMainCamera().yaw()), manage, actions);
     }
 
     public WalkRing(Pos min, Pos max, float yaw, ArgumentManager manage, SubActionManager actions) {
@@ -55,7 +56,12 @@ public class WalkRing extends Ring {
         if (hasInputPressed(input)) return true;
 
         autoP3.setDesync(true);
-        Minecraft.getInstance().player.setYRot(yaw);
+        if (autoP3.getStrafe().getValue() && !mc.player.onGround()) {
+            mc.player.setYRot(yaw - 45);
+            mutableInput.right(true);
+        } else {
+            mc.player.setYRot(yaw);
+        }
 
         mutableInput.forward(true);
         mutableInput.sprint(true);

@@ -13,11 +13,16 @@ import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class StopRing extends Ring {
 
     public StopRing(Pos min, Pos max, ArgumentManager manage, SubActionManager actions) {
+        super(min, max, RingType.STOP.getRenderSizeOffset(), manage, actions);
+    }
+
+    public StopRing(Pos min, Pos max, ArgumentManager manage, SubActionManager actions, Map<String, Object> ignored) {
         super(min, max, RingType.STOP.getRenderSizeOffset(), manage, actions);
     }
 

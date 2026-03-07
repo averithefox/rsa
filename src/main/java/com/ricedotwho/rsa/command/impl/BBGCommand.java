@@ -10,11 +10,14 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import com.ricedotwho.rsa.RSA;
+import com.ricedotwho.rsa.module.impl.dungeon.AutoUlt;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes.BoomNode;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.*;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.RingArgType;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.recorder.MovementRecorder;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.Ring;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubAction;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
@@ -80,6 +83,16 @@ public class BBGCommand extends Command {
                                         })
                                 )
                         )
+                )
+                .then(literal("play")
+                        .then(argument("route", StringArgumentType.greedyString())
+                                .executes(ctx -> {
+                                    String route = StringArgumentType.getString(ctx, "route");
+                                    MovementRecorder.playRecording(route);
+                                    AutoP3.modMessage("Playing %s!", route);
+                                    return 1;
+                                })
+                        )
                 );
     }
 
@@ -99,12 +112,13 @@ public class BBGCommand extends Command {
         boolean exact = false;
         ArgumentManager manager = new ArgumentManager();
         SubActionManager subActions = new SubActionManager();
+        Map<String, Object> dataMap = new HashMap<>();
         for (String arg : args) {
             Matcher matcher = argPattern.matcher(arg);
             if (!matcher.find()) continue;
             String key = matcher.group(1);
             Double value = NumberUtils.isDouble(matcher.group(2)) ? Double.parseDouble(matcher.group(2)) : null;
-            String stringValue = matcher.group(2);
+            String stringValue = matcher.group(3);
 
             switch (key.toLowerCase()) {
                 case "r", "radius" -> {
@@ -135,6 +149,15 @@ public class BBGCommand extends Command {
                     }
                     continue;
                 }
+                case "y", "yaw" -> {
+                    if (value != null) dataMap.put("yaw", value);
+                }
+                case "p", "pitch" -> {
+                    if (value != null) dataMap.put("pitch", value);
+                }
+                case "route" -> {
+                    if (stringValue != null) dataMap.put("route", stringValue);
+                }
             }
             RingArgType a = RingArgType.fromAliases(key.toLowerCase());
             if (a != null) {
@@ -146,7 +169,7 @@ public class BBGCommand extends Command {
             }
         }
         Pos playerPos = getPlayerPos(exact);
-        return type.supply(playerPos.subtract(whl.x(), 0, whl.z()), playerPos.add(whl), manager, subActions);
+        return type.supply(playerPos.subtract(whl.x(), 0, whl.z()), playerPos.add(whl), manager, subActions, dataMap);
     }
 
     private Pos getPlayerPos(boolean exact) {

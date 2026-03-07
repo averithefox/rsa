@@ -19,15 +19,15 @@ import java.util.*;
 public class AlignRing extends Ring {
     private Queue<Pair<Float, Boolean>> yaws;
 
-    public AlignRing(Vec3 pos, double renderOffset) {
-        super(pos, 0.5, renderOffset);
-    }
-
     public AlignRing(Pos min, Pos max, double renderOffset, ArgumentManager manager, SubActionManager actions) {
         super(min, max, renderOffset, manager, actions);
     }
 
     public AlignRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions) {
+        super(min, max, RingType.ALIGN.getRenderSizeOffset(), manager, actions);
+    }
+
+    public AlignRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions, Map<String, Object> ignored) {
         super(min, max, RingType.ALIGN.getRenderSizeOffset(), manager, actions);
     }
 
