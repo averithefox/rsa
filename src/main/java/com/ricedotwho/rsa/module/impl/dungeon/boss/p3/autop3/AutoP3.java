@@ -73,7 +73,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         if (!dungeonCheck()) return;
         if (activeRings.isEmpty()) return;
 
-        MutableInput mutableInput = new MutableInput(event.getClientInput());
+        MutableInput mutableInput = new MutableInput();
 
         for (int i = 0 ; i < activeRings.size(); i++) {
             boolean bl2 = activeRings.get(i).tick(mutableInput, event.getClientInput(), this);
