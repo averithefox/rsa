@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
 
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.*;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.Vec3;
@@ -12,7 +13,8 @@ public enum RingType {
     FAST_ALIGN("fastalign", FastAlign::new, 0.01f),
     STOP("stop", StopRing::new, 0.02f),
     WALK("walk", WalkRing::new, 0.03f),
-    JUMP("jump", JumpRing::new, 0.04f);
+    JUMP("jump", JumpRing::new, 0.04f),
+    LOOK("look", LookRing::new, 0.05f);
 
     @Getter
     private final String name;

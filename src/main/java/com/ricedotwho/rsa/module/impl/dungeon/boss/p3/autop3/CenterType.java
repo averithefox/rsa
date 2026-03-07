@@ -1,7 +1,10 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
 
+import lombok.Getter;
+
 import java.util.Arrays;
 
+@Getter
 public enum CenterType {
     POS("pos"),
     ANGLES("angles"),
@@ -13,10 +16,6 @@ public enum CenterType {
 
     CenterType(String name) {
         this.name = name;
-    }
-
-    public String getName() {
-        return this.name;
     }
 
     public static CenterType fromName(String name) {

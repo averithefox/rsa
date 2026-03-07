@@ -49,7 +49,7 @@ public class BreakerAura extends Module {
     private final ColourSetting colour = new ColourSetting("Colour", Colour.YELLOW.copy());
     private final BooleanSetting zeroTick = new BooleanSetting("Zero Tick", false);
     private final NumberSetting timeout = new NumberSetting("Timeout", 0, 1000, 500, 10);
-    private final SaveSetting<Set<Pos>> data = new SaveSetting<>("Aura Blocks", "dungeon", "breaker_aura.json", HashSet::new, new TypeToken<Set<Pos>>(){}.getType());
+    private final SaveSetting<Set<Pos>> data = new SaveSetting<>("Aura Blocks", "dungeon/breaker", "breaker_aura.json", HashSet::new, new TypeToken<Set<Pos>>(){}.getType());
 
     private int charges = 20;
 

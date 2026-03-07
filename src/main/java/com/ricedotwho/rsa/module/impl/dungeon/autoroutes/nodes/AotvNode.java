@@ -28,7 +28,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 
 public class AotvNode extends Node implements Accessor {
-    @Expose
     private final Pos rotationVec;
     private Pos realRotationVector;
 

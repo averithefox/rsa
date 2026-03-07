@@ -12,7 +12,6 @@ import net.minecraft.world.phys.Vec3;
 
 public class AwaitEWRaytrace extends AwaitCondition<EtherwarpNode> {
 
-
     public AwaitEWRaytrace() {
         super(AwaitType.ETHERWARP_TRACE);
     }

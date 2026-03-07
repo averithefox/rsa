@@ -2,6 +2,7 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.Ring;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationHandler;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationProvider;
 import com.ricedotwho.rsm.component.impl.location.Island;
@@ -16,15 +17,12 @@ import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
-import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.SaveSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec3;
-import oshi.util.tuples.Pair;
 
 import java.util.*;
 import java.util.stream.IntStream;
@@ -35,23 +33,23 @@ public class AutoP3 extends Module implements ClientRotationProvider {
 
     private final BooleanSetting forceSkyblock = new BooleanSetting("Force Skyblock", false);
 
-    private final SaveSetting<List<Ring>> data = new SaveSetting<>("Rings", "", "rings.json", ArrayList::new,
+    private final SaveSetting<List<Ring>> data = new SaveSetting<>("Rings", "dungeon/ap3", "rings.json", ArrayList::new,
             new TypeToken<List<Ring>>() {}.getType(),
             new GsonBuilder()
                     .registerTypeHierarchyAdapter(Ring.class, new RingAdapter())
                     .setPrettyPrinting().create(),
             true, this::reload, null);
 
-    private List<Ring> rings;
+    private final List<Ring> rings;
     private boolean desync = false;
     private boolean lastDesync = false;
     private final List<Ring> activeRings;
 
     public AutoP3() {
         this.registerProperty(
-                forceSkyblock
+                forceSkyblock,
+                data
         );
-        //this.yaws = new LinkedList<>();
         this.rings = new ArrayList<>();
         this.activeRings = new ArrayList<>(5);
     }
@@ -75,7 +73,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         if (!dungeonCheck()) return;
         if (activeRings.isEmpty()) return;
 
-        MutableInput mutableInput = new MutableInput();
+        MutableInput mutableInput = new MutableInput(event.getClientInput());
 
         for (int i = 0 ; i < activeRings.size(); i++) {
             boolean bl2 = activeRings.get(i).tick(mutableInput, event.getClientInput(), this);
@@ -102,22 +100,22 @@ public class AutoP3 extends Module implements ClientRotationProvider {
 
     @SubscribeEvent
     public void onTick(ClientTickEvent.Start event) {
-        if (!dungeonCheck() || Minecraft.getInstance().player == null) return;
+        if (!dungeonCheck() || mc.player == null) return;
         desync = false;
 
-        Vec3 playerPos = Minecraft.getInstance().player.position();
+        Vec3 playerPos = mc.player.position();
+        Vec3 oldPos = mc.player.oldPosition();
 
         List<Ring> sorted;
         synchronized (rings) {
-            sorted = rings.stream().filter(r -> r.updateState(playerPos) && (activeRings.isEmpty() || activeRings.stream().allMatch(active -> r.getPriority() >= active.getPriority()))).sorted(Comparator.comparingInt(Ring::getPriority).reversed()).toList();
+            sorted = rings.stream().filter(r -> r.updateState(playerPos, oldPos) && (activeRings.isEmpty() || activeRings.stream().allMatch(active -> r.getPriority() >= active.getPriority()))).sorted(Comparator.comparingInt(Ring::getPriority).reversed()).toList();
         }
 
         if (sorted.isEmpty()) return;
 
         activeRings.clear();
 
-        for (int i = 0; i < sorted.size(); i++) {
-            Ring ring = sorted.get(i);
+        for (Ring ring : sorted) {
             activeRings.add(ring);
             ring.setTriggered(true);
             if (!ring.run()) break;
@@ -133,7 +131,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     }
 
     private boolean dungeonCheck() {
-        return this.forceSkyblock.getValue() || (Minecraft.getInstance().player != null && Location.getArea().is(Island.Dungeon) && Dungeon.isInBoss());
+        return this.forceSkyblock.getValue() || (mc.player != null && Location.getArea().is(Island.Dungeon) && Dungeon.isInBoss());
     }
 
     public static void chat(Object message, Object... objects) {
@@ -142,16 +140,14 @@ public class AutoP3 extends Module implements ClientRotationProvider {
 
     public void addRing(Ring ring) {
         ring.setTriggered(true); // So it doesn't activate instantly
-        List<Ring> saveRings;
         synchronized (rings) {
             this.rings.add(ring);
-            saveRings = List.copyOf(this.rings); // need to copy over so it doesn't block render thread when saving to disk
+            data.setValue(List.copyOf(this.rings));
         }
-        AutoP3Loader.save(saveRings);
+        save();
     }
 
     public void removeNearest(Vec3 pos) {
-        List<Ring> saveRings;
         synchronized (rings) {
             int index = IntStream.range(0, rings.size())
                 .boxed()
@@ -159,12 +155,12 @@ public class AutoP3 extends Module implements ClientRotationProvider {
                 .orElse(-1);
             if (index < 0) return;
             rings.remove(index);
-            saveRings = List.copyOf(this.rings); // need to copy over so it doesn't block render thread when saving to disk
+            data.setValue(List.copyOf(this.rings));
         }
-        AutoP3Loader.save(saveRings);
+        save();
     }
 
-    protected void setDesync(boolean bl) {
+    public void setDesync(boolean bl) {
         if (bl && !desync && !lastDesync) onDesyncEnable();
         this.desync = bl;
     }
@@ -185,5 +181,13 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     @Override
     public boolean allowClientKeyInputs() {
         return true;
+    }
+
+    public void save() {
+        data.save();
+    }
+
+    public void load() {
+        data.load();
     }
 }

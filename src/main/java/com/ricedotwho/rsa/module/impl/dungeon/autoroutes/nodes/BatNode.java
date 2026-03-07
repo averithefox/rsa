@@ -29,9 +29,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public class BatNode extends Node {
-    @Expose
     private final float yaw;
-    @Expose
     private final float pitch;
 
     public BatNode(Pos localPos, float yaw, float pitch, AwaitManager awaits, boolean start) {

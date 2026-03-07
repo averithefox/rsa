@@ -1,6 +1,8 @@
-package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.*;
 import com.ricedotwho.rsm.data.Colour;
+import com.ricedotwho.rsm.data.Pos;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
@@ -10,6 +12,10 @@ import net.minecraft.world.phys.Vec3;
 public class StopRing extends Ring {
     public StopRing(Vec3 pos) {
         super(pos, 0.5, RingType.STOP.getRenderSizeOffset());
+    }
+
+    public StopRing(Pos min, Pos max) {
+        super(min, max, RingType.STOP.getRenderSizeOffset());
     }
 
     @Override

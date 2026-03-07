@@ -1,13 +1,11 @@
 package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits;
 
 import com.google.gson.JsonObject;
-import com.google.gson.annotations.Expose;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitCondition;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitType;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
 
 public class AwaitSecrets extends AwaitCondition<Integer> {
-    @Expose
     private final int secretCount;
     private int collectedSecretCount;
 

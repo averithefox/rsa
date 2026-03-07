@@ -1,9 +1,14 @@
-package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.NodeType;
+import com.google.gson.JsonObject;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.MutableInput;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.data.Colour;
-import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
+import com.ricedotwho.rsm.data.Pos;
+import com.ricedotwho.rsm.utils.Accessor;
+import com.ricedotwho.rsm.utils.FileUtils;
 import com.ricedotwho.rsm.utils.render.render3d.type.OutlineBox;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +16,7 @@ import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-public abstract class Ring{
+public abstract class Ring implements Accessor {
     @Getter
     private AABB box;
     @Getter
@@ -20,6 +25,10 @@ public abstract class Ring{
     @Getter
     private boolean triggered;
 
+
+    protected Ring(Pos pos, double radius, double renderOffset) {
+        this(pos.subtract(radius, 0, radius), pos.add(radius, radius * 2, radius), renderOffset); // Centered at bottom
+    }
 
     protected Ring(Vec3 pos, double radius, double renderOffset) {
         this(pos.subtract(radius, 0, radius), pos.add(radius, radius * 2, radius), renderOffset); // Centered at bottom
@@ -31,12 +40,21 @@ public abstract class Ring{
         this.triggered = false;
     }
 
-    public boolean isInNode(Vec3 playerPos) {
-        return playerPos.x >= box.minX && playerPos.x <= box.maxX && playerPos.y >= box.minY && playerPos.y <= box.maxY && playerPos.z >= box.minZ && playerPos.z <= box.maxZ;
+    protected Ring(Pos min, Pos max, double renderOffset) {
+        this.box = new AABB(min.x(), min.y(), min.z(), max.x(), max.y(), max.z());
+        this.renderBox = box.contract(renderOffset, renderOffset, renderOffset);
+        this.triggered = false;
     }
 
-    public boolean updateState(Vec3 playerPos) {
-        boolean bl = isInNode(playerPos);
+    public boolean isInNode(Vec3 curr, Vec3 prev) {
+        AABB feet = new AABB(curr.x - 0.2, curr.y, curr.z - 0.2, curr.x + 0.3, curr.y + 0.5, curr.z);
+        boolean intercept = box.intersects(curr, prev);
+        boolean intersects = box.intersects(feet);
+        return intercept || intersects;
+    }
+
+    public boolean updateState(Vec3 playerPos, Vec3 oldPos) {
+        boolean bl = isInNode(playerPos, oldPos);
 
         if (bl && !this.triggered) {
             // Trigger will be set later
@@ -71,5 +89,13 @@ public abstract class Ring{
     public abstract Colour getColour();
     public abstract int getPriority();
     public abstract boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3);
+
+    public JsonObject serialize() {
+        JsonObject obj = new JsonObject();
+        obj.addProperty("type", this.getType().name());
+        obj.add("min", FileUtils.getGson().toJsonTree(new Pos(box.minX, box.minY, box.minZ)));
+        obj.add("max", FileUtils.getGson().toJsonTree(new Pos(box.maxX, box.maxY, box.maxZ)));
+        return obj;
+    }
 
 }

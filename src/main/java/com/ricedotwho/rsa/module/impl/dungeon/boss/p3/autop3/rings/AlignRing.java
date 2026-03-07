@@ -1,13 +1,10 @@
-package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 
-import com.ricedotwho.rsm.RSM;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.*;
 import com.ricedotwho.rsm.data.Colour;
-import com.ricedotwho.rsm.event.api.SubscribeEvent;
-import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
-import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.data.Pos;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
@@ -25,6 +22,14 @@ public class AlignRing extends Ring {
 
     public AlignRing(Vec3 pos, double renderOffset) {
         super(pos, 0.5, renderOffset);
+    }
+
+    public AlignRing(Pos min, Pos max, double renderOffset) {
+        super(min, max, renderOffset);
+    }
+
+    public AlignRing(Pos min, Pos max) {
+        super(min, max, RingType.ALIGN.getRenderSizeOffset());
     }
 
     @Override
