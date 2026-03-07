@@ -118,7 +118,7 @@ public class BBGCommand extends Command {
             if (!matcher.find()) continue;
             String key = matcher.group(1);
             Double value = NumberUtils.isDouble(matcher.group(2)) ? Double.parseDouble(matcher.group(2)) : null;
-            String stringValue = matcher.group(3);
+            String stringValue = matcher.group(2) == null ? matcher.group(3) : matcher.group(2);
 
             switch (key.toLowerCase()) {
                 case "r", "radius" -> {
