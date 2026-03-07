@@ -12,6 +12,7 @@ import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
+import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.event.impl.render.Render3DEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
@@ -30,6 +31,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.common.ServerboundPongPacket;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
@@ -93,6 +95,17 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         }
         lastDesync = desync;
     }
+//
+//    int last = -1;
+//    @SubscribeEvent
+//    public void onSendPacket(PacketEvent.Send event) {
+//        if (!(event.getPacket() instanceof ServerboundPongPacket packet)) return;
+//        System.out.println(packet.getId());
+//        if (packet.getId() != last - 1) {
+//            ChatUtils.chat("Mismatch at id : " + packet.getId());
+//        }
+//        last = packet.getId();
+//    }
 
     @SubscribeEvent
     public void onWorldLoad(WorldEvent.Load event) {

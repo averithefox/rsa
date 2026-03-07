@@ -105,6 +105,7 @@ public class BloodBlink extends Module {
     private final NumberSetting deathTickOffset = new NumberSetting("Death Tick Offset", 0.0d, 20.0d, 0.0d, 1.0d);
     private final NumberSetting earlyExit = new NumberSetting("Early Exit", 0, 20, 0, 1);
     private final NumberSetting exploreExit = new NumberSetting("Explore Exit", 10, 40, 25, 1);
+    private final NumberSetting bloodLoadTickTime = new NumberSetting("Map Load Tick Time", 5, 35, 10, 1);
     private final KeybindSetting cancel = new KeybindSetting("Cancel", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, this::cancel));
 
     private final ModeSetting mode = new ModeSetting("Mode", "Blood", List.of("Blood", "InstaClear"));
@@ -117,6 +118,7 @@ public class BloodBlink extends Module {
                 proxyPearl,
                 auto,
                 africanSlavePingMode,
+                bloodLoadTickTime,
                 deathTickOffset,
                 earlyExit,
                 exploreExit,
@@ -345,7 +347,7 @@ public class BloodBlink extends Module {
 
                 //todo: this is slow, it should try tp before the dungeon starts for high ping players (me), in theory we should be able to get 0.05s opens
                 // *doing this is annoying for low ping
-                if (((africanSlavePingMode.getValue() && ticksTillStart != -67 && ticksTillStart <= 0) || Dungeon.isStarted()) && (serverTickTimer % 40) < 35) {
+                if (((africanSlavePingMode.getValue() && ticksTillStart != -67 && ticksTillStart <= 0) || Dungeon.isStarted()) && (serverTickTimer % 40) < (40 - bloodLoadTickTime.getValue().intValue())) {
                     PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
                         if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) return;
 
