@@ -35,6 +35,7 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.network.protocol.game.ServerboundInteractPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Input;
@@ -102,12 +103,12 @@ public class Relics extends Module {
 
         // dumb stupid not exposed entity id
         try {
-            Field idField = ServerboundInteractPacket.class.getDeclaredField("field_12870");
+            Field idField = ServerboundInteractPacket.class.getDeclaredField("field_12870"); // entityId
             idField.setAccessible(true);
             int id = idField.getInt(packet);
             Entity e = mc.level.getEntity(id);
-            if (e == null) return;
-            String name = ChatFormatting.stripFormatting(e.getDisplayName().getString());
+            if (!(e instanceof ArmorStand stand)) return;
+            String name = ChatFormatting.stripFormatting(stand.getItemBySlot(EquipmentSlot.HEAD).getHoverName().getString());
             Type type = Type.getTypeByName(name);
             if (type == Type.NONE) return;
 
@@ -129,8 +130,8 @@ public class Relics extends Module {
                 }
             }
 
-        } catch (NoSuchFieldException | IllegalAccessException ex) {
-            throw new RuntimeException(ex);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            RSA.getLogger().error("Error while finding entityId!", e);
         }
     }
 
@@ -205,7 +206,7 @@ public class Relics extends Module {
             List<ArmorStand> stands = mc.level.getEntitiesOfClass(ArmorStand.class, box);
 
             for (ArmorStand stand : stands) {
-                String name = ChatFormatting.stripFormatting(stand.getDisplayName().getString());
+                String name = ChatFormatting.stripFormatting(stand.getItemBySlot(EquipmentSlot.HEAD).getHoverName().getString());
                 Type type = Type.getTypeByName(name);
                 RSA.chat("Relic: %s, name: %s", type, name);
                 if (type == Type.NONE) continue;
@@ -236,10 +237,10 @@ public class Relics extends Module {
         }
 
         public static Type getTypeByName(String itemName) {
-            String name = itemName.toLowerCase();
+            String name = ChatFormatting.stripFormatting(itemName.toLowerCase());
             if (!name.contains("corrupted") || !name.contains("relic")) return Type.NONE;
             for (Type t : values()) {
-                if (name.toLowerCase().contains(t.name())) return t;
+                if (name.contains(t.name().toLowerCase())) return t;
             }
             return NONE;
         }

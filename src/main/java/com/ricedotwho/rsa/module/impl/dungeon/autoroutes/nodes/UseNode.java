@@ -29,11 +29,8 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.phys.Vec3;
 
 public class UseNode extends Node {
-    @Expose
     private final Pos rotationVec;
-    @Expose
     private final String itemID;
-    @Expose
     @Setter
     private boolean sneak;
 

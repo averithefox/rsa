@@ -31,7 +31,6 @@ import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.reflect.FieldUtils;
 
 public class EtherwarpNode extends Node {
-    @Expose
     protected final Pos localTarget;
     @Getter
     protected Pos realTargetPos;

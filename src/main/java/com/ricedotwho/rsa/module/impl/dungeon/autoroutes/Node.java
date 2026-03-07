@@ -11,18 +11,13 @@ import lombok.Getter;
 import lombok.Setter;
 
 public abstract class Node {
-    @Expose
     protected final Pos localPos;
     @Getter
-    @Expose
     private final float radius;
-    @Expose
     @Getter
     private final AwaitManager awaitManager;
-    @Expose
     @Getter
     private final boolean start;
-
     @Getter
     @Setter
     private boolean triggered;

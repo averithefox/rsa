@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitCondition;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitType;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
-import lombok.Getter;
 
 public class AwaitClick extends AwaitCondition<Boolean> {
     private boolean clicked;

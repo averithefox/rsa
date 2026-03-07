@@ -35,21 +35,22 @@ public class AutoP3 extends Module implements ClientRotationProvider {
 
     private final BooleanSetting forceSkyblock = new BooleanSetting("Force Skyblock", false);
 
-    private final SaveSetting<List<Ring>> data = new SaveSetting<>("Rings", "", "rings.json", ArrayList::new,
+    private final SaveSetting<List<Ring>> data = new SaveSetting<>("Rings", "dungeon/ap3", "rings.json", ArrayList::new,
             new TypeToken<List<Ring>>() {}.getType(),
             new GsonBuilder()
                     .registerTypeHierarchyAdapter(Ring.class, new RingAdapter())
                     .setPrettyPrinting().create(),
             true, this::reload, null);
 
-    private List<Ring> rings;
+    private final List<Ring> rings;
     private boolean desync = false;
     private boolean lastDesync = false;
     private final List<Ring> activeRings;
 
     public AutoP3() {
         this.registerProperty(
-                forceSkyblock
+                forceSkyblock,
+                data
         );
         this.rings = new ArrayList<>();
         this.activeRings = new ArrayList<>(5);
@@ -99,14 +100,15 @@ public class AutoP3 extends Module implements ClientRotationProvider {
 
     @SubscribeEvent
     public void onTick(ClientTickEvent.Start event) {
-        if (!dungeonCheck() || Minecraft.getInstance().player == null) return;
+        if (!dungeonCheck() || mc.player == null) return;
         desync = false;
 
-        Vec3 playerPos = Minecraft.getInstance().player.position();
+        Vec3 playerPos = mc.player.position();
+        Vec3 oldPos = mc.player.oldPosition();
 
         List<Ring> sorted;
         synchronized (rings) {
-            sorted = rings.stream().filter(r -> r.updateState(playerPos) && (activeRings.isEmpty() || activeRings.stream().allMatch(active -> r.getPriority() >= active.getPriority()))).sorted(Comparator.comparingInt(Ring::getPriority).reversed()).toList();
+            sorted = rings.stream().filter(r -> r.updateState(playerPos, oldPos) && (activeRings.isEmpty() || activeRings.stream().allMatch(active -> r.getPriority() >= active.getPriority()))).sorted(Comparator.comparingInt(Ring::getPriority).reversed()).toList();
         }
 
         if (sorted.isEmpty()) return;
@@ -130,7 +132,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     }
 
     private boolean dungeonCheck() {
-        return this.forceSkyblock.getValue() || (Minecraft.getInstance().player != null && Location.getArea().is(Island.Dungeon) && Dungeon.isInBoss());
+        return this.forceSkyblock.getValue() || (mc.player != null && Location.getArea().is(Island.Dungeon) && Dungeon.isInBoss());
     }
 
     public static void chat(Object message, Object... objects) {
@@ -139,34 +141,30 @@ public class AutoP3 extends Module implements ClientRotationProvider {
 
     public void addRing(Ring ring) {
         ring.setTriggered(true); // So it doesn't activate instantly
-        List<Ring> saveRings;
         synchronized (rings) {
             this.rings.add(ring);
-            saveRings = List.copyOf(this.rings); // need to copy over so it doesn't block render thread when saving to disk
+            data.setValue(List.copyOf(this.rings));
         }
-        AutoP3Loader.save(saveRings);
+        save();
     }
 
     public boolean insertRing(Ring ring, int index) {
         if (index < 0 || index > rings.size()) return false;
         ring.setTriggered(true); // So it doesn't activate instantly
-        List<Ring> saveRings;
         synchronized (rings) {
             this.rings.add(index, ring);
-            saveRings = List.copyOf(this.rings); // need to copy over so it doesn't block render thread when saving to disk
         }
-        AutoP3Loader.save(saveRings);
+        save();
         return true;
     }
 
     public boolean removeIndexed(int index) {
-        List<Ring> saveRings;
         synchronized (rings) {
             if (index < 0 || index >= rings.size()) return false;
             rings.remove(index);
-            saveRings = List.copyOf(this.rings); // need to copy over so it doesn't block render thread when saving to disk
         }
-        AutoP3Loader.save(saveRings);
+
+        save();
         return true;
     }
 
@@ -179,13 +177,13 @@ public class AutoP3 extends Module implements ClientRotationProvider {
                 .orElse(-1);
             if (index < 0) return false;
             rings.remove(index);
-            saveRings = List.copyOf(this.rings); // need to copy over so it doesn't block render thread when saving to disk
+            data.setValue(List.copyOf(this.rings));
         }
-        AutoP3Loader.save(saveRings);
+        save();
         return true;
     }
 
-    protected void setDesync(boolean bl) {
+    public void setDesync(boolean bl) {
         if (bl && !desync && !lastDesync) onDesyncEnable();
         this.desync = bl;
     }
@@ -206,5 +204,13 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     @Override
     public boolean allowClientKeyInputs() {
         return true;
+    }
+
+    public void save() {
+        data.save();
+    }
+
+    public void load() {
+        data.load();
     }
 }

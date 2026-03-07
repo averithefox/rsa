@@ -49,7 +49,6 @@ public class BreakNode extends Node implements Accessor {
     }
 
     @Getter
-    @Expose
     private final List<Pos> blocks;
     private List<Pos> rotated = null;
     private boolean running = false;

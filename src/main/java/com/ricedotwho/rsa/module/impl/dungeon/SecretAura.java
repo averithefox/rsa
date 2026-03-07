@@ -306,7 +306,7 @@ public class SecretAura extends Module {
         if (!Location.getArea().is(Island.Dungeon) || Dungeon.isInBoss()) return false;
         if (Location.getArea().is(Island.Dungeon) && Map.getCurrentRoom() == null) return true; // So it doesn't break when leaping into room, might need to remove this
         return switch (Map.getCurrentRoom().getData().name()) {
-            case "Water Board", "Three Weirdos" -> true;
+            case "Water Board", "Three Weirdos", "Ice Fill" -> true;
             default -> false;
         };
     }

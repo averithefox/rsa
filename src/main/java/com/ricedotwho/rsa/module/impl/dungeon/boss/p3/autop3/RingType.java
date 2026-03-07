@@ -14,7 +14,8 @@ public enum RingType {
     WALK("walk", WalkRing::new, 0.03f),
     JUMP("jump", JumpRing::new, 0.04f),
     BONZO("bonzo", BonzoRing::new, 0.05f),
-    FAST_BONZO("fastbonzo", FastBonzoRing::new, 0.06f);
+    FAST_BONZO("fastbonzo", FastBonzoRing::new, 0.06f),
+    LOOK("look", LookRing::new, 0.07f);
 
     @Getter
     private final String name;
