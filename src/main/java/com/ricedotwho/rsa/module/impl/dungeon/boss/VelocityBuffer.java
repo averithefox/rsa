@@ -15,6 +15,7 @@ import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ClientboundPingPacket;
+import net.minecraft.network.protocol.common.ServerboundPongPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import org.lwjgl.glfw.GLFW;
 
@@ -49,7 +50,7 @@ public class VelocityBuffer extends Module {
     }
 
     @SubscribeEvent
-    public void onSendPacket(PacketEvent.Receive event) {
+    public void onReceivePacket(PacketEvent.Receive event) {
         if (Minecraft.getInstance().player == null) return;
         Packet<?> packet = event.getPacket();
         if (isMotionPacket(packet, Minecraft.getInstance().player)) {
@@ -65,6 +66,12 @@ public class VelocityBuffer extends Module {
             queue.add(packet);
         }
         event.setCancelled(true);
+    }
+
+    @SubscribeEvent
+    public void onSendPacket(PacketEvent.Send event) {
+        if (!(event.getPacket() instanceof ServerboundPongPacket packet)) return;
+        ChatUtils.chat(packet.getId());
     }
 
     @Override
