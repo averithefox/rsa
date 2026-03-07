@@ -21,6 +21,11 @@ public class FastAlign extends AlignRing {
     }
 
     @Override
+    public int getPriority() {
+        return 105;
+    }
+
+    @Override
     public Colour getColour() {
         return colour;
     }

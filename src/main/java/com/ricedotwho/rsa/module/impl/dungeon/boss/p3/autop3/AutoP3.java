@@ -51,7 +51,6 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         this.registerProperty(
                 forceSkyblock
         );
-        //this.yaws = new LinkedList<>();
         this.rings = new ArrayList<>();
         this.activeRings = new ArrayList<>(5);
     }
@@ -83,9 +82,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
             activeRings.remove(i--);
         }
 
-        if (mutableInput.isModified()) {
-            event.getInputConsumer().accept(mutableInput.toInput());
-        }
+        event.getInputConsumer().accept(mutableInput.toInput());
     }
 
     private void reload() {
@@ -150,18 +147,42 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         AutoP3Loader.save(saveRings);
     }
 
-    public void removeNearest(Vec3 pos) {
+    public boolean insertRing(Ring ring, int index) {
+        if (index < 0 || index > rings.size()) return false;
+        ring.setTriggered(true); // So it doesn't activate instantly
+        List<Ring> saveRings;
+        synchronized (rings) {
+            this.rings.add(index, ring);
+            saveRings = List.copyOf(this.rings); // need to copy over so it doesn't block render thread when saving to disk
+        }
+        AutoP3Loader.save(saveRings);
+        return true;
+    }
+
+    public boolean removeIndexed(int index) {
+        List<Ring> saveRings;
+        synchronized (rings) {
+            if (index < 0 || index >= rings.size()) return false;
+            rings.remove(index);
+            saveRings = List.copyOf(this.rings); // need to copy over so it doesn't block render thread when saving to disk
+        }
+        AutoP3Loader.save(saveRings);
+        return true;
+    }
+
+    public boolean removeNearest(Vec3 pos) {
         List<Ring> saveRings;
         synchronized (rings) {
             int index = IntStream.range(0, rings.size())
                 .boxed()
                 .min(Comparator.comparingDouble(i -> rings.get(i).getDistanceSq(pos)))
                 .orElse(-1);
-            if (index < 0) return;
+            if (index < 0) return false;
             rings.remove(index);
             saveRings = List.copyOf(this.rings); // need to copy over so it doesn't block render thread when saving to disk
         }
         AutoP3Loader.save(saveRings);
+        return true;
     }
 
     protected void setDesync(boolean bl) {

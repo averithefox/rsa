@@ -2,6 +2,7 @@ package com.ricedotwho.rsa.command.impl;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -40,13 +41,33 @@ public class BBGCommand extends Command {
                         .executes(r -> this.center(CenterType.ALL)) // Won't center pos on server dw
                 )
                 .then(literal("remove")
+                        .then(argument("index", IntegerArgumentType.integer())
+                                .executes(ctx -> this.removeRing(ctx, IntegerArgumentType.getInteger(ctx, "index")))
+                        )
                         .executes(this::removeRing)
                 )
                 .then(literal("add")
                         .then(argument("ring", BBGCommand.RingArgumentType.ringArgument())
+                                .then(argument("index", IntegerArgumentType.integer())
+                                        .executes(ctx -> this.addRing(ctx, IntegerArgumentType.getInteger(ctx, "index")))
+                                )
                             .executes(this::addRing)
                         )
                 );
+    }
+
+    private int addRing(CommandContext<ClientSuggestionProvider> ctx, int index) {
+        if (Minecraft.getInstance().player == null) return 0;
+        RingType type = BBGCommand.RingArgumentType.getRing(ctx, "ring");
+
+        Ring ring = type.supply(Minecraft.getInstance().player.position());
+        if (ring == null) return 0;
+        if (RSM.getModule(AutoP3.class).insertRing(ring, index)) {
+            ChatUtils.chat("Added " + type + " ring at " + index + "!");
+            return 1;
+        }
+        ChatUtils.chat("Invalid index " + index);
+        return 0;
     }
 
     private int addRing(CommandContext<ClientSuggestionProvider> ctx) {
@@ -56,15 +77,33 @@ public class BBGCommand extends Command {
         Ring ring = type.supply(Minecraft.getInstance().player.position());
         if (ring == null) return 0;
         RSM.getModule(AutoP3.class).addRing(ring);
+        ChatUtils.chat("Added " + type + " ring!");
         return 1;
+    }
+
+    private int removeRing(CommandContext<ClientSuggestionProvider> ctx, int index) {
+        if (Minecraft.getInstance().player == null) return 0;
+
+        if (RSM.getModule(AutoP3.class).removeIndexed(index)) {
+            ChatUtils.chat("Removed ring at index " + index);
+            return 1;
+        }
+
+        ChatUtils.chat("Could not find ring at index " + index);
+        return 0;
     }
 
     private int removeRing(CommandContext<ClientSuggestionProvider> ctx) {
         if (Minecraft.getInstance().player == null) return 0;
 
         Vec3 position = Minecraft.getInstance().player.position();
-        RSM.getModule(AutoP3.class).removeNearest(position);
-        return 1;
+        if (RSM.getModule(AutoP3.class).removeNearest(position)) {
+            ChatUtils.chat("Removed ring!");
+            return 1;
+        }
+
+        ChatUtils.chat("Could not find ring!");
+        return 0;
     }
 
     private int center(CenterType centerType) {

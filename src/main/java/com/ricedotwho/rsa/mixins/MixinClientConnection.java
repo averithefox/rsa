@@ -1,6 +1,7 @@
 package com.ricedotwho.rsa.mixins;
 
 import com.llamalad7.mixinextras.sugar.Local;
+import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.network.Socks5CommandRequestHandler;
 import com.ricedotwho.rsa.network.Socks5InitialRequestHandler;
@@ -17,6 +18,7 @@ import io.netty.handler.codec.socksx.v5.Socks5InitialResponseDecoder;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import net.minecraft.network.BandwidthDebugMonitor;
 import net.minecraft.network.Connection;
+import net.minecraft.network.PacketListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
 import org.jetbrains.annotations.Nullable;

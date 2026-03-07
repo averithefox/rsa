@@ -10,6 +10,7 @@
     "MixinClientConnection",
     "MixinClipContext",
     "MixinLivingEntity",
+    "MixinLowPriorityConnection",
     "MixinMinecraft",
     "MixinMultiPlayerGameMode",
     "MixinPlayer"

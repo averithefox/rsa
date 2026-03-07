@@ -12,7 +12,9 @@ public enum RingType {
     FAST_ALIGN("fastalign", FastAlign::new, 0.01f),
     STOP("stop", StopRing::new, 0.02f),
     WALK("walk", WalkRing::new, 0.03f),
-    JUMP("jump", JumpRing::new, 0.04f);
+    JUMP("jump", JumpRing::new, 0.04f),
+    BONZO("bonzo", BonzoRing::new, 0.05f),
+    FAST_BONZO("fastbonzo", FastBonzoRing::new, 0.06f);
 
     @Getter
     private final String name;
