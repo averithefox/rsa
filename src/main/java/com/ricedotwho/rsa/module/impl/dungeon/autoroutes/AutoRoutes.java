@@ -435,7 +435,7 @@ public class AutoRoutes extends Module implements Accessor {
         }
 
         Pos goalPos = closestStart.getRealPos();
-        Goal goal = GoalDungeonXYZ.create(goalPos.asBlockPos().below());
+        Goal goal = GoalDungeonXYZ.create(goalPos.asBlockPos().below(goalPos.y % 1 == 0 ? 1 : 0));
 
         DynamicRoutes dynamicRoutes = RSM.getModule(DynamicRoutes.class);
         if (!dynamicRoutes.isEnabled()) {
