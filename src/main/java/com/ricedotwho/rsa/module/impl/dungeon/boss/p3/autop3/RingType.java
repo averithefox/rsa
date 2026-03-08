@@ -6,6 +6,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManage
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.*;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
 import com.ricedotwho.rsm.data.Pos;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.*;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 

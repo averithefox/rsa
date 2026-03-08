@@ -38,7 +38,7 @@ public class InvWalk extends SubModule<AutoTerms> {
     private final ColourSetting clicksColour = new ColourSetting("Clicks Colour", new Colour(0, 191, 0));
     private final BooleanSetting textShadow = new BooleanSetting("Text Shadow", false);
 
-    private final ModeSetting moveDelayMode = new ModeSetting("Mode Delay", "Stop Inputs", List.of("Stop Inputs", "Freeze"));
+    private final ModeSetting moveDelayMode = new ModeSetting("Mode Delay", "Freeze", List.of("Stop Inputs", "Freeze"));
     private final NumberSetting melodyMoveDelay = new NumberSetting("Melody Move Delay", 0, 500, 300, 50);
 
     private final DragSetting termTitle = new DragSetting("Term Title", new Vector2d(10, 10), new Vector2d(150, 15));

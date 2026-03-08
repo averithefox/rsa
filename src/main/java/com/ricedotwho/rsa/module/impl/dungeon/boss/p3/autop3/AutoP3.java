@@ -13,7 +13,6 @@ import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.MutableInput;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
-import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.event.impl.render.Render3DEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
@@ -32,7 +31,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.protocol.common.ServerboundPongPacket;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
@@ -129,8 +127,6 @@ public class AutoP3 extends Module implements ClientRotationProvider {
             r.setInactive();
             activeRings.remove(i--);
         }
-
-        event.getInputConsumer().accept(mutableInput.toInput());
     }
 
     private void reload() {
@@ -202,7 +198,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
 
     public boolean insertRing(Ring ring, int index) {
         if (index < 0 || index > rings.size()) return false;
-        ring.setTriggered(true); // So it doesn't activate instantly
+        ring.setTriggered(); // So it doesn't activate instantly
         synchronized (rings) {
             this.rings.add(index, ring);
         }
@@ -220,8 +216,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         return true;
     }
 
-    public boolean removeNearest(Vec3 pos) {
-        List<Ring> saveRings;
+    public void removeNearest(Vec3 pos) {
         synchronized (rings) {
             int index = IntStream.range(0, rings.size())
                 .boxed()
@@ -231,7 +226,6 @@ public class AutoP3 extends Module implements ClientRotationProvider {
             Ring ring = rings.remove(index);
             save();
             modMessage("Removed %s", Utils.capitalise(ring.getType().getName()));
-            if (index < 0) return false;
             rings.remove(index);
             data.setValue(List.copyOf(this.rings));
         }
@@ -257,7 +251,6 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         rings.add(ring);
         save();
         modMessage("Redid %s", Utils.capitalise(ring.getType().getName()));
-        return true;
     }
 
     public void setDesync(boolean bl) {

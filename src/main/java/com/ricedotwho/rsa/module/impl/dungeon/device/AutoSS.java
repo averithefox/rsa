@@ -50,7 +50,7 @@ public class AutoSS extends Module {
     private static final BlockPos DETECT = new BlockPos(110, 123, 92);
     //private static final AABB DEVICE_AABB = new AABB(START_BUTTON.subtract(-40d, -40d, -40d), START_BUTTON.add(40d, 40d, 40d));
 
-    KeybindSetting resetKey = new KeybindSetting("Reset SS Key", new Keybind(GLFW.GLFW_KEY_K, false, null), this::SSR);
+    KeybindSetting resetKey = new KeybindSetting("Reset SS Key", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, null), this::SSR);
     BooleanSetting sendChat = new BooleanSetting("Send SSR Chat Message", true);
     BooleanSetting autoStart = new BooleanSetting("Autostart", true);
     BooleanSetting forceSkyblock = new BooleanSetting("Force Skyblock (Don't keep enabled)", false);

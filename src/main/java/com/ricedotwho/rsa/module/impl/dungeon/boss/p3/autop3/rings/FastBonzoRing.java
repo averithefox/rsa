@@ -1,15 +1,30 @@
-package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
 import com.ricedotwho.rsm.data.Colour;
+import com.ricedotwho.rsm.data.Pos;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.common.ClientboundPingPacket;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.Map;
 
 public class FastBonzoRing extends BonzoRing {
     public FastBonzoRing(Vec3 pos) {
         super(pos);
     }
+
+    public FastBonzoRing(Pos min, Pos max, float yaw, float pitch, ArgumentManager manager, SubActionManager actions) {
+        super(min, max, yaw, pitch, manager, actions);
+    }
+
+    public FastBonzoRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions, Map<String, Object> extra) {
+        this(min, max, (Float) extra.get("yaw"), (Float) extra.get("pitch"), manager, actions);
+    }
+
+
 
     @Override
     protected void registerWaitCondition() {

@@ -1,18 +1,23 @@
-package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
+package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 
+import com.google.gson.JsonObject;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.VelocityBuffer;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.data.Colour;
+import com.ricedotwho.rsm.data.MutableInput;
+import com.ricedotwho.rsm.data.Pos;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec3;
-import org.lwjgl.util.freetype.FreeType;
 
-import java.util.function.Predicate;
+import java.util.Map;
 
 public class BonzoRing extends Ring {
     private final float yaw;
@@ -25,6 +30,16 @@ public class BonzoRing extends Ring {
         this.yaw = Minecraft.getInstance().gameRenderer.getMainCamera().yaw();
         this.pitch = Minecraft.getInstance().gameRenderer.getMainCamera().getXRot();
         this.state = 0;
+    }
+
+    public BonzoRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions, Map<String, Object> extra) {
+        this(min, max, (Float) extra.get("yaw"), (Float) extra.get("pitch"), manager, actions);
+    }
+
+    public BonzoRing(Pos min, Pos max, float yaw, float pitch, ArgumentManager manager, SubActionManager actions) {
+        super(min, max, RingType.WALK.getRenderSizeOffset(), manager, actions);
+        this.yaw = yaw;
+        this.pitch = pitch;
     }
 
     @Override
@@ -79,6 +94,14 @@ public class BonzoRing extends Ring {
     }
 
     @Override
+    public JsonObject serialize() {
+        JsonObject obj = super.serialize();
+        obj.addProperty("yaw", this.yaw);
+        obj.addProperty("pitch", this.pitch);
+        return obj;
+    }
+
+    @Override
     public Colour getColour() {
         return Colour.MAGENTA;
     }
@@ -91,5 +114,10 @@ public class BonzoRing extends Ring {
     @Override
     public boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3) {
         return true;
+    }
+
+    @Override
+    public void feedback() {
+
     }
 }

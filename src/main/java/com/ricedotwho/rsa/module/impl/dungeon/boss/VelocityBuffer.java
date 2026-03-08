@@ -78,11 +78,11 @@ public class VelocityBuffer extends Module {
         return INSTANCE.onReceivePacket(packet);
     }
 
-    @SubscribeEvent
-    public void onSendPacket(PacketEvent.Send event) {
-        if (!queue.isEmpty())
-            System.out.println(event.getPacket().getClass().getName());
-    }
+//    @SubscribeEvent
+//    public void onSendPacket(PacketEvent.Send event) {
+//        if (!queue.isEmpty())
+//            System.out.println(event.getPacket().getClass().getName());
+//    }
 
     private boolean onReceivePacket(Packet<?> packet) {
         if (Minecraft.getInstance().player == null || !this.isEnabled()) return false;
@@ -112,9 +112,9 @@ public class VelocityBuffer extends Module {
         synchronized (queue) {
             this.queue.clear();
         }
-        for (int i = 0; i < 10; i++) {
-            System.out.println(" ");
-        }
+//        for (int i = 0; i < 10; i++) {
+//            System.out.println(" ");
+//        }
         super.onEnable();
     }
 

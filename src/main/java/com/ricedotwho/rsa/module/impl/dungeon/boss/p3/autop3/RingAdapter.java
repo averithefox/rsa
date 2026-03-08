@@ -2,18 +2,23 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.*;
-import com.ricedotwho.rsa.RSA;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitCondition;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitManager;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitType;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitEWRaytrace;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.RingArgType;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.*;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.*;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubAction;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionType;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.type.EdgeAction;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.type.JumpAction;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.type.LookAction;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubAction;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionType;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.FileUtils;
 import org.apache.commons.lang3.EnumUtils;
@@ -44,6 +49,8 @@ public class RingAdapter implements JsonDeserializer<Ring>, JsonSerializer<Ring>
         }
 
         return switch (type) {
+            case BONZO -> new BonzoRing(min, max, obj.get("yaw").getAsFloat(), obj.get("pitch").getAsFloat(), args, sub);
+            case FAST_BONZO -> new FastBonzoRing(min, max, obj.get("yaw").getAsFloat(), obj.get("pitch").getAsFloat(), args, sub);
             case JUMP -> new JumpRing(min, max, args, sub);
             case LOOK -> new LookRing(min, max, obj.get("yaw").getAsFloat(), obj.get("pitch").getAsFloat(), args, sub);
             case STOP -> new StopRing(min, max, args, sub);
