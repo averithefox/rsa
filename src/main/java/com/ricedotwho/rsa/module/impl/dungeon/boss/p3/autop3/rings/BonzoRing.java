@@ -37,7 +37,7 @@ public class BonzoRing extends Ring {
     }
 
     public BonzoRing(Pos min, Pos max, float yaw, float pitch, ArgumentManager manager, SubActionManager actions) {
-        super(min, max, RingType.WALK.getRenderSizeOffset(), manager, actions);
+        super(min, max, RingType.BONZO.getRenderSizeOffset(), manager, actions);
         this.yaw = yaw;
         this.pitch = pitch;
     }

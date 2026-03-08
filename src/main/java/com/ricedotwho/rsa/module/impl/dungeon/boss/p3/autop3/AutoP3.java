@@ -4,6 +4,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.recorder.MovementRecorder;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.Ring;
+import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationHandler;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationProvider;
 import com.ricedotwho.rsm.component.impl.location.Island;
@@ -112,6 +113,14 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     public void onWorldLoad(WorldEvent.Load event) {
         this.activeRings.clear();
         reload();
+    }
+
+    public static void load(String config) {
+        AutoP3 ap3 = RSM.getModule(AutoP3.class);
+        ap3.getData().setFileName(config);
+        ap3.getData().updateFile();
+        ap3.getData().load();
+        ap3.reload();
     }
 
     @SubscribeEvent
@@ -296,7 +305,6 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     public void load() {
         data.load();
     }
-
 
     public static void modMessage(Object message, Object ... objects) {
         ChatUtils.chatClean(PREFIX.copy().append(String.format(message.toString(), objects)));
