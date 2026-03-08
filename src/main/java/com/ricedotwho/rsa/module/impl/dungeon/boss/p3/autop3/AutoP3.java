@@ -2,7 +2,6 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.recorder.MovementRecorder;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.Ring;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationHandler;
@@ -14,13 +13,13 @@ import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.MutableInput;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
+import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.event.impl.render.Render3DEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
-import com.ricedotwho.rsm.module.impl.dungeon.puzzle.IceFill;
 import com.ricedotwho.rsm.ui.clickgui.settings.group.GroupSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
@@ -33,6 +32,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.common.ServerboundPongPacket;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
@@ -96,6 +96,17 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         }
         lastDesync = desync;
     }
+//
+//    int last = -1;
+//    @SubscribeEvent
+//    public void onSendPacket(PacketEvent.Send event) {
+//        if (!(event.getPacket() instanceof ServerboundPongPacket packet)) return;
+//        System.out.println(packet.getId());
+//        if (packet.getId() != last - 1) {
+//            ChatUtils.chat("Mismatch at id : " + packet.getId());
+//        }
+//        last = packet.getId();
+//    }
 
     @SubscribeEvent
     public void onWorldLoad(WorldEvent.Load event) {

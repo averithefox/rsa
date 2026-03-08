@@ -15,6 +15,7 @@ import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ClientboundPingPacket;
+import net.minecraft.network.protocol.common.ServerboundPongPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import org.lwjgl.glfw.GLFW;
 
@@ -25,6 +26,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @ModuleInfo(aliases = "Velocity Buffer", id = "Velocity Buffer", category = Category.MOVEMENT, hasKeybind = true)
 public class VelocityBuffer extends Module {
     private final KeybindSetting popKey = new KeybindSetting("Queue Pop Key", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, this::popQueue));
+
 
     private static final Set<Class<? extends Packet<?>>> PACKET_SET = Set.of(
             ClientboundPingPacket.class
@@ -49,7 +51,11 @@ public class VelocityBuffer extends Module {
     }
 
     @SubscribeEvent
-    public void onSendPacket(PacketEvent.Receive event) {
+    public void onReceivePacket(PacketEvent.Receive event) {
+        // Be careful here, there are threading issues which can cause order to be fucked
+        // If we disable before we flush, packets can be sent before we have time to flush
+        // If we flush before we disable, packets can get stuck in queue and once again only sent in the flush after we disable (hence above issue)
+
         if (Minecraft.getInstance().player == null) return;
         Packet<?> packet = event.getPacket();
         if (isMotionPacket(packet, Minecraft.getInstance().player)) {
@@ -69,9 +75,8 @@ public class VelocityBuffer extends Module {
 
     @Override
     public void onEnable() {
-        synchronized (queue) {
-            this.queue.clear();
-        }
+        ChatUtils.chat("OnEnable!");
+        flush();
         super.onEnable();
     }
 
@@ -92,7 +97,7 @@ public class VelocityBuffer extends Module {
                 if (isMotionPacket(packet, Minecraft.getInstance().player)) {
                     if (queue.stream().anyMatch(p -> isMotionPacket(p, Minecraft.getInstance().player))) break;
                     // Ik this gets called twice, but I want to make sure it still gets called if the implementation of onDisable changes
-                    flush();
+                    flush(); // Flush before ??
                     this.setEnabled(false);
                     break;
                 }
@@ -110,6 +115,7 @@ public class VelocityBuffer extends Module {
             if (!queue.isEmpty())
                 queue.forEach(q -> ((Packet<ClientPacketListener>) q).handle(Minecraft.getInstance().getConnection()));
             this.queue.clear();
+            ChatUtils.chat("Flushed!");
         }
     }
 
