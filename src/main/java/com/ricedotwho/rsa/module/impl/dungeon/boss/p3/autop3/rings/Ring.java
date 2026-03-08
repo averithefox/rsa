@@ -5,6 +5,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionType;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.MutableInput;
@@ -134,6 +135,14 @@ public abstract class Ring implements Accessor {
     public abstract int getPriority();
     public abstract boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3);
     public abstract void feedback();
+
+    public boolean isStop () {
+        return false;
+    }
+
+    public boolean shouldStop () {
+        return subManager != null && subManager.has(SubActionType.STOP);
+    }
 
     public JsonObject serialize() {
         JsonObject obj = new JsonObject();

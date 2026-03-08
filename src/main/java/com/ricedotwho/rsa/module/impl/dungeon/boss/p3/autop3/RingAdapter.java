@@ -13,6 +13,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActio
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.type.EdgeAction;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.type.JumpAction;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.type.LookAction;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.type.StopAction;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.FileUtils;
 import org.apache.commons.lang3.EnumUtils;
@@ -96,6 +97,7 @@ public class RingAdapter implements JsonDeserializer<Ring>, JsonSerializer<Ring>
                 }
                 case JUMP -> new JumpAction();
                 case EDGE -> new EdgeAction();
+                case STOP -> new StopAction();
             };
             map.put(type, action);
         }

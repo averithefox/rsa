@@ -71,6 +71,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     private boolean lastDesync = false;
     @Getter
     private final List<Ring> activeRings;
+    private final List<Ring> temp = new ArrayList<>();
     private final List<Ring> redoList = new ArrayList<>();
     private static boolean clickOverride = false;
 
@@ -170,15 +171,22 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         boolean feedback = yap.getValue();
         activeRings.removeIf(r -> !r.isActive());
         //activeRings.clear();
+        temp.clear();
+
+        boolean stop = false;
 
         for (Ring ring : sorted) {
-            activeRings.add(ring);
+            temp.add(ring);
             if (!clickOverride && ring.checkArg()) continue;
+            if (ring.isStop()) stop = true;
             ring.setTriggered();
             ring.setActive();
             if (feedback) ring.feedback();
             if (!ring.execute()) break;
         }
+
+        if (stop) activeRings.removeIf(Ring::shouldStop);
+        activeRings.addAll(temp);
         clickOverride = false;
     }
 

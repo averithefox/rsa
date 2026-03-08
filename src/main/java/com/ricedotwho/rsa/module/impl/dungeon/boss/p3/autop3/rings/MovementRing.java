@@ -53,10 +53,20 @@ public class MovementRing extends Ring implements Accessor {
     }
 
     @Override
+    public boolean isStop () {
+        return true;
+    }
+
+    @Override
     public JsonObject serialize() {
         JsonObject obj = super.serialize();
         obj.addProperty("route", this.route);
         return obj;
+    }
+
+    @Override
+    public boolean shouldStop () {
+        return true;
     }
 
     @Override

@@ -79,6 +79,11 @@ public class WalkRing extends Ring {
     }
 
     @Override
+    public boolean shouldStop () {
+        return true;
+    }
+
+    @Override
     public void feedback() {
         AutoP3.modMessage("Walking");
     }
