@@ -1,6 +1,7 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p4;
 
 import com.ricedotwho.rsa.RSA;
+import com.ricedotwho.rsa.component.impl.Jump;
 import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
@@ -77,7 +78,7 @@ public class InstaMid extends Module {
 
         if (mc.player.onGround()) {
             startOnNextFlying = true;
-            mc.player.jumpFromGround();
+            Jump.jump();
         } else {
             startIMid();
         }
