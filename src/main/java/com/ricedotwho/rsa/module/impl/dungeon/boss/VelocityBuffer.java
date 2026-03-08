@@ -11,15 +11,19 @@ import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
+import com.ricedotwho.rsm.ui.clickgui.settings.group.DefaultGroupSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.DragSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.network.protocol.BundlePacket;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ClientboundKeepAlivePacket;
 import net.minecraft.network.protocol.common.ClientboundPingPacket;
+import net.minecraft.network.protocol.common.ServerboundPongPacket;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.network.protocol.ping.ClientboundPongResponsePacket;
 import net.minecraft.sounds.SoundEvents;
@@ -31,7 +35,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 
-@ModuleInfo(aliases = "Velocity Buffer", id = "Velocity Buffer", category = Category.MOVEMENT, hasKeybind = true)
+@ModuleInfo(aliases = "VelocityBuffer", id = "VelocityBuffer", category = Category.MOVEMENT, hasKeybind = true)
 public class VelocityBuffer extends Module {
     private static VelocityBuffer INSTANCE;
 
@@ -41,10 +45,8 @@ public class VelocityBuffer extends Module {
 
 
     private static final Set<Class<? extends Packet<?>>> PACKET_SET = Set.of(
-            ClientboundPingPacket.class
-//            ClientboundKeepAlivePacket.class,
-//            ClientboundBundlePacket.class, // ???
-//            ClientboundBundleDelimiterPacket.class // ???
+            ClientboundPingPacket.class,
+            ClientboundBundlePacket.class // maybe just check eaach clientBoundPingPacket within the bundle?
     );
 
     private final ConcurrentLinkedQueue<Packet<?>> queue = new ConcurrentLinkedQueue<>();
@@ -60,7 +62,7 @@ public class VelocityBuffer extends Module {
     @SubscribeEvent
     public void onRenderGui(Render2DEvent event) {
         if (queue.isEmpty()) return;
-        gui.renderScaled(event.getGfx(), () -> event.getGfx().drawCenteredString(Minecraft.getInstance().font, "Buffered Packets : " + bufferedCount, 0, 0, 0), 10, 10);
+        gui.renderScaled(event.getGfx(), () -> event.getGfx().drawCenteredString(Minecraft.getInstance().font, "Buffered Packets : " + bufferedCount, 0, 0, 0xFFFFFFFF), 10, 10);
     }
 
 
@@ -90,7 +92,6 @@ public class VelocityBuffer extends Module {
                 queue.add(packet);
                 bufferedCount++;
                 Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING.value(), 0.5f, 0.5f));
-                //ChatUtils.chat("Added to queue!");
                 return true;
             }
             if (!PACKET_SET.contains(packet.getClass())) return false;
@@ -106,7 +107,7 @@ public class VelocityBuffer extends Module {
     @Override
     public void onEnable() {
         super.onEnable();
-        //ChatUtils.chat("Enabled!");
+        this.flush();
     }
 
     @Override
@@ -126,7 +127,6 @@ public class VelocityBuffer extends Module {
                 if (isMotionPacket(packet, Minecraft.getInstance().player)) {
                     bufferedCount--;
                     if (queue.stream().anyMatch(p -> isMotionPacket(p, Minecraft.getInstance().player))) break;
-                    // Ik this gets called twice, but I want to make sure it still gets called if the implementation of onDisable changes
                     flush();
 
                     if (this.isEnabled())
@@ -136,13 +136,12 @@ public class VelocityBuffer extends Module {
             }
         }
         Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING.value(), 2f, 2f));
-        //ChatUtils.chat("Popped from queue!");
     }
 
 
     private void receivePacket(Packet<?> packet) {
         if (Minecraft.getInstance().getConnection() == null) return;
-        ((IConnection) Minecraft.getInstance().getConnection().getConnection()).receivePacket(packet);
+        ((Packet<ClientPacketListener>) packet).handle(Minecraft.getInstance().getConnection());
     }
 
     private boolean isMotionPacket(Packet<?> packet, LocalPlayer player) {

@@ -20,28 +20,15 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = Connection.class, priority = 400) // RSM is at 499
-public abstract class MixinLowPriorityConnection implements IConnection {
-    @Shadow
-    protected abstract void channelRead0(ChannelHandlerContext channelHandlerContext, Packet<?> packet);
-
-    private boolean bl = true;
-
+public abstract class MixinLowPriorityConnection {
     // This gets called earlier, before other hooks hopefully and isin't triggered by receivePacket
-    @Inject(method = "channelRead0(Lio/netty/channel/ChannelHandlerContext;Lnet/minecraft/network/protocol/Packet;)V",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/network/Connection;genericsFtw(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;)V"), cancellable = true)
+    @Inject(method = "channelRead0(Lio/netty/channel/ChannelHandlerContext;Lnet/minecraft/network/protocol/Packet;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/Connection;genericsFtw(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;)V"), cancellable = true)
     private void channelRead0(ChannelHandlerContext channelHandlerContext, Packet<?> packet, CallbackInfo ci) {
-        if (!bl) return;
-        PacketOrderManager.onPreReceivePacket(packet); // Packet may get cancelled by velocity buffer
+        PacketOrderManager.onPreReceivePacket(packet); // Packet may get canceled by velocity buffer
 
         if (VelocityBuffer.onReceivePacketPre(packet)) {
             ci.cancel();
         }
     }
 
-    @Override
-    public void receivePacket(Packet<?> packet) {
-        bl = false;
-        this.channelRead0(null, packet); // channelHandlerContext isin't even used
-        bl = true;
-    }
 }
