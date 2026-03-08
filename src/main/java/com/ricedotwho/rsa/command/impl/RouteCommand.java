@@ -94,17 +94,9 @@ public class RouteCommand extends Command {
     }
 
     private static int loadNodes(CommandContext<ClientSuggestionProvider> ctx) {
-        RSM.getModule(AutoRoutes.class).reload();
+        RSM.getModule(AutoRoutes.class).load();
         RSA.chat("Loaded nodes");
         return 1;
-        //boolean bl = AutoroutesFileManager.load();
-//        if (bl) {
-//            // Should recalculate positions?
-//            RSA.chat("Loaded nodes!");
-//            return 1;
-//        }
-//        RSA.chat("Failed to load nodes! Check logs!");
-//        return 0;
     }
 
     private static int clearNodes(CommandContext<ClientSuggestionProvider> ctx) {

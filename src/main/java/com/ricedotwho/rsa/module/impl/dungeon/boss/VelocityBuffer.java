@@ -71,7 +71,7 @@ public class VelocityBuffer extends Module {
         synchronized (queue) {
             queue.clear();
             this.bufferedCount = 0;
-            this.setEnabled(false);
+            if (this.isEnabled()) this.setEnabled(false);
         }
     }
 
@@ -93,6 +93,9 @@ public class VelocityBuffer extends Module {
                 bufferedCount++;
                 Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING.value(), 0.5f, 0.5f));
                 return true;
+            }
+            if (packet instanceof ClientboundBundlePacket bundlePacket) {
+                bundlePacket.subPackets().forEach(p -> System.out.println(p.getClass()));
             }
             if (!PACKET_SET.contains(packet.getClass())) return false;
 

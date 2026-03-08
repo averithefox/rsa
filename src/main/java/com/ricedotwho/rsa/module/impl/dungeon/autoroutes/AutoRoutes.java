@@ -218,7 +218,11 @@ public class AutoRoutes extends Module implements Accessor {
         activeNodes.put(room.getData(), nodes);
     }
 
-    public void reload() {
+    public void load() {
+        data.load();
+    }
+
+    private void reload() {
         this.activeNodes.clear();
         this.inNode = null;
         if (!Location.getArea().is(Island.Dungeon)) return;
