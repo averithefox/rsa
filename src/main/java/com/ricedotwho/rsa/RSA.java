@@ -2,6 +2,7 @@ package com.ricedotwho.rsa;
 
 import com.ricedotwho.rsa.command.impl.*;
 import com.ricedotwho.rsa.component.impl.Edge;
+import com.ricedotwho.rsa.component.impl.Jump;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.BreakerAura;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.VelocityBuffer;
@@ -133,7 +134,7 @@ public class RSA implements Addon {
 
     @Override
     public List<Class<? extends ModComponent>> getComponents() {
-        return List.of(Edge.class);
+        return List.of(Edge.class, Jump.class);
     }
 
     @Override

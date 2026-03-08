@@ -150,7 +150,7 @@ public class DynamicRoutes extends Module {
         Input oldInputs = event.getClientInput();
 
         Input newInputs = new Input(oldInputs.forward(), oldInputs.backward(), oldInputs.left(), oldInputs.right(), oldInputs.jump(), true, oldInputs.sprint());
-        event.getInputConsumer().accept(newInputs);
+        event.getInput().apply(newInputs);
     }
 
     public void pathGoals(BlockPos startPos, List<? extends Goal> goals) {

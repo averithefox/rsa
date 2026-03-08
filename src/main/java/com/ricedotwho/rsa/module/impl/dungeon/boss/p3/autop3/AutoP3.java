@@ -10,8 +10,8 @@ import com.ricedotwho.rsm.component.impl.camera.ClientRotationProvider;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
-import com.ricedotwho.rsm.component.impl.task.TaskComponent;
 import com.ricedotwho.rsm.data.Keybind;
+import com.ricedotwho.rsm.data.MutableInput;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
@@ -108,7 +108,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         if (!dungeonCheck()) return;
         if (activeRings.isEmpty()) return;
 
-        MutableInput mutableInput = new MutableInput();
+        MutableInput mutableInput = event.getInput();
         Input input = event.getClientInput();
 
         for (int i = 0 ; i < activeRings.size(); i++) {
@@ -117,10 +117,6 @@ public class AutoP3 extends Module implements ClientRotationProvider {
             if (!bl2) continue;
             r.setInactive();
             activeRings.remove(i--);
-        }
-
-        if (mutableInput.isModified()) {
-            event.getInputConsumer().accept(mutableInput.toInput());
         }
     }
 

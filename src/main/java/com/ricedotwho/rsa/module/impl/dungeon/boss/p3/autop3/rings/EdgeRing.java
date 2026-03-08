@@ -2,12 +2,12 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 
 import com.ricedotwho.rsa.component.impl.Edge;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.MutableInput;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.GroundArg;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
 import com.ricedotwho.rsm.data.Colour;
+import com.ricedotwho.rsm.data.MutableInput;
 import com.ricedotwho.rsm.data.Pos;
 import net.minecraft.world.entity.player.Input;
 

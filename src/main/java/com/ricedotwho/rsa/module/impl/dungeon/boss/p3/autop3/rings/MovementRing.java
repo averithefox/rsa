@@ -2,16 +2,14 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 
 import com.google.gson.JsonObject;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.MutableInput;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.recorder.MovementRecorder;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
-import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.data.Colour;
+import com.ricedotwho.rsm.data.MutableInput;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.Accessor;
-import lombok.Getter;
 import net.minecraft.world.entity.player.Input;
 
 import java.util.Map;

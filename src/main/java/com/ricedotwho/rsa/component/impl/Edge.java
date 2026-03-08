@@ -4,6 +4,7 @@ import com.google.common.collect.Streams;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
 import com.ricedotwho.rsm.component.api.ModComponent;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
+import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import lombok.Getter;
 import net.minecraft.world.phys.AABB;
@@ -25,7 +26,7 @@ public class Edge extends ModComponent {
 
     /// [from meteor](https://github.com/MeteorDevelopment/meteor-client/blob/master/src/main/java/meteordevelopment/meteorclient/systems/modules/movement/Parkour.java)
     @SubscribeEvent
-    public void onTick(ClientTickEvent.End event) {
+    public void onInput(InputPollEvent event) {
         if (!edge || mc.player == null || !mc.player.onGround() || mc.options.keyJump.isDown()) return;
         if (mc.player.isShiftKeyDown() || mc.options.keyShift.isDown()) return;
 
@@ -37,6 +38,6 @@ public class Edge extends ModComponent {
         if (blockCollisions.findAny().isPresent()) return;
 
         edge = false;
-        mc.player.jumpFromGround();
+        event.getInput().jump(true);
     }
 }

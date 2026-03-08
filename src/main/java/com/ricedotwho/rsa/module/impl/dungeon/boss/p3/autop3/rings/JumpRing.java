@@ -1,12 +1,13 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 
+import com.ricedotwho.rsa.component.impl.Jump;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.MutableInput;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.GroundArg;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
 import com.ricedotwho.rsm.data.Colour;
+import com.ricedotwho.rsm.data.MutableInput;
 import com.ricedotwho.rsm.data.Pos;
 import net.minecraft.world.entity.player.Input;
 
@@ -31,6 +32,7 @@ public class JumpRing extends Ring {
 
     @Override
     public boolean run() {
+        Jump.jump();
         return true;
     }
 
@@ -46,8 +48,7 @@ public class JumpRing extends Ring {
 
     @Override
     public boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3) {
-        mutableInput.jump(true);
-        return true;
+        return false;
     }
 
     @Override

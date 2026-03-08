@@ -2,29 +2,21 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 
 import com.google.gson.JsonObject;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.MutableInput;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubAction;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.data.Colour;
+import com.ricedotwho.rsm.data.MutableInput;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.Accessor;
 import com.ricedotwho.rsm.utils.FileUtils;
 import com.ricedotwho.rsm.utils.render.render3d.type.FilledBox;
 import com.ricedotwho.rsm.utils.render.render3d.type.OutlineBox;
 import lombok.Getter;
-import lombok.Setter;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public abstract class Ring implements Accessor {
     @Getter

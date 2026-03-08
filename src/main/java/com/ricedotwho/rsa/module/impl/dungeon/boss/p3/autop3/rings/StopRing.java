@@ -5,6 +5,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManage
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubAction;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
 import com.ricedotwho.rsm.data.Colour;
+import com.ricedotwho.rsm.data.MutableInput;
 import com.ricedotwho.rsm.data.Pos;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;

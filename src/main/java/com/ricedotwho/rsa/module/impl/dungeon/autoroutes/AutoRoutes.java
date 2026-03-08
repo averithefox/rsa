@@ -207,7 +207,7 @@ public class AutoRoutes extends Module implements Accessor {
 
         Input newInputs = new Input(oldInputs.forward(), oldInputs.backward(), oldInputs.left(), oldInputs.right(), oldInputs.jump(), !this.forceNextNotSneak, oldInputs.sprint());
         this.forceNextNotSneak = false;
-        event.getInputConsumer().accept(newInputs);
+        event.getInput().apply(newInputs);
     }
 
     private void cacheRoomNodes(Room room) {

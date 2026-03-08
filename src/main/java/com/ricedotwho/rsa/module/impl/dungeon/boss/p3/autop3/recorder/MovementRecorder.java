@@ -109,7 +109,7 @@ public class MovementRecorder extends SubModule<AutoP3> {
                 return;
             }
             PlayerInput next = inputs.get(playIndex);
-            event.getInputConsumer().accept(next.input());
+            event.getInput().apply(next.input());
             playIndex++;
         }
     }

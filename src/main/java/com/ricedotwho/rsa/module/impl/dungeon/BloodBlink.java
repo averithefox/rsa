@@ -453,7 +453,7 @@ public class BloodBlink extends Module {
 
         Input newInputs = new Input(false, false, false, false, false, this.forceNextSneak, false);
         this.forceNextSneak = false;
-        event.getInputConsumer().accept(newInputs);
+        event.getInput().apply(newInputs);
     }
 
     private void cancel() {
