@@ -2,6 +2,12 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.TermAura;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.LeapArg;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.TermArg;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.TermCloseArg;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.TriggerArg;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.recorder.MovementRecorder;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.Ring;
 import com.ricedotwho.rsm.RSM;
@@ -15,6 +21,7 @@ import com.ricedotwho.rsm.data.MutableInput;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
+import com.ricedotwho.rsm.event.impl.game.TerminalEvent;
 import com.ricedotwho.rsm.event.impl.render.Render3DEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
@@ -51,7 +58,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
 
     private final BooleanSetting forceSkyblock = new BooleanSetting("Force Skyblock", false);
     private final BooleanSetting yap = new BooleanSetting("Feedback", false);
-    private final KeybindSetting triggerBind = new KeybindSetting("Trigger", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, () -> clickOverride = true));
+    private final KeybindSetting triggerBind = new KeybindSetting("Trigger", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, this::trigger));
     @Getter private static final NumberSetting edgeDist = new NumberSetting("Edge Dist", 0, 0.1, 0.001, 0.001);
     private final BooleanSetting depth = new BooleanSetting("Depth", false);
     private final BooleanSetting strafe = new BooleanSetting("45", true);
@@ -71,7 +78,6 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     private final List<Ring> activeRings;
     private final List<Ring> temp = new ArrayList<>();
     private final List<Ring> redoList = new ArrayList<>();
-    private static boolean clickOverride = false;
 
     public AutoP3() {
         this.registerProperty(
@@ -164,10 +170,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
             sorted = rings.stream().filter(r -> r.updateState(playerPos, oldPos) && (activeRings.isEmpty() || activeRings.stream().allMatch(active -> r.getPriority() >= active.getPriority()))).sorted(Comparator.comparingInt(Ring::getPriority).reversed()).toList();
         }
 
-        if (sorted.isEmpty()) {
-            clickOverride = false;
-            return;
-        }
+        if (sorted.isEmpty()) return;
 
         boolean feedback = yap.getValue();
         activeRings.removeIf(r -> !r.isActive());
@@ -178,7 +181,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
 
         for (Ring ring : sorted) {
             temp.add(ring);
-            if (!clickOverride && ring.checkArg()) continue;
+            if (ring.checkArg()) continue;
             if (ring.isStop()) stop = true;
             ring.setTriggered();
             ring.setActive();
@@ -186,9 +189,14 @@ public class AutoP3 extends Module implements ClientRotationProvider {
             if (!ring.execute()) break;
         }
 
-        if (stop) activeRings.removeIf(Ring::shouldStop);
-        activeRings.addAll(temp);
-        clickOverride = false;
+        if (stop) activeRings.removeIf(r -> {
+            if (r.shouldStop()) {
+                r.setInactive();
+                return true;
+            }
+            return false;
+        });
+        activeRings.addAll(temp.stream().filter(r -> !activeRings.contains(r)).toList());
     }
 
 //    private int last = -1;
@@ -208,6 +216,34 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         synchronized (rings) {
             this.rings.forEach(r -> r.render(this.depth.getValue()));
         }
+    }
+
+    @SubscribeEvent
+    public void onTermOpen(TerminalEvent.Open event) {
+        consumeArg(TermArg.class, event);
+    }
+
+    @SubscribeEvent
+    public void onTermOpen(TerminalEvent.Close event) {
+        if (event.isServer()) {
+            consumeArg(TermCloseArg.class, true);
+        }
+    }
+
+    private void trigger() {
+        consumeArg(TriggerArg.class, true);
+        consumeArg(TermCloseArg.class, true);
+        consumeArg(TermArg.class, null);
+        consumeArg(LeapArg.class, true);
+    }
+
+    private <T> void consumeArg(Class<? extends Argument<T>> clazz, T value) {
+        if (mc.player == null) return;
+        Vec3 playerPos = mc.player.position();
+        Vec3 oldPos = mc.player.oldPosition();
+        activeRings.stream().filter(s -> s.isInNode(playerPos, oldPos)).toList().forEach(r -> {
+            r.consumeArg(clazz, value);
+        });
     }
 
     private boolean dungeonCheck() {

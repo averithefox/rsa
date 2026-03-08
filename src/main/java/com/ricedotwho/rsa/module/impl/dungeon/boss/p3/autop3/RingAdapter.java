@@ -67,16 +67,17 @@ public class RingAdapter implements JsonDeserializer<Ring>, JsonSerializer<Ring>
 
     public ArgumentManager deserializeArguments(JsonElement json) throws JsonParseException {
         JsonObject obj = json.getAsJsonObject();
-        HashMap<RingArgType, Argument> map = new HashMap<>();
+        HashMap<RingArgType, Argument<?>> map = new HashMap<>();
 
         for (Map.Entry<String, JsonElement> entry : obj.entrySet()) {
             RingArgType type = EnumUtils.getEnum(RingArgType.class, entry.getKey());
-            Argument condition = switch (type) {
+            Argument<?> condition = switch (type) {
                 case GROUND -> new GroundArg();
                 case LEAP -> new LeapArg(entry.getValue().getAsInt());
                 case TERM -> new TermArg();
                 case TRIGGER -> new TriggerArg();
                 case DELAY -> new DelayArg(entry.getValue().getAsLong());
+                case TERM_CLOSE -> new TermCloseArg();
             };
             map.put(type, condition);
         }

@@ -6,11 +6,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @AllArgsConstructor
-public abstract class Argument implements Accessor {
+public abstract class Argument<T> implements Accessor {
     @Getter
     private final RingArgType type;
 
     public abstract boolean check();
+
+    public abstract void consume(T event);
+
+    public abstract void reset();
 
     public void serialize(JsonObject json) {
         json.addProperty(getType().name(), true);

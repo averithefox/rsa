@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.RingArgType;
 
-public class DelayArg extends Argument {
+public class DelayArg extends Argument<Object> {
     private final long delay;
     private long ran = 0;
     public DelayArg(long delay) {
@@ -20,6 +20,16 @@ public class DelayArg extends Argument {
             return false;
         }
         return ago >= delay;
+    }
+
+    @Override
+    public void consume(Object event) {
+
+    }
+
+    @Override
+    public void reset() {
+        ran = 0;
     }
 
     public static DelayArg create(String obj) {

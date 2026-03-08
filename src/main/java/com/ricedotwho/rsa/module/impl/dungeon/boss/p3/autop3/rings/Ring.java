@@ -3,6 +3,7 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 import com.google.gson.JsonObject;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionType;
@@ -111,6 +112,7 @@ public abstract class Ring implements Accessor {
 
     public void reset() {
         this.triggered = false;
+        if (this.argManager != null) this.argManager.reset();
     }
 
     public void render(boolean depth) {
@@ -142,6 +144,10 @@ public abstract class Ring implements Accessor {
 
     public boolean shouldStop () {
         return subManager != null && subManager.has(SubActionType.STOP);
+    }
+
+    public <T> void consumeArg(Class<? extends Argument<T>> clazz, T value) {
+        if (this.argManager != null) this.argManager.consume(clazz, value);
     }
 
     public JsonObject serialize() {

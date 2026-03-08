@@ -41,6 +41,7 @@ import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.apache.commons.lang3.EnumUtils;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -99,7 +100,7 @@ public class Relics extends Module {
 
     @SubscribeEvent
     public void onSendPacket(PacketEvent.Send event) {
-        if (!(event.getPacket() instanceof ServerboundInteractPacket packet) || mc.player == null || !look.getValue() || !Location.getArea().is(Island.Dungeon) || !DungeonUtils.isPhase(Phase7.P5) || !Dungeon.isInBoss()) return;
+        if (!(event.getPacket() instanceof ServerboundInteractPacket packet) || mc.player == null || !look.getValue() || !Location.getArea().is(Island.Dungeon) || !DungeonUtils.isPhase(Phase7.P5) || !Dungeon.isInBoss() || hasRelic()) return;
 
         // dumb stupid not exposed entity id
         try {
@@ -123,11 +124,13 @@ public class Relics extends Module {
                     RSA.chat("Failed to find player!");
                     return;
                 }
-                if (FastLeap.doLeapFromOpenMenu(player) && lookAfterLeap.getValue()) {
-                    relic = type;
-                    leaping = true;
-                    TaskComponent.onTick(20, () -> leaping = false);
-                }
+                TaskComponent.onTick(this.leapDelay.getValue().longValue(), () -> {
+                    if (FastLeap.doLeapFromOpenMenu(player) && lookAfterLeap.getValue()) {
+                        relic = type;
+                        leaping = true;
+                        TaskComponent.onTick(10, () -> leaping = false);
+                    }
+                });
             }
 
         } catch (NoSuchFieldException | IllegalAccessException e) {
@@ -141,12 +144,13 @@ public class Relics extends Module {
         String message = ChatFormatting.stripFormatting(event.getMessage().getString());
         if (leapPattern.matcher(message).find()) {
             leaping = false;
-
-            Rotation rot = RotationUtils.getRotation(mc.player.getEyePosition(), relic.place);
-            mc.player.setXRot(rot.getYaw());
-            mc.player.setYRot(rot.getPitch());
+            doRelicLook(relic);
             relic = Type.NONE;
         }
+    }
+
+    private boolean hasRelic() {
+        return mc.player == null || Type.getTypeByName(mc.player.getInventory().getItem(8).getHoverName().getString()) == Type.NONE;
     }
 
     private DungeonClass getClassForRelic(Type type) {
@@ -159,9 +163,9 @@ public class Relics extends Module {
 
     private void doRelicLook(Type type) {
         if (type == Type.NONE) return;
-        Rotation rot = RotationUtils.getRotation(mc.player.getEyePosition(), type.place);
-        mc.player.setXRot(rot.getYaw());
-        mc.player.setYRot(rot.getPitch());
+        Rotation rot = RotationUtils.getRotation(mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0), type.place);
+        mc.player.setXRot(rot.getPitch());
+        mc.player.setYRot(rot.getYaw());
         walk = true;
     }
 
@@ -190,7 +194,7 @@ public class Relics extends Module {
 
         if (placeAura.getValue()) {
             Type type = Type.getTypeByName(mc.player.getInventory().getItem(8).getHoverName().getString());
-            if (type != Type.NONE && mc.player.distanceToSqr(type.pickup) < max) {
+            if (type != Type.NONE && mc.player.distanceToSqr(type.place) < max) {
                 SwapManager.swapSlot(8);
 
                 InteractUtils.interactOnBlock(BlockPos.containing(type.place), true);
@@ -200,7 +204,7 @@ public class Relics extends Module {
             }
         }
 
-        if (aura.getValue()) {
+        if (aura.getValue() && !hasRelic()) {
             Vec3 eye = mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0);
             AABB box = new AABB(eye, eye).inflate(4.5, 4.5, 4.5);
             List<ArmorStand> stands = mc.level.getEntitiesOfClass(ArmorStand.class, box);
@@ -208,7 +212,6 @@ public class Relics extends Module {
             for (ArmorStand stand : stands) {
                 String name = ChatFormatting.stripFormatting(stand.getItemBySlot(EquipmentSlot.HEAD).getHoverName().getString());
                 Type type = Type.getTypeByName(name);
-                RSA.chat("Relic: %s, name: %s", type, name);
                 if (type == Type.NONE) continue;
                 double dist = mc.player.distanceToSqr(stand);
                 if (dist > max) continue;
@@ -220,20 +223,25 @@ public class Relics extends Module {
         }
     }
 
+    public void test(String in) {
+        Type type = EnumUtils.getEnum(Type.class, in.toUpperCase(), Type.ORANGE);
+        doRelicLook(type);
+    }
+
     private enum Type {
-        RED(new Vec3(51.5, 7, 42.5), new Vec3(20, 6, 59)),
-        ORANGE(new Vec3(57.5, 7, 42.5), new Vec3(92, 6, 56)),
-        GREEN(new Vec3(49.5, 7, 44.5), new Vec3(20, 6, 94)),
-        BLUE(new Vec3(59.5, 7, 44.5), new Vec3(91, 6, 94)),
-        PURPLE(new Vec3(54.5, 7, 41.5), new Vec3(56, 8, 132)),
+        RED(new Vec3(51.5, 7.5, 42.5), new Vec3(20, 6, 59)),
+        ORANGE(new Vec3(57.5, 7.5, 42.5), new Vec3(92, 6, 56)),
+        GREEN(new Vec3(49.5, 7.5, 44.5), new Vec3(20, 6, 94)),
+        BLUE(new Vec3(59.5, 7.5, 44.5), new Vec3(91, 6, 94)),
+        PURPLE(new Vec3(54.5, 7.5, 41.5), new Vec3(56, 8, 132)),
         NONE(null, null);
 
         public final Vec3 pickup;
         public final Vec3 place;
 
-        Type(Vec3 pickup, Vec3 place) {
-            this.pickup = pickup;
+        Type(Vec3 place, Vec3 pickup) {
             this.place = place;
+            this.pickup = pickup;
         }
 
         public static Type getTypeByName(String itemName) {

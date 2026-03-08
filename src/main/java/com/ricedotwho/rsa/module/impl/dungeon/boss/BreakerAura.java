@@ -1,9 +1,12 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss;
 
 import com.google.common.reflect.TypeToken;
+import com.google.gson.GsonBuilder;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.DungeonBreaker;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingAdapter;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.Ring;
 import com.ricedotwho.rsa.utils.InteractUtils;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.component.impl.location.Floor;
@@ -50,7 +53,7 @@ public class BreakerAura extends Module {
     private final ColourSetting colour = new ColourSetting("Colour", Colour.YELLOW.copy());
     private final BooleanSetting zeroTick = new BooleanSetting("Zero Tick", false);
     private final NumberSetting timeout = new NumberSetting("Timeout", 0, 1000, 500, 10);
-    private final SaveSetting<Set<Pos>> data = new SaveSetting<>("Aura Blocks", "dungeon/breaker", "breaker_aura.json", HashSet::new, new TypeToken<Set<Pos>>(){}.getType());
+    private final SaveSetting<Set<Pos>> data = new SaveSetting<>("Aura Blocks", "dungeon/breaker", "breaker_aura.json", HashSet::new, new TypeToken<Set<Pos>>(){}.getType(), FileUtils.getPgson(), true, null, null);
 
     private int charges = 20;
 

@@ -1,14 +1,16 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type;
 
 import com.google.gson.JsonObject;
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.RingArgType;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.utils.NumberUtils;
 import net.minecraft.util.Mth;
 
-public class LeapArg extends Argument {
+public class LeapArg extends Argument<Boolean> {
     private final int players;
+    private boolean override = false;
 
     public LeapArg(int players) {
         super(RingArgType.LEAP);
@@ -17,7 +19,22 @@ public class LeapArg extends Argument {
 
     @Override
     public boolean check() {
+        RSA.chat("override: %s, leap: %s, needed %s", override, Dungeon.getPlayersLeapt(), players);
+        if (override) {
+            override = false;
+            return true;
+        }
         return Dungeon.getPlayersLeapt() >= players;
+    }
+
+    @Override
+    public void consume(Boolean bl) {
+        override = true;
+    }
+
+    @Override
+    public void reset() {
+        override = false;
     }
 
     public static LeapArg create(String arg) {

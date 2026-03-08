@@ -34,7 +34,7 @@ public class WalkRing extends Ring {
 
     @Override
     public boolean run() {
-        return false;
+        return true;
     }
 
     @Override
@@ -49,10 +49,7 @@ public class WalkRing extends Ring {
 
     @Override
     public boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3) {
-        if (hasInputPressed(input)) {
-            AutoP3.modMessage("Walk Inputs Pressed! return");
-            return true;
-        }
+        if (hasInputPressed(input)) return true;
 
         autoP3.setDesync(true);
         if (autoP3.getStrafe().getValue() && !mc.player.onGround()) {

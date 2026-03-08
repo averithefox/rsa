@@ -69,7 +69,7 @@ import java.util.Objects;
 @ModuleInfo(aliases = "Blood Blink", id = "BloodBlink", category = Category.DUNGEONS)
 public class BloodBlink extends Module {
     private static final Pos SLAB_BLOCK_OFFSET_1 = new Pos(-9.5, 82, -12.5); // Sometimes y = 81.5
-    private static final Pos SLAB_BLOCK_OFFSET_2 = new Pos(-7.5, 83, -12.5);
+    private static final Pos SLAB_BLOCK_OFFSET_2 = new Pos(-12.5, 83, -9.5);
     private static final Pos SLAB_BLOCK_OFFSET_3 = new Pos(-5.5, 82, -12.5);
     private static final Pos SLAB_BLOCK_OFFSET_4 = new Pos(6.5, 82, -12.5);
     private static final Pos SLAB_BLOCK_OFFSET_5 = new Pos(10.5, 82, -12.5);
@@ -110,7 +110,7 @@ public class BloodBlink extends Module {
 
     private final ModeSetting mode = new ModeSetting("Mode", "Blood", List.of("Blood", "InstaClear"));
     // each party member must have a different prio!
-    private final NumberSetting priority = new NumberSetting("Priority", 1, 5, 1, 1);
+    private final NumberSetting priority = new NumberSetting("Priority", 1, 4, 1, 1);
 
     public BloodBlink() {
         this.registerProperty(
@@ -165,9 +165,9 @@ public class BloodBlink extends Module {
     private Pos getSlabBlockOffset() {
         return switch (this.priority.getValue().intValue()) {
             case 1 -> SLAB_BLOCK_OFFSET_1;
-            case 2 -> SLAB_BLOCK_OFFSET_2;
-            case 3 -> SLAB_BLOCK_OFFSET_3;
-            case 4 -> SLAB_BLOCK_OFFSET_4;
+            //case 2 -> SLAB_BLOCK_OFFSET_2;
+            case 2 -> SLAB_BLOCK_OFFSET_3;
+            case 3 -> SLAB_BLOCK_OFFSET_4;
             default -> SLAB_BLOCK_OFFSET_5;
         };
     }
@@ -227,6 +227,7 @@ public class BloodBlink extends Module {
                     }
 
                     float[] angles = EtherUtils.getYawAndPitch(slab.asVec3(), true, player, true);
+                    RSA.chat("Angles: yaw: %s, pitch: %s", angles[0], angles[1]);
                     SwapManager.sendAirC08(angles[0], angles[1], true, false);
                     state = 2;
                 });
