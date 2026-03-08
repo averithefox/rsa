@@ -79,37 +79,34 @@ public class VelocityBuffer extends Module {
     }
 
     private boolean onReceivePacket(Packet<?> packet) {
-        if (Minecraft.getInstance().player == null || !this.isEnabled()) return false;
-        if (packet instanceof ClientboundPlayerPositionPacket) {
-            this.onKeyToggle();
-            return false;
-        }
+        synchronized (queue) { // Needed so that it locks if we are currently flushing
+            if (Minecraft.getInstance().player == null || !this.isEnabled()) return false;
+            if (packet instanceof ClientboundPlayerPositionPacket) {
+                this.onKeyToggle();
+                return false;
+            }
 
-        if (isMotionPacket(packet, Minecraft.getInstance().player)) {
-            queue.add(packet);
-            bufferedCount++;
-            Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING.value(), 0.5f, 0.5f));
-            //ChatUtils.chat("Added to queue!");
+            if (isMotionPacket(packet, Minecraft.getInstance().player)) {
+                queue.add(packet);
+                bufferedCount++;
+                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING.value(), 0.5f, 0.5f));
+                //ChatUtils.chat("Added to queue!");
+                return true;
+            }
+            if (!PACKET_SET.contains(packet.getClass())) return false;
+
+            synchronized (queue) {
+                if (queue.isEmpty()) return false;
+                queue.add(packet);
+            }
             return true;
         }
-        if (!PACKET_SET.contains(packet.getClass())) return false;
-
-        synchronized (queue) {
-            if (queue.isEmpty()) return false;
-            queue.add(packet);
-        }
-        return true;
     }
 
     @Override
     public void onEnable() {
-        synchronized (queue) {
-            this.queue.clear();
-        }
-//        for (int i = 0; i < 10; i++) {
-//            System.out.println(" ");
-//        }
         super.onEnable();
+        //ChatUtils.chat("Enabled!");
     }
 
     @Override

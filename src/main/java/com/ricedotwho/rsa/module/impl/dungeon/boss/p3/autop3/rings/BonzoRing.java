@@ -118,6 +118,6 @@ public class BonzoRing extends Ring {
 
     @Override
     public void feedback() {
-
+        AutoP3.chat("Bonzo");
     }
 }
