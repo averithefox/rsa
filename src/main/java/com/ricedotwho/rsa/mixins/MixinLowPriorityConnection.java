@@ -3,6 +3,7 @@ package com.ricedotwho.rsa.mixins;
 import com.ricedotwho.rsa.IMixin.IConnection;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.Blink;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.VelocityBuffer;
 import com.ricedotwho.rsm.component.impl.EventComponent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
@@ -31,6 +32,14 @@ public abstract class MixinLowPriorityConnection implements IConnection {
         PacketOrderManager.onPreReceivePacket(packet); // Packet may get canceled by velocity buffer
 
         if (VelocityBuffer.onReceivePacketPre(packet)) {
+            ci.cancel();
+        }
+    }
+
+    // This gets called earlier, before other hooks hopefully and isin't triggered by receivePacket
+    @Inject(method = "sendPacket", at = @At(value = "HEAD"), cancellable = true)
+    private void onSendPacket(Packet<?> packet, @Nullable ChannelFutureListener channelFutureListener, boolean bl, CallbackInfo ci) {
+        if (Blink.onSendPacket(packet)) {
             ci.cancel();
         }
     }
