@@ -3,11 +3,15 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.recorder;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
 import com.mojang.blaze3d.platform.InputConstants;
+import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
+import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
+import com.ricedotwho.rsa.utils.InteractUtils;
 import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.Rotation;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
+import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.SubModule;
@@ -15,8 +19,14 @@ import com.ricedotwho.rsm.module.api.SubModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.ButtonSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.SaveSetting;
+import com.ricedotwho.rsm.utils.ItemUtils;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
+import net.minecraft.network.protocol.game.ServerboundUseItemPacket;
 import net.minecraft.world.entity.player.Input;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,6 +99,17 @@ public class MovementRecorder extends SubModule<AutoP3> {
     }
 
     @SubscribeEvent
+    public void onPacket(PacketEvent.Send event) {
+        if (state != State.RECORDING || mc.player == null || !(event.getPacket() instanceof ServerboundUseItemPacket packet) || recorded.isEmpty()) return;
+        ItemStack held = mc.player.getItemInHand(packet.getHand());
+        String itemId = ItemUtils.getID(held);
+        if (itemId.isBlank() || packet.getYRot() == 0.0 && packet.getXRot() == 0.0) return;
+        PlayerInput last = recorded.getLast();
+        last.using = true;
+        last.useItem = new UseItem(itemId, packet.getYRot(), packet.getXRot());
+    }
+
+    @SubscribeEvent
     public void record(InputPollEvent event) {
         if (mc.player == null) return;
         Input in = event.getClientInput();
@@ -110,17 +131,16 @@ public class MovementRecorder extends SubModule<AutoP3> {
             }
             PlayerInput next = inputs.get(playIndex);
             event.getInput().apply(next.input());
+            mc.player.setYRot(next.yaw);
+            mc.player.setXRot(next.pitch);
+
+            if (next.using && next.useItem != null) {
+                if (SwapManager.swapItem(next.useItem.item)) {
+                    PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> SwapManager.sendAirC08(next.useItem.yaw, next.useItem.pitch, true, false));
+                }
+            }
             playIndex++;
         }
-    }
-
-    @SubscribeEvent
-    public void onTick(ClientTickEvent.End event) {
-        if (mc.player == null || state != State.PLAYING || playIndex >= data.getValue().size()) return;
-        PlayerInput next = data.getValue().get(playIndex);
-
-        mc.player.setYRot(next.yaw);
-        mc.player.setXRot(next.pitch);
     }
 
     public static void playRecording(String name) {
@@ -145,10 +165,20 @@ public class MovementRecorder extends SubModule<AutoP3> {
         IDLE
     }
 
-    public record PlayerInput(float yaw, float pitch, boolean forward, boolean back, boolean left, boolean right, boolean jump, boolean sneak, boolean sprint) {
-        public PlayerInput() {
-            this(0f, 0f, false, false, false, false, false, false, false);
-        }
+    @AllArgsConstructor
+    @RequiredArgsConstructor
+    public static class PlayerInput {
+        public final float yaw;
+        public final float pitch;
+        public boolean using = false;
+        public UseItem useItem = null;
+        public final boolean forward;
+        public final boolean back;
+        public final boolean left;
+        public final boolean right;
+        public final boolean jump;
+        public final boolean sneak;
+        public final boolean sprint;
 
         public PlayerInput(float yaw, float pitch, Input in) {
             this(yaw, pitch, in.forward(), in.backward(), in.left(), in.right(), in.jump(), in.shift(), in.sprint());
@@ -165,5 +195,11 @@ public class MovementRecorder extends SubModule<AutoP3> {
                     && this.jump == other.jump && this.sneak == other.sneak
                     && this.sprint == other.sprint;
         }
+    }
+    @AllArgsConstructor
+    public static class UseItem {
+        public String item;
+        public float yaw;
+        public float pitch;
     }
 }
