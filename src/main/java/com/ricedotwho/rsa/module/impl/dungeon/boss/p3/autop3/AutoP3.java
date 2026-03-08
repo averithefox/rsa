@@ -226,7 +226,6 @@ public class AutoP3 extends Module implements ClientRotationProvider {
             Ring ring = rings.remove(index);
             save();
             modMessage("Removed %s", Utils.capitalise(ring.getType().getName()));
-            rings.remove(index);
             data.setValue(List.copyOf(this.rings));
         }
     }

@@ -33,7 +33,7 @@ public class BonzoRing extends Ring {
     }
 
     public BonzoRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions, Map<String, Object> extra) {
-        this(min, max, (Float) extra.get("yaw"), (Float) extra.get("pitch"), manager, actions);
+        this(min, max, (Float) extra.getOrDefault("yaw", Minecraft.getInstance().gameRenderer.getMainCamera().yaw()), (Float) extra.getOrDefault("pitch", Minecraft.getInstance().gameRenderer.getMainCamera().getXRot()), manager, actions);
     }
 
     public BonzoRing(Pos min, Pos max, float yaw, float pitch, ArgumentManager manager, SubActionManager actions) {

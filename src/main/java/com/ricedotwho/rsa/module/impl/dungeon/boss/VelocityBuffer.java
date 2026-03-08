@@ -41,10 +41,10 @@ public class VelocityBuffer extends Module {
 
 
     private static final Set<Class<? extends Packet<?>>> PACKET_SET = Set.of(
-            ClientboundPingPacket.class,
-            ClientboundKeepAlivePacket.class,
-            ClientboundBundlePacket.class, // ???
-            ClientboundBundleDelimiterPacket.class // ???
+            ClientboundPingPacket.class
+//            ClientboundKeepAlivePacket.class,
+//            ClientboundBundlePacket.class, // ???
+//            ClientboundBundleDelimiterPacket.class // ???
     );
 
     private final ConcurrentLinkedQueue<Packet<?>> queue = new ConcurrentLinkedQueue<>();
@@ -77,12 +77,6 @@ public class VelocityBuffer extends Module {
         if (INSTANCE == null) INSTANCE = RSM.getModule(VelocityBuffer.class);
         return INSTANCE.onReceivePacket(packet);
     }
-
-//    @SubscribeEvent
-//    public void onSendPacket(PacketEvent.Send event) {
-//        if (!queue.isEmpty())
-//            System.out.println(event.getPacket().getClass().getName());
-//    }
 
     private boolean onReceivePacket(Packet<?> packet) {
         if (Minecraft.getInstance().player == null || !this.isEnabled()) return false;
