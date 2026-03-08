@@ -68,7 +68,11 @@ import java.util.Objects;
 @Getter
 @ModuleInfo(aliases = "Blood Blink", id = "BloodBlink", category = Category.DUNGEONS)
 public class BloodBlink extends Module {
-    private static final Pos SLAB_BLOCK_OFFSET = new Pos(-9.5, 82, -12.5); // Sometimes y = 81.5
+    private static final Pos SLAB_BLOCK_OFFSET_1 = new Pos(-9.5, 82, -12.5); // Sometimes y = 81.5
+    private static final Pos SLAB_BLOCK_OFFSET_2 = new Pos(-7.5, 83, -12.5);
+    private static final Pos SLAB_BLOCK_OFFSET_3 = new Pos(-5.5, 82, -12.5);
+    private static final Pos SLAB_BLOCK_OFFSET_4 = new Pos(6.5, 82, -12.5);
+    private static final Pos SLAB_BLOCK_OFFSET_5 = new Pos(10.5, 82, -12.5);
     private static final Vec3 MIDDLE_MAP_COORDS = new Vec3(-104.5, 0, -104.5);
 
     private Room targetRoom;
@@ -97,20 +101,24 @@ public class BloodBlink extends Module {
     private final BooleanSetting waitForGround = new BooleanSetting("Wait For Ground", false);
     private final BooleanSetting proxyPearl = new BooleanSetting("Proxy Pearl", false);
     private final BooleanSetting auto = new BooleanSetting("Auto Blink", true);
+    private final BooleanSetting africanSlavePingMode = new BooleanSetting("African Slave Ping Mode", false);
     private final NumberSetting deathTickOffset = new NumberSetting("Death Tick Offset", 0.0d, 20.0d, 0.0d, 1.0d);
     private final NumberSetting earlyExit = new NumberSetting("Early Exit", 0, 20, 0, 1);
     private final NumberSetting exploreExit = new NumberSetting("Explore Exit", 10, 40, 25, 1);
+    private final NumberSetting bloodLoadTickTime = new NumberSetting("Map Load Tick Time", 5, 35, 10, 1);
     private final KeybindSetting cancel = new KeybindSetting("Cancel", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, this::cancel));
 
     private final ModeSetting mode = new ModeSetting("Mode", "Blood", List.of("Blood", "InstaClear"));
     // each party member must have a different prio!
-    private final NumberSetting priority = new NumberSetting("Priority", 1, 5, 1, 1, () -> this.mode.is("InstaClear"));
+    private final NumberSetting priority = new NumberSetting("Priority", 1, 5, 1, 1);
 
     public BloodBlink() {
         this.registerProperty(
                 waitForGround,
                 proxyPearl,
                 auto,
+                africanSlavePingMode,
+                bloodLoadTickTime,
                 deathTickOffset,
                 earlyExit,
                 exploreExit,
@@ -120,7 +128,7 @@ public class BloodBlink extends Module {
         );
 
         rooms = new Gson().fromJson(
-                new InputStreamReader(Objects.requireNonNull(BloodBlink.class.getResourceAsStream("/assets/rsa/instaclear_priority.json"))),
+                new InputStreamReader(Objects.requireNonNull(ClickGUI.class.getResourceAsStream("/assets/rsm/room_priority.json"))),
                 new TypeToken<List<String>>(){}.getType()
         );
     }
@@ -154,6 +162,16 @@ public class BloodBlink extends Module {
         explored = false;
     }
 
+    private Pos getSlabBlockOffset() {
+        return switch (this.priority.getValue().intValue()) {
+            case 1 -> SLAB_BLOCK_OFFSET_1;
+            case 2 -> SLAB_BLOCK_OFFSET_2;
+            case 3 -> SLAB_BLOCK_OFFSET_3;
+            case 4 -> SLAB_BLOCK_OFFSET_4;
+            default -> SLAB_BLOCK_OFFSET_5;
+        };
+    }
+
 
     public long encodeIndex(int x, int z) {
         return (long) x | (((long) z) << 32);
@@ -166,7 +184,7 @@ public class BloodBlink extends Module {
 
     @SubscribeEvent
     public void onTickStart(ClientTickEvent.Start event) {
-        if (Location.getArea() != Island.Dungeon || mc.player == null) return;
+        if (Location.getArea() != Island.Dungeon || mc.player == null || Dungeon.isInBoss()) return;
         LocalPlayer player = mc.player;
 
         if (serverTotalTickTimer <= 2) return;
@@ -199,7 +217,7 @@ public class BloodBlink extends Module {
                 PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
                     if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL) || !player.getLastSentInput().shift() || startRoom == null) return;
 
-                    Pos slab = RoomUtils.getRealPosition(SLAB_BLOCK_OFFSET, startRoom);
+                    Pos slab = RoomUtils.getRealPosition(getSlabBlockOffset(), startRoom);
 
 
                     Block block = mc.level.getBlockState(slab.asBlockPos()).getBlock();
@@ -289,7 +307,7 @@ public class BloodBlink extends Module {
                 PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
                     if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL) || !player.getLastSentInput().shift() || startRoom == null) return;
 
-                    Pos slab = RoomUtils.getRealPosition(SLAB_BLOCK_OFFSET, startRoom);
+                    Pos slab = RoomUtils.getRealPosition(getSlabBlockOffset(), startRoom);
 
                     Block block = mc.level.getBlockState(slab.asBlockPos()).getBlock();
                     if (block == Blocks.AIR) {
@@ -328,7 +346,8 @@ public class BloodBlink extends Module {
                 SwapManager.swapItem(Items.DIAMOND_SHOVEL);
 
                 //todo: this is slow, it should try tp before the dungeon starts for high ping players (me), in theory we should be able to get 0.05s opens
-                if ((ticksTillStart != -67 && ticksTillStart <= 0 || Dungeon.isStarted()) && (serverTickTimer % 40) < 35) {
+                // *doing this is annoying for low ping
+                if (((africanSlavePingMode.getValue() && ticksTillStart != -67 && ticksTillStart <= 0) || Dungeon.isStarted()) && (serverTickTimer % 40) < (40 - bloodLoadTickTime.getValue().intValue())) {
                     PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
                         if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) return;
 
@@ -430,7 +449,7 @@ public class BloodBlink extends Module {
 
     @SubscribeEvent
     public void onPollInputs(InputPollEvent event) {
-        if (!this.isEnabled() || !this.isBlinking()) return;
+        if (!this.isEnabled() || !this.isBlinking() || Dungeon.isInBoss()) return;
         Input input = event.getClientInput();
         if (input.forward() && input.backward() && input.left() && input.right()) {
             this.cancel();
@@ -439,7 +458,7 @@ public class BloodBlink extends Module {
 
         Input newInputs = new Input(false, false, false, false, false, this.forceNextSneak, false);
         this.forceNextSneak = false;
-        event.getInputConsumer().accept(newInputs);
+        event.getInput().apply(newInputs);
     }
 
     private void cancel() {
@@ -477,6 +496,7 @@ public class BloodBlink extends Module {
 
     @SubscribeEvent
     public void onReceivePacket(PacketEvent.Receive event) {
+        if (!isBlinking() || Dungeon.isInBoss()) return;
         Packet<?> packet = event.getPacket();
         if (packet instanceof ClientboundSetTimePacket timePacket) {
             long time = timePacket.gameTime();
@@ -541,11 +561,9 @@ public class BloodBlink extends Module {
 
     @SubscribeEvent
     public void onServerTick(ServerTickEvent event) {
-        if (serverTickTimer > -1) {
-            serverTickTimer++;
-            serverTotalTickTimer++;
-            if (ticksTillStart != -67) ticksTillStart--;
-        }
+        serverTickTimer++;
+        serverTotalTickTimer++;
+        if (ticksTillStart != -67) ticksTillStart--;
     }
 
     private boolean isInRoom(int posX, int posZ, Room room) {

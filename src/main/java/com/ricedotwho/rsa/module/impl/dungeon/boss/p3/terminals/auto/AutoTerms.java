@@ -189,7 +189,7 @@ public class AutoTerms extends Module {
 
         Input oldInputs = event.getClientInput();
         Input newInputs = new Input(false, false, false, false, false, oldInputs.shift(), false);
-        event.getInputConsumer().accept(newInputs);
+        event.getInput().apply(newInputs);
 
         this.invWalkGroup.getValue().melodyMoveCounter--;
     }
@@ -212,7 +212,7 @@ public class AutoTerms extends Module {
         }
     }
 
-    /// This should run before {@link Terminals#onPacketRaw(PacketEvent.Receive)}
+    /// This should run before {@link Terminals#onPacket(PacketEvent.Receive)}
     @SubscribeEvent(priority = EventPriority.HIGH) 
     public void onReceivePacket(PacketEvent.Receive event) {
         if (event.getPacket() instanceof ClientboundOpenScreenPacket packet) {

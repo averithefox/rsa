@@ -1,6 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 
-import com.ricedotwho.rsa.component.impl.Jump;
+import com.ricedotwho.rsa.component.impl.Edge;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
@@ -13,32 +13,32 @@ import net.minecraft.world.entity.player.Input;
 
 import java.util.Map;
 
-public class JumpRing extends Ring {
+public class EdgeRing extends Ring {
 
-    public JumpRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions) {
+    public EdgeRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions) {
         super(min, max, RingType.JUMP.getRenderSizeOffset(), manager, actions);
         this.getArgManager().addArg(new GroundArg());
     }
 
-    public JumpRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions, Map<String, Object> ignored) {
+    public EdgeRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions, Map<String, Object> ignored) {
         super(min, max, RingType.JUMP.getRenderSizeOffset(), manager, actions);
         this.getArgManager().addArg(new GroundArg());
     }
 
     @Override
     public RingType getType() {
-        return RingType.JUMP;
+        return RingType.EDGE;
     }
 
     @Override
     public boolean run() {
-        Jump.jump();
+        Edge.edge();
         return true;
     }
 
     @Override
     public Colour getColour() {
-        return Colour.ORANGE;
+        return Colour.BLACK;
     }
 
     @Override
@@ -53,6 +53,7 @@ public class JumpRing extends Ring {
 
     @Override
     public void feedback() {
-        AutoP3.modMessage("Jumping");
+        AutoP3.modMessage("Edging");
     }
+
 }

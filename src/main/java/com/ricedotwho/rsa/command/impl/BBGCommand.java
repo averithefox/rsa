@@ -24,11 +24,14 @@ import net.minecraft.world.phys.Vec3;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@CommandInfo(name = "bbg", description = "Auto P3 command")
+@CommandInfo(name = "bbg", aliases = "p3", description = "Auto P3 command")
 public class BBGCommand extends Command {
+    private final Pattern argPattern = Pattern.compile("^(\\w+?)(?:(\\d*\\.?\\d*)|\"([^\"]*)\")$");
 
     @Override
     public LiteralArgumentBuilder<ClientSuggestionProvider> build() {
@@ -39,6 +42,12 @@ public class BBGCommand extends Command {
                         )
                         .executes(r -> this.center(CenterType.ALL)) // Won't center pos on server dw
                 )
+                .then(literal("undo")
+                        .executes(this::undo)
+                )
+                .then(literal("redo")
+                        .executes(this::redo)
+                )
                 .then(literal("remove")
                         .then(argument("index", IntegerArgumentType.integer())
                                 .executes(ctx -> this.removeRing(ctx, IntegerArgumentType.getInteger(ctx, "index")))
@@ -47,36 +56,128 @@ public class BBGCommand extends Command {
                 )
                 .then(literal("add")
                         .then(argument("ring", BBGCommand.RingArgumentType.ringArgument())
-                                .then(argument("index", IntegerArgumentType.integer())
-                                        .executes(ctx -> this.addRing(ctx, IntegerArgumentType.getInteger(ctx, "index")))
+                            .executes(ctx -> addRing(ctx, ""))
+//                                .then(argument("w", FloatArgumentType.floatArg(0, 10))
+//                                        .then(argument("h", FloatArgumentType.floatArg(0, 10))
+//                                                .then(argument("l", FloatArgumentType.floatArg(0, 10))
+//                                                        .then(argument("arg", BBGCommand.CenterArgumentType.centerArgument())
+//                                                                .executes(this::center)
+//                                                        )
+//                                                )
+//                                        )
+//                                )
+                                .then(argument("args", StringArgumentType.greedyString())
+                                        .executes(ctx -> {
+                                            String args = StringArgumentType.getString(ctx, "args");
+                                            return addRing(ctx, args);
+                                        })
                                 )
-                            .executes(this::addRing)
+                        )
+                )
+                .then(literal("play")
+                        .then(argument("route", StringArgumentType.greedyString())
+                                .executes(ctx -> {
+                                    String route = StringArgumentType.getString(ctx, "route");
+                                    MovementRecorder.playRecording(route);
+                                    AutoP3.modMessage("Playing %s!", route);
+                                    return 1;
+                                })
                         )
                 );
     }
 
-    private int addRing(CommandContext<ClientSuggestionProvider> ctx, int index) {
+    private int addRing(CommandContext<ClientSuggestionProvider> ctx, String args) {
         if (Minecraft.getInstance().player == null) return 0;
         RingType type = BBGCommand.RingArgumentType.getRing(ctx, "ring");
 
-        Ring ring = type.supply(Minecraft.getInstance().player.position());
-        if (ring == null) return 0;
-        if (RSM.getModule(AutoP3.class).insertRing(ring, index)) {
-            ChatUtils.chat("Added " + type + " ring at " + index + "!");
-            return 1;
-        }
-        ChatUtils.chat("Invalid index " + index);
-        return 0;
-    }
-
-    private int addRing(CommandContext<ClientSuggestionProvider> ctx) {
-        if (Minecraft.getInstance().player == null) return 0;
-        RingType type = BBGCommand.RingArgumentType.getRing(ctx, "ring");
-
-        Ring ring = type.supply(Minecraft.getInstance().player.position());
+        Ring ring = createRing(type, args);
         if (ring == null) return 0;
         RSM.getModule(AutoP3.class).addRing(ring);
-        ChatUtils.chat("Added " + type + " ring!");
+        return 1;
+    }
+
+    private Ring createRing(RingType type, String full) {
+        String[] args = full.split(" ");
+        Pos whl = new Pos(0.5, 1, 0.5);
+        boolean exact = false;
+        ArgumentManager manager = new ArgumentManager();
+        SubActionManager subActions = new SubActionManager();
+        Map<String, Object> dataMap = new HashMap<>();
+        for (String arg : args) {
+            Matcher matcher = argPattern.matcher(arg);
+            if (!matcher.find()) continue;
+            String key = matcher.group(1);
+            Double value = NumberUtils.isDouble(matcher.group(2)) ? Double.parseDouble(matcher.group(2)) : null;
+            String stringValue = matcher.group(2) == null ? matcher.group(3) : matcher.group(2);
+
+            switch (key.toLowerCase()) {
+                case "r", "radius" -> {
+                    if (value != null) {
+                        whl.set(value, value, value);
+                    }
+                    continue;
+                }
+                case "exact" -> {
+                    exact = true;
+                    continue;
+                }
+                case "w", "width" -> {
+                    if (value != null) {
+                        whl.x(value);
+                    }
+                    continue;
+                }
+                case "h", "height" -> {
+                    if (value != null) {
+                        whl.y(value);
+                    }
+                    continue;
+                }
+                case "l", "length" -> {
+                    if (value != null) {
+                        whl.z(value);
+                    }
+                    continue;
+                }
+                case "y", "yaw" -> {
+                    if (value != null) dataMap.put("yaw", value);
+                }
+                case "p", "pitch" -> {
+                    if (value != null) dataMap.put("pitch", value);
+                }
+                case "route" -> {
+                    if (stringValue != null) dataMap.put("route", stringValue);
+                }
+            }
+            RingArgType a = RingArgType.fromAliases(key.toLowerCase());
+            if (a != null) {
+                manager.addArg(a.create(stringValue));
+            } else {
+                SubActionType s = EnumUtils.getEnum(SubActionType.class, key.toUpperCase());
+                if (s == null) continue;
+                subActions.addAction(s.create());
+            }
+        }
+        Pos playerPos = getPlayerPos(exact);
+        return type.supply(playerPos.subtract(whl.x(), 0, whl.z()), playerPos.add(whl), manager, subActions, dataMap);
+    }
+
+    private Pos getPlayerPos(boolean exact) {
+        Vec3 pos = mc.player.position();
+        if (exact) {
+            return new Pos(pos);
+        } else {
+            return new Pos(Math.round(pos.x() * 2) / 2.0, Math.round(pos.y() * 2) / 2.0, Math.round(pos.z() * 2) / 2.0);
+        }
+    }
+
+    private int undo(CommandContext<ClientSuggestionProvider> ctx) {
+        RSM.getModule(AutoP3.class).undo();
+        return 1;
+    }
+
+    private int redo(CommandContext<ClientSuggestionProvider> ctx) {
+        RSM.getModule(AutoP3.class).redo();
         return 1;
     }
 
@@ -96,13 +197,8 @@ public class BBGCommand extends Command {
         if (Minecraft.getInstance().player == null) return 0;
 
         Vec3 position = Minecraft.getInstance().player.position();
-        if (RSM.getModule(AutoP3.class).removeNearest(position)) {
-            ChatUtils.chat("Removed ring!");
-            return 1;
-        }
-
-        ChatUtils.chat("Could not find ring!");
-        return 0;
+        RSM.getModule(AutoP3.class).removeNearest(position);
+        return 1;
     }
 
     private int center(CenterType centerType) {

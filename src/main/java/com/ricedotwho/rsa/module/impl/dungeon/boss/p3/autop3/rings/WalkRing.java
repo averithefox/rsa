@@ -2,14 +2,17 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 
 import com.google.gson.JsonObject;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.MutableInput;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
 import com.ricedotwho.rsm.data.Colour;
+import com.ricedotwho.rsm.data.MutableInput;
 import com.ricedotwho.rsm.data.Pos;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Input;
-import net.minecraft.world.phys.Vec3;
+
+import java.util.Map;
 
 public class WalkRing extends Ring {
     @Getter
@@ -20,13 +23,12 @@ public class WalkRing extends Ring {
         return RingType.WALK;
     }
 
-    public WalkRing(Vec3 pos) {
-        super(pos, 0.5, RingType.WALK.getRenderSizeOffset());
-        this.yaw = Minecraft.getInstance().gameRenderer.getMainCamera().yaw();
+    public WalkRing(Pos min, Pos max, ArgumentManager manage, SubActionManager actions, Map<String, Object> extra) {
+        this(min, max, (Float) extra.getOrDefault("yaw", Minecraft.getInstance().gameRenderer.getMainCamera().yaw()), manage, actions);
     }
 
-    public WalkRing(Pos min, Pos max, float yaw) {
-        super(min, max, RingType.WALK.getRenderSizeOffset());
+    public WalkRing(Pos min, Pos max, float yaw, ArgumentManager manage, SubActionManager actions) {
+        super(min, max, RingType.WALK.getRenderSizeOffset(), manage, actions);
         this.yaw = yaw;
     }
 
@@ -50,7 +52,12 @@ public class WalkRing extends Ring {
         if (hasInputPressed(input)) return true;
 
         autoP3.setDesync(true);
-        Minecraft.getInstance().player.setYRot(yaw);
+        if (autoP3.getStrafe().getValue() && !mc.player.onGround()) {
+            mc.player.setYRot(yaw - 45);
+            mutableInput.right(true);
+        } else {
+            mc.player.setYRot(yaw);
+        }
 
         mutableInput.forward(true);
         mutableInput.sprint(true);
@@ -66,5 +73,10 @@ public class WalkRing extends Ring {
         JsonObject obj = super.serialize();
         obj.addProperty("yaw", this.yaw);
         return obj;
+    }
+
+    @Override
+    public void feedback() {
+        AutoP3.modMessage("Walking");
     }
 }

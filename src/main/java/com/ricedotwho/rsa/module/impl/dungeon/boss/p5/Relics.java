@@ -177,7 +177,7 @@ public class Relics extends Module {
             return;
         }
 
-        event.getInputConsumer().accept(new Input(true, false, false, false, false, false, true));
+        event.getInput().apply(new Input(true, false, false, false, false, false, true));
     }
 
     @SubscribeEvent

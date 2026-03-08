@@ -140,7 +140,7 @@ public class InvWalk extends SubModule<AutoTerms> {
 
         Input oldInputs = event.getClientInput();
         Input newInputs = new Input(false, false, false, false, false, oldInputs.shift(), false);
-        event.getInputConsumer().accept(newInputs);
+        event.getInput().apply(newInputs);
 
         this.melodyMoveCounter--;
     }

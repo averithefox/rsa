@@ -207,7 +207,7 @@ public class AutoRoutes extends Module implements Accessor {
 
         Input newInputs = new Input(oldInputs.forward(), oldInputs.backward(), oldInputs.left(), oldInputs.right(), oldInputs.jump(), !this.forceNextNotSneak, oldInputs.sprint());
         this.forceNextNotSneak = false;
-        event.getInputConsumer().accept(newInputs);
+        event.getInput().apply(newInputs);
     }
 
     private void cacheRoomNodes(Room room) {
@@ -435,7 +435,7 @@ public class AutoRoutes extends Module implements Accessor {
         }
 
         Pos goalPos = closestStart.getRealPos();
-        Goal goal = GoalDungeonXYZ.create(goalPos.asBlockPos().below());
+        Goal goal = GoalDungeonXYZ.create(goalPos.asBlockPos().below(goalPos.y % 1 == 0 ? 1 : 0));
 
         DynamicRoutes dynamicRoutes = RSM.getModule(DynamicRoutes.class);
         if (!dynamicRoutes.isEnabled()) {

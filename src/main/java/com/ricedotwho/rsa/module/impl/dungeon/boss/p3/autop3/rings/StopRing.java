@@ -1,7 +1,11 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.*;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubAction;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
 import com.ricedotwho.rsm.data.Colour;
+import com.ricedotwho.rsm.data.MutableInput;
 import com.ricedotwho.rsm.data.Pos;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -9,13 +13,18 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 public class StopRing extends Ring {
-    public StopRing(Vec3 pos) {
-        super(pos, 0.5, RingType.STOP.getRenderSizeOffset());
+
+    public StopRing(Pos min, Pos max, ArgumentManager manage, SubActionManager actions) {
+        super(min, max, RingType.STOP.getRenderSizeOffset(), manage, actions);
     }
 
-    public StopRing(Pos min, Pos max) {
-        super(min, max, RingType.STOP.getRenderSizeOffset());
+    public StopRing(Pos min, Pos max, ArgumentManager manage, SubActionManager actions, Map<String, Object> ignored) {
+        super(min, max, RingType.STOP.getRenderSizeOffset(), manage, actions);
     }
 
     @Override
@@ -68,12 +77,17 @@ public class StopRing extends Ring {
         boolean pressFwd = fwdDot < -0.01 && MovementPredictor.squaredAfterTick(fwdDot, rightDot, accel, 0) < baseNextSq;
         boolean pressBack = fwdDot > 0.01 && MovementPredictor.squaredAfterTick(fwdDot, rightDot, -accel, 0) < baseNextSq;
         boolean pressLeft = rightDot >  0.01 && MovementPredictor.squaredAfterTick(fwdDot, rightDot, 0, -accel) < baseNextSq;
-        boolean pressRight= rightDot < -0.01 && MovementPredictor.squaredAfterTick(fwdDot, rightDot, 0, accel) < baseNextSq;
+        boolean pressRight = rightDot < -0.01 && MovementPredictor.squaredAfterTick(fwdDot, rightDot, 0, accel) < baseNextSq;
 
         mutableInput.forward(pressFwd);
         mutableInput.backward(pressBack);
         mutableInput.left(pressLeft);
         mutableInput.right(pressRight);
         return true;
+    }
+
+    @Override
+    public void feedback() {
+        AutoP3.modMessage("Stopping");
     }
 }

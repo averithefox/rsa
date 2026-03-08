@@ -15,12 +15,16 @@ import net.minecraft.network.chat.Component;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Taken from FedMaps
  *  <a href="https://github.com/Hypericat/FedMaps/blob/master/src/main/java/me/hypericats/fedmaps/screens/SSIDScreen.java">...</a>
  */
 public class SessionLoginScreen extends Screen implements Accessor {
+
+    private static final Pattern TOKEN_REGEX = Pattern.compile("(?:accessToken:\"|token:)?([A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+)");
 
     private static SessionLoginScreen instance;
     @Getter
@@ -83,7 +87,8 @@ public class SessionLoginScreen extends Screen implements Accessor {
             feedBackColor = 0xFF8f0000;
             return;
         }
-        String ssidText = sessionField.getValue().trim();
+
+        String ssidText = parseToken(sessionField.getValue().trim());
         String[] info = null;
 
         for (int i = 0; i < 10; i++) {
@@ -94,13 +99,10 @@ public class SessionLoginScreen extends Screen implements Accessor {
                 feedBackMessage = "Ran out of retries, network error!";
                 feedBackColor = 0xFF8f0000;
                 System.err.println("Failed to parse json! Retries left: " + i);
-                continue;
-
             } catch (IOException e) {
                 feedBackMessage = "Failed to poll API for username and UUID!";
                 feedBackColor = 0xFF8f0000;
                 return;
-
             } catch (Exception e) {
                 feedBackMessage = "Invalid SSID!";
                 e.printStackTrace();
@@ -121,6 +123,15 @@ public class SessionLoginScreen extends Screen implements Accessor {
 
         feedBackMessage = "Successfully updated session!";
         feedBackColor = 0xFF009405;
+    }
+
+    private String parseToken(String input) {
+        if (input == null || input.isEmpty()) return "";
+
+        Matcher matcher = TOKEN_REGEX.matcher(input);
+        if (matcher.find()) return matcher.group(1);
+
+        return "";
     }
 
     public static void reset() {
