@@ -168,8 +168,8 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         if (sorted.isEmpty()) return;
 
         boolean feedback = yap.getValue();
-        activeRings.forEach(Ring::setInactive);
-        activeRings.clear();
+        activeRings.removeIf(r -> !r.isActive());
+        //activeRings.clear();
 
         for (Ring ring : sorted) {
             activeRings.add(ring);
@@ -182,16 +182,16 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         clickOverride = false;
     }
 
-    private int last = -1;
-    @SubscribeEvent
-    public void onSendPacket(PacketEvent.Send event) {
-        if (!(event.getPacket() instanceof ServerboundPongPacket pongPacket)) return;
-        System.out.println(pongPacket.getId());
-        if (last - 1 != pongPacket.getId()) {
-            ChatUtils.chat("Id Mismatch : " + pongPacket.getId());
-        }
-        last = pongPacket.getId();
-    }
+//    private int last = -1;
+//    @SubscribeEvent
+//    public void onSendPacket(PacketEvent.Send event) {
+//        if (!(event.getPacket() instanceof ServerboundPongPacket pongPacket)) return;
+//        System.out.println(pongPacket.getId());
+//        if (last - 1 != pongPacket.getId()) {
+//            ChatUtils.chat("Id Mismatch : " + pongPacket.getId());
+//        }
+//        last = pongPacket.getId();
+//    }
 
     @SubscribeEvent
     public void onRender(Render3DEvent.Extract event) {

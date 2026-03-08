@@ -48,7 +48,7 @@ public class JumpRing extends Ring {
 
     @Override
     public boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3) {
-        return false;
+        return true;
     }
 
     @Override

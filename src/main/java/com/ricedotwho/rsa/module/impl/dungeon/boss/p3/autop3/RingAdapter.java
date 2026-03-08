@@ -2,12 +2,6 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.*;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitCondition;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitManager;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitType;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitEWRaytrace;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.RingArgType;

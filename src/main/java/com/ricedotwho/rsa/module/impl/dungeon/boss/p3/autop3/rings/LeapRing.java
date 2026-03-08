@@ -37,7 +37,7 @@ public class LeapRing extends Ring {
 
     @Override
     public Colour getColour() {
-        return Colour.ORANGE;
+        return Colour.PINK;
     }
 
     @Override
@@ -47,7 +47,7 @@ public class LeapRing extends Ring {
 
     @Override
     public boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3) {
-        return false;
+        return true;
     }
 
     @Override
