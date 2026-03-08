@@ -41,7 +41,7 @@ import org.lwjgl.glfw.GLFW;
 import java.util.*;
 
 @Getter
-@ModuleInfo(aliases = "Breaker Aura", id = "BreakerAura", category = Category.DUNGEONS)
+@ModuleInfo(aliases = "Breaker Aura", id = "BreakerAura", category = Category.DUNGEONS, hasKeybind = true)
 public class BreakerAura extends Module {
     private final BooleanSetting edit = new BooleanSetting("Edit Mode", false);
     private final KeybindSetting addBlockBind = new KeybindSetting("Add Block Bind", new Keybind(GLFW.GLFW_KEY_SEMICOLON, true, this::addOrRemoveBlock));

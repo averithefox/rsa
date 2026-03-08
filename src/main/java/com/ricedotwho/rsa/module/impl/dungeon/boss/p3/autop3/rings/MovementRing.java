@@ -49,7 +49,12 @@ public class MovementRing extends Ring implements Accessor {
 
     @Override
     public boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3) {
-        return false;
+        return true;
+    }
+
+    @Override
+    public boolean isStop () {
+        return true;
     }
 
     @Override
@@ -57,6 +62,11 @@ public class MovementRing extends Ring implements Accessor {
         JsonObject obj = super.serialize();
         obj.addProperty("route", this.route);
         return obj;
+    }
+
+    @Override
+    public boolean shouldStop () {
+        return true;
     }
 
     @Override

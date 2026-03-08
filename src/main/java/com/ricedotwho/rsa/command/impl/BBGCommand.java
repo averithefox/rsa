@@ -95,6 +95,16 @@ public class BBGCommand extends Command {
                                     return 1;
                                 })
                         )
+                )
+                .then(literal("load")
+                        .then(argument("config", StringArgumentType.greedyString())
+                                .executes(ctx -> {
+                                    String config = StringArgumentType.getString(ctx, "config");
+                                    AutoP3.load(config);
+                                    AutoP3.modMessage("Loaded %s", config);
+                                    return 1;
+                                })
+                        )
                 );
     }
 

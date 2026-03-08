@@ -87,6 +87,11 @@ public class StopRing extends Ring {
     }
 
     @Override
+    public boolean isStop () {
+        return true;
+    }
+
+    @Override
     public void feedback() {
         AutoP3.modMessage("Stopping");
     }

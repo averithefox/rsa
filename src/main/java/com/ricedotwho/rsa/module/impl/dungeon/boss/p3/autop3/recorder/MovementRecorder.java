@@ -136,7 +136,7 @@ public class MovementRecorder extends SubModule<AutoP3> {
 
             if (next.using && next.useItem != null) {
                 if (SwapManager.swapItem(next.useItem.item)) {
-                    PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> SwapManager.sendAirC08(next.useItem.yaw, next.useItem.pitch, true, false));
+                    PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> SwapManager.sendAirC08(next.useItem.yaw, next.useItem.pitch, SwapManager.isDesynced(), false));
                 }
             }
             playIndex++;

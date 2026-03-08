@@ -2,6 +2,7 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args;
 
 import com.google.gson.JsonObject;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubAction;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionType;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,6 +34,10 @@ public record ArgumentManager(HashMap<RingArgType, Argument> args) {
             arg.serialize(obj);
         }
         return obj;
+    }
+
+    public boolean has(RingArgType type) {
+        return args.containsKey(type);
     }
 
     public String getList(String before) {

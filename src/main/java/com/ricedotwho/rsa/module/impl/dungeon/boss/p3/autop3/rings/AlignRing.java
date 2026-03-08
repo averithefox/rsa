@@ -131,6 +131,11 @@ public class AlignRing extends Ring {
     }
 
     @Override
+    public boolean isStop () {
+        return true;
+    }
+
+    @Override
     public void feedback() {
         AutoP3.modMessage("Aligning!");
     }

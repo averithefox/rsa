@@ -4,6 +4,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.recorder.MovementRecorder;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.Ring;
+import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationHandler;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationProvider;
 import com.ricedotwho.rsm.component.impl.location.Island;
@@ -13,7 +14,6 @@ import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.MutableInput;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
-import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.event.impl.render.Render3DEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
@@ -32,8 +32,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.protocol.common.ClientboundPingPacket;
-import net.minecraft.network.protocol.common.ServerboundPongPacket;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
@@ -42,7 +40,7 @@ import java.util.*;
 import java.util.stream.IntStream;
 
 @Getter
-@ModuleInfo(aliases = "Auto P3", id = "AutoP3", category = Category.DUNGEONS)
+@ModuleInfo(aliases = "Auto P3", id = "AutoP3", category = Category.DUNGEONS, hasKeybind = true)
 public class AutoP3 extends Module implements ClientRotationProvider {
 
     private static final MutableComponent PREFIX = Component.empty()
@@ -71,6 +69,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     private boolean lastDesync = false;
     @Getter
     private final List<Ring> activeRings;
+    private final List<Ring> temp = new ArrayList<>();
     private final List<Ring> redoList = new ArrayList<>();
     private static boolean clickOverride = false;
 
@@ -97,11 +96,30 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         }
         lastDesync = desync;
     }
+//
+//    int last = -1;
+//    @SubscribeEvent
+//    public void onSendPacket(PacketEvent.Send event) {
+//        if (!(event.getPacket() instanceof ServerboundPongPacket packet)) return;
+//        System.out.println(packet.getId());
+//        if (packet.getId() != last - 1) {
+//            ChatUtils.chat("Mismatch at id : " + packet.getId());
+//        }
+//        last = packet.getId();
+//    }
 
     @SubscribeEvent
     public void onWorldLoad(WorldEvent.Load event) {
         this.activeRings.clear();
         reload();
+    }
+
+    public static void load(String config) {
+        AutoP3 ap3 = RSM.getModule(AutoP3.class);
+        ap3.getData().setFileName(config);
+        ap3.getData().updateFile();
+        ap3.getData().load();
+        ap3.reload();
     }
 
     @SubscribeEvent
@@ -146,22 +164,43 @@ public class AutoP3 extends Module implements ClientRotationProvider {
             sorted = rings.stream().filter(r -> r.updateState(playerPos, oldPos) && (activeRings.isEmpty() || activeRings.stream().allMatch(active -> r.getPriority() >= active.getPriority()))).sorted(Comparator.comparingInt(Ring::getPriority).reversed()).toList();
         }
 
-        if (sorted.isEmpty()) return;
+        if (sorted.isEmpty()) {
+            clickOverride = false;
+            return;
+        }
 
         boolean feedback = yap.getValue();
-        activeRings.forEach(Ring::setInactive);
-        activeRings.clear();
+        activeRings.removeIf(r -> !r.isActive());
+        //activeRings.clear();
+        temp.clear();
+
+        boolean stop = false;
 
         for (Ring ring : sorted) {
-            activeRings.add(ring);
+            temp.add(ring);
             if (!clickOverride && ring.checkArg()) continue;
+            if (ring.isStop()) stop = true;
             ring.setTriggered();
             ring.setActive();
             if (feedback) ring.feedback();
             if (!ring.execute()) break;
         }
+
+        if (stop) activeRings.removeIf(Ring::shouldStop);
+        activeRings.addAll(temp);
         clickOverride = false;
     }
+
+//    private int last = -1;
+//    @SubscribeEvent
+//    public void onSendPacket(PacketEvent.Send event) {
+//        if (!(event.getPacket() instanceof ServerboundPongPacket pongPacket)) return;
+//        System.out.println(pongPacket.getId());
+//        if (last - 1 != pongPacket.getId()) {
+//            ChatUtils.chat("Id Mismatch : " + pongPacket.getId());
+//        }
+//        last = pongPacket.getId();
+//    }
 
     @SubscribeEvent
     public void onRender(Render3DEvent.Extract event) {
@@ -275,7 +314,6 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     public void load() {
         data.load();
     }
-
 
     public static void modMessage(Object message, Object ... objects) {
         ChatUtils.chatClean(PREFIX.copy().append(String.format(message.toString(), objects)));

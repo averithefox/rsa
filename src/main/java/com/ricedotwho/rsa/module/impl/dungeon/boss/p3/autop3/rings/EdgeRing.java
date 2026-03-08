@@ -16,12 +16,12 @@ import java.util.Map;
 public class EdgeRing extends Ring {
 
     public EdgeRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions) {
-        super(min, max, RingType.JUMP.getRenderSizeOffset(), manager, actions);
+        super(min, max, RingType.EDGE.getRenderSizeOffset(), manager, actions);
         this.getArgManager().addArg(new GroundArg());
     }
 
     public EdgeRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions, Map<String, Object> ignored) {
-        super(min, max, RingType.JUMP.getRenderSizeOffset(), manager, actions);
+        super(min, max, RingType.EDGE.getRenderSizeOffset(), manager, actions);
         this.getArgManager().addArg(new GroundArg());
     }
 
@@ -48,7 +48,7 @@ public class EdgeRing extends Ring {
 
     @Override
     public boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3) {
-        return false;
+        return true;
     }
 
     @Override

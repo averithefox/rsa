@@ -23,7 +23,9 @@ public enum RingType {
     FAST_BONZO("fastbonzo", FastBonzoRing::new, 0.06f),
     EDGE("edge", EdgeRing::new, 0.06f),
     MOVEMENT("movement", MovementRing::new, 0.07f),
-    LOOK("look", LookRing::new, 0.08f);
+    LOOK("look", LookRing::new, 0.08f),
+    BOOM("boom", BoomRing::new, 0.009f),
+    LEAP("leap", LeapRing::new, 0.010f);
 
     @Getter
     private final String name;

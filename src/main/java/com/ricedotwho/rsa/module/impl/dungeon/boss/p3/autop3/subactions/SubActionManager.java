@@ -36,6 +36,10 @@ public record SubActionManager(HashMap<SubActionType, SubAction> actions) {
         return obj;
     }
 
+    public boolean has(SubActionType type) {
+        return actions.containsKey(type);
+    }
+
     public String getList() {
         if (actions.isEmpty()) return "";
         StringBuilder sb = new StringBuilder();

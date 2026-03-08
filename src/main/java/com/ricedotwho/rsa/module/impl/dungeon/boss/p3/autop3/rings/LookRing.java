@@ -57,7 +57,7 @@ public class LookRing extends Ring implements Accessor {
 
     @Override
     public boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3) {
-        return false;
+        return true;
     }
 
     @Override

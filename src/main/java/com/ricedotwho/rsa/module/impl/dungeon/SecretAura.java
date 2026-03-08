@@ -144,7 +144,9 @@ public class SecretAura extends Module {
     public void onReceivePacket(PacketEvent.Receive event) {
         if (!this.autoClose.getValue() || !Location.getArea().is(Island.Dungeon)) return;
         if (!(event.getPacket() instanceof ClientboundOpenScreenPacket openScreenPacket) || Minecraft.getInstance().getConnection() == null) return;
-        if (!Utils.equalsOneOf(openScreenPacket.getTitle(), CHEST_KEY, LARGE_CHEST_KEY)) return;
+        RSA.getLogger().info("Container title: {}", openScreenPacket.getTitle());
+        String content = ChatFormatting.stripFormatting(openScreenPacket.getTitle().getString());
+        if (!Utils.equalsOneOf(openScreenPacket.getTitle(), CHEST_KEY, LARGE_CHEST_KEY) && !Utils.equalsOneOf(content, "Chest", "Large Chest")) return;
 
         int windowId = openScreenPacket.getContainerId();
         Minecraft.getInstance().getConnection().send(new ServerboundContainerClosePacket(windowId));
