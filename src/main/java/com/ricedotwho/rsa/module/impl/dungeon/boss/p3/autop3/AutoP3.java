@@ -164,7 +164,10 @@ public class AutoP3 extends Module implements ClientRotationProvider {
             sorted = rings.stream().filter(r -> r.updateState(playerPos, oldPos) && (activeRings.isEmpty() || activeRings.stream().allMatch(active -> r.getPriority() >= active.getPriority()))).sorted(Comparator.comparingInt(Ring::getPriority).reversed()).toList();
         }
 
-        if (sorted.isEmpty()) return;
+        if (sorted.isEmpty()) {
+            clickOverride = false;
+            return;
+        }
 
         boolean feedback = yap.getValue();
         activeRings.removeIf(r -> !r.isActive());
