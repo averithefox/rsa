@@ -438,7 +438,7 @@ public class BloodBlink extends Module {
     }
 
     public boolean isBlinking() {
-        return state < 30 && state > -1;
+        return state < 31 && state > -1;
     }
 
     public void doBlink() {
