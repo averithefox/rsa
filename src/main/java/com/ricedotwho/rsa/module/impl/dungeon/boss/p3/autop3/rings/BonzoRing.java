@@ -3,7 +3,7 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 import com.google.gson.JsonObject;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.VelocityBuffer;
+import com.ricedotwho.rsa.module.impl.movement.VelocityBuffer;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
