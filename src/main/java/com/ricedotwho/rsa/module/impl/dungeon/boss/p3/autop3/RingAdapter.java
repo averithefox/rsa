@@ -57,6 +57,8 @@ public class RingAdapter implements JsonDeserializer<Ring>, JsonSerializer<Ring>
             case BOOM -> new BoomRing(min, max, gson.fromJson(obj.get("target").getAsJsonObject(), posType), args, sub);
             case LEAP -> new LeapRing(min, max, args, sub);
             case USE -> new UseRing(min, max, obj.get("item").getAsString(), obj.get("yaw").getAsFloat(), obj.get("pitch").getAsFloat(), args, sub);
+            case CHAT -> new ChatRing(min, max, obj.get("message").getAsString(), args, sub);
+            case COMMAND -> new CommandRing(min, max, obj.get("command").getAsString(), args, sub);
             case null -> throw new IllegalStateException("Unexpected value: " + obj.get("type"));
         };
     }

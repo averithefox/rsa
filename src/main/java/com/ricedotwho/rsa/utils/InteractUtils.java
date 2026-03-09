@@ -25,7 +25,7 @@ import net.minecraft.world.phys.Vec3;
 
 @UtilityClass
 public class InteractUtils implements Accessor {
-    public final double BLOCK_RANGE = 5.7 * 5.7;
+    public final double BLOCK_RANGE = 5 * 5;
     public final double ENTITY_RANGE = 4d;
 
     /// Call this from {@link PacketOrderManager#register(PacketOrderManager.STATE, Runnable)} or risk a ban!

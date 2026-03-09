@@ -148,7 +148,8 @@ public class RSA implements Addon {
                 BBGCommand.class,
                 RSADevCommand.class,
                 AutoCroesusCommand.class,
-                SecretAuraCommand.class
+                SecretAuraCommand.class,
+                VelocityBufferCommand.class
         );
     }
 

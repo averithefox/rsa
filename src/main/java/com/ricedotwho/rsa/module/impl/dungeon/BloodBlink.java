@@ -240,11 +240,7 @@ public class BloodBlink extends Module {
             }
 
             case 4: {
-                if (proxyPearl.getValue() && Util.isZero()) {
-                    state = 5;
-                } else {
-                    pearl(player.getYRot(), -90f, () -> state = 5);
-                }
+                pearl(player.getYRot(), -90f, () -> state = 5);
                 break;
             }
 
@@ -330,11 +326,7 @@ public class BloodBlink extends Module {
             }
 
             case 15: {
-                if (proxyPearl.getValue() && Util.isZero()) {
-                    state = 16;
-                } else {
-                    pearl(player.getYRot(), -90f, () -> state = 16);
-                }
+                pearl(player.getYRot(), -90f, () -> state = 16);
                 break;
             }
 
@@ -510,6 +502,8 @@ public class BloodBlink extends Module {
                 case 2: {
                     if (proxyPearl.getValue() && Util.isZero()) {
                         sendStartPearling(isLower ? 98 : 99);
+                        state = 5;
+                        break;
                     }
                     state = 4;
                     break;
@@ -518,14 +512,18 @@ public class BloodBlink extends Module {
                 case 13: {
                     if (proxyPearl.getValue() && Util.isZero()) {
                         sendStartPearling(isLower ? 98 : 99);
+                        state = 16;
+                        break;
                     }
                     state = 15;
                     break;
                 }
 
                 case 5: {
-                    if (s08.change().position().y <= (isLower ? 97.0 : 98.0))
+                    if (s08.change().position().y <= (isLower ? 97.0 : 98.0)) {
+                        if (proxyPearl.getValue() && Util.isZero()) return;
                         state = 4;
+                    }
                     else
                         state = 6;
                     break;
@@ -533,8 +531,10 @@ public class BloodBlink extends Module {
 
 
                 case 16: {
-                    if (s08.change().position().y <= (isLower ? 97.0 : 98.0))
+                    if (s08.change().position().y <= (isLower ? 97.0 : 98.0)) {
+                        if (proxyPearl.getValue() && Util.isZero()) return;
                         state = 15;
+                    }
                     else
                         state = 17;
                     break;

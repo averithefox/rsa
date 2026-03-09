@@ -10,6 +10,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.*;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.RingArgType;
@@ -45,6 +46,7 @@ import java.util.stream.Stream;
 @CommandInfo(name = "bbg", aliases = "p3", description = "Auto P3 command")
 public class BBGCommand extends Command {
     private final Pattern argPattern = Pattern.compile("^(\\w+?)(?:(\\d*\\.?\\d*)|\"([^\"]*)\")$");
+    private final Pattern splitter = Pattern.compile("\\w+(?:\\d+(?:\\.\\d+)?|\"[^\"]*\")");
 
     @Override
     public LiteralArgumentBuilder<ClientSuggestionProvider> build() {
@@ -115,7 +117,7 @@ public class BBGCommand extends Command {
                                 sb.append(type.getName()).append(" ");
                             }
                             sb.append("\nGeneral Arguments:\n");
-                            sb.append("w<number>, h<number>, l<number>, r<number>, exact, yaw<number>, pitch<number> (movement/blink: route\"route\")");
+                            sb.append("w<number>, h<number>, l<number>, r<number>, exact, yaw<number>, pitch<number> (movement/blink: route\"route\", command: command\"command\", chat: message\"message\")");
                             sb.append("\n\nArguments: ");
                             for (RingArgType type : RingArgType.values()) {
                                 sb.append(type.getAliases().getFirst()).append(" ");
@@ -141,13 +143,14 @@ public class BBGCommand extends Command {
     }
 
     private Ring createRing(RingType type, String full) {
-        String[] args = full.split(" ");
         Pos whl = new Pos(0.5, 1, 0.5);
         boolean exact = false;
         ArgumentManager manager = new ArgumentManager();
         SubActionManager subActions = new SubActionManager();
         Map<String, Object> dataMap = new HashMap<>();
-        for (String arg : args) {
+        Matcher split = splitter.matcher(full);
+        while (split.find()) {
+            String arg = split.group();
             Matcher matcher = argPattern.matcher(arg);
             if (!matcher.find()) continue;
             String key = matcher.group(1);
@@ -192,6 +195,12 @@ public class BBGCommand extends Command {
                 case "route" -> {
                     if (stringValue != null) dataMap.put("route", stringValue);
                 }
+                case "m", "message" -> {
+                    if (stringValue != null) dataMap.put("message", stringValue);
+                }
+                case "c", "command" -> {
+                    if (stringValue != null) dataMap.put("command", stringValue);
+                }
             }
             RingArgType a = RingArgType.fromAliases(key.toLowerCase());
             if (a != null) {
@@ -202,6 +211,9 @@ public class BBGCommand extends Command {
                 subActions.addAction(s.create());
             }
         }
+
+        // todo: check if the dataMap has all the required args for the type!
+
         Pos playerPos = getPlayerPos(exact);
         return type.supply(playerPos.subtract(whl.x(), 0, whl.z()), playerPos.add(whl), manager, subActions, dataMap);
     }

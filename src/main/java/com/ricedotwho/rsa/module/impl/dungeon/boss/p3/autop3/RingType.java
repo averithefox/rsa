@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
 
-import com.mojang.datafixers.util.Function4;
 import com.mojang.datafixers.util.Function5;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.*;
@@ -26,7 +25,9 @@ public enum RingType {
     LOOK("look", LookRing::new, 0.08f),
     BOOM("boom", BoomRing::new, 0.009f),
     LEAP("leap", LeapRing::new, 0.010f),
-    USE("use", UseRing::new, 0.011f);
+    USE("use", UseRing::new, 0.011f),
+    CHAT("chat", ChatRing::new, 0.012f),
+    COMMAND("command", CommandRing::new, 0.013f);
 
     @Getter
     private final String name;

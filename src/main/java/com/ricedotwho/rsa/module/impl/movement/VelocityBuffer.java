@@ -109,7 +109,7 @@ public class VelocityBuffer extends Module {
         super.onDisable();
     }
 
-    private void popQueue() {
+    public void popQueue() {
         if (Minecraft.getInstance().player == null) return;
         synchronized (queue) {
             if (queue.isEmpty()) return;

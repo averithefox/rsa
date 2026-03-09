@@ -48,7 +48,10 @@ public class UseRing extends Ring implements Accessor {
 
     @Override
     public boolean run() {
-        if (!SwapManager.reserveSwap(this.item)) return false;
+        if (!SwapManager.reserveSwap(this.item)) {
+            AutoP3.modMessage("Failed to swap to %s!", this.item);
+            return false;
+        }
         boolean swap = SwapManager.isDesynced();
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
             if ((swap && !SwapManager.checkClientItem(this.item)) || (!swap && !SwapManager.checkServerItem(this.item))) {
