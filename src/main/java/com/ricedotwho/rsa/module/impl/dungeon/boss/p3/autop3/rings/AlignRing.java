@@ -66,7 +66,7 @@ public class AlignRing extends Ring {
             sneaking = false;
             displacement = MovementPredictor.getDisplacementFromInput(Minecraft.getInstance().player.getSpeed() * 10, sneaking);
             if (deltaLength > 2 * displacement) {
-                AutoP3.chat("Too far!");
+                AutoP3.modMessage("Too far!");
                 reset();
                 return false;
             }

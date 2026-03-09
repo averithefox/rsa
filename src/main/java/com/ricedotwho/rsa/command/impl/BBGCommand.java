@@ -15,6 +15,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManage
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.RingArgType;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.recorder.MovementRecorder;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.Ring;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubAction;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionType;
 import com.ricedotwho.rsm.RSM;
@@ -105,6 +106,27 @@ public class BBGCommand extends Command {
                                     return 1;
                                 })
                         )
+                )
+                .then(literal("help")
+                        .executes(ctx -> {
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("Help:").append("\nRing Types:\n");
+                            for (RingType type : RingType.values()) {
+                                sb.append(type.getName()).append(" ");
+                            }
+                            sb.append("\nGeneral Arguments:\n");
+                            sb.append("w<number>, h<number>, l<number>, r<number>, exact, yaw<number>, pitch<number> (movement/blink: route\"route\")");
+                            sb.append("\n\nArguments: ");
+                            for (RingArgType type : RingArgType.values()) {
+                                sb.append(type.getAliases().getFirst()).append(" ");
+                            }
+                            sb.append("\n\nSub Actions: ");
+                            for (SubActionType type : SubActionType.values()) {
+                                sb.append(type.name().toLowerCase()).append(" ");
+                            }
+                            AutoP3.modMessage(sb.toString());
+                            return 1;
+                        })
                 );
     }
 

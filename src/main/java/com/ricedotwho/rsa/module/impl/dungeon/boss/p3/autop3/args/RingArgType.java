@@ -4,24 +4,25 @@ import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.*;
 import lombok.Getter;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
 public enum RingArgType {
-    TERM(TermArg::create, TermArg.class, Set.of("term")),
-    LEAP(LeapArg::create, LeapArg.class, Set.of("leap")),
-    GROUND(GroundArg::create, GroundArg.class, Set.of("ground", "g")),
-    TRIGGER(TriggerArg::create, TriggerArg.class, Set.of("trigger", "click", "c")),
-    DELAY(DelayArg::create, DelayArg.class, Set.of("delay", "d")),
-    TERM_CLOSE(TermCloseArg::create, TermCloseArg.class, Set.of("termclose", "close", "tc"));
+    TERM(TermArg::create, TermArg.class, List.of("term")),
+    LEAP(LeapArg::create, LeapArg.class, List.of("leap")),
+    GROUND(GroundArg::create, GroundArg.class, List.of("ground", "g")),
+    TRIGGER(TriggerArg::create, TriggerArg.class, List.of("trigger", "click", "c")),
+    DELAY(DelayArg::create, DelayArg.class, List.of("delay", "d")),
+    TERM_CLOSE(TermCloseArg::create, TermCloseArg.class, List.of("termclose", "close", "tc"));
 
     private final Function<String, Argument<?>> factory;
     @Getter
-    private final Set<String> aliases;
+    private final List<String> aliases;
     @Getter
     private Class<? extends Argument<?>> clazz;
 
-    RingArgType(Function<String, Argument<?>> factory, Class<? extends Argument<?>> clazz , Set<String> aliases) {
+    RingArgType(Function<String, Argument<?>> factory, Class<? extends Argument<?>> clazz , List<String> aliases) {
         this.factory = factory;
         this.clazz = clazz;
         this.aliases = aliases;

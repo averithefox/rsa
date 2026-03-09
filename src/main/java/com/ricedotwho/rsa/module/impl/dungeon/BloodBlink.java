@@ -21,6 +21,7 @@ import com.ricedotwho.rsm.component.impl.map.map.RoomType;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.component.impl.map.utils.ScanUtils;
+import com.ricedotwho.rsm.component.impl.task.TaskComponent;
 import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
@@ -87,7 +88,7 @@ public class BloodBlink extends Module {
     private int serverTotalTickTimer = 0;
     private int state = 0;
     private boolean isLower = false;
-    private int ticksTillStart = -67;
+    private int ticksTilStart = -67;
     public boolean forceNextSneak = false;
     private boolean explored = false;
 
@@ -149,7 +150,7 @@ public class BloodBlink extends Module {
         this.startRoom = null;
         this.serverTickTimer = -1;
         this.serverTotalTickTimer = 0;
-        this.ticksTillStart = -67;
+        this.ticksTilStart = -67;
         resetState();
         roomPriority.clear();
         state = -1;
@@ -227,7 +228,6 @@ public class BloodBlink extends Module {
                     }
 
                     float[] angles = EtherUtils.getYawAndPitch(slab.asVec3(), true, player, true);
-                    RSA.chat("Angles: yaw: %s, pitch: %s", angles[0], angles[1]);
                     SwapManager.sendAirC08(angles[0], angles[1], true, false);
                     state = 2;
                 });
@@ -348,7 +348,8 @@ public class BloodBlink extends Module {
 
                 //todo: this is slow, it should try tp before the dungeon starts for high ping players (me), in theory we should be able to get 0.05s opens
                 // *doing this is annoying for low ping
-                if (((africanSlavePingMode.getValue() && ticksTillStart != -67 && ticksTillStart <= 0) || Dungeon.isStarted()) && (serverTickTimer % 40) < (40 - bloodLoadTickTime.getValue().intValue())) {
+                if (((africanSlavePingMode.getValue() && ticksTilStart != -67 && ticksTilStart <= 0) || Dungeon.isStarted()) && (serverTickTimer % 40) < (40 - bloodLoadTickTime.getValue().intValue())) {
+                    ticksTilStart = -67;
                     PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
                         if (!SwapManager.swapItem(Items.DIAMOND_SHOVEL)) return;
 
@@ -490,7 +491,7 @@ public class BloodBlink extends Module {
     public void onChat(ChatEvent.Chat event) {
         if (Location.getArea() != Island.Dungeon || Minecraft.getInstance().player == null) return;
         if (event.getMessage().getString().equals("Starting in 1 second.")) {
-            ticksTillStart = Math.max(20 - this.earlyExit.getValue().intValue(), 0);
+            ticksTilStart = Math.max(20 - this.earlyExit.getValue().intValue(), 0);
             AutoGfs.tryGetItem(16, "ENDER_PEARL", true);
         }
     }
@@ -564,7 +565,9 @@ public class BloodBlink extends Module {
     public void onServerTick(ServerTickEvent event) {
         serverTickTimer++;
         serverTotalTickTimer++;
-        if (ticksTillStart != -67) ticksTillStart--;
+        if (ticksTilStart != -67) {
+            ticksTilStart--;
+        }
     }
 
     private boolean isInRoom(int posX, int posZ, Room room) {
@@ -616,7 +619,7 @@ public class BloodBlink extends Module {
     private void sendStartPearling(int roof) {
         if (mc.getConnection() == null) return;
         if (!SwapManager.swapItem("ENDER_PEARL")) return;
-        mc.getConnection().send(new ServerboundCustomPayloadPacket(new BloodClipHelperStartPacket(roof)));
+        TaskComponent.onTick(0, () -> mc.getConnection().send(new ServerboundCustomPayloadPacket(new BloodClipHelperStartPacket(roof))));
     }
 
     record Entry(UniqueRoom room, int priority) {}

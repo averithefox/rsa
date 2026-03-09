@@ -25,7 +25,8 @@ public enum RingType {
     MOVEMENT("movement", MovementRing::new, 0.07f),
     LOOK("look", LookRing::new, 0.08f),
     BOOM("boom", BoomRing::new, 0.009f),
-    LEAP("leap", LeapRing::new, 0.010f);
+    LEAP("leap", LeapRing::new, 0.010f),
+    USE("use", UseRing::new, 0.011f);
 
     @Getter
     private final String name;

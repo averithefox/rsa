@@ -250,10 +250,6 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         return this.forceSkyblock.getValue() || (mc.player != null && Location.getArea().is(Island.Dungeon) && Dungeon.isInBoss());
     }
 
-    public static void chat(Object message, Object... objects) {
-        ChatUtils.chatClean(PREFIX.copy().append(String.format(message.toString(), objects)));
-    }
-
     public void addRing(Ring ring) {
         ring.setTriggered(); // So it doesn't activate instantly
         synchronized (rings) {

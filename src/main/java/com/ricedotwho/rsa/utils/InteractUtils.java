@@ -82,6 +82,18 @@ public class InteractUtils implements Accessor {
         return true;
     }
 
+    /// Call this from {@link PacketOrderManager#register(PacketOrderManager.STATE, Runnable)} or risk a ban!
+    public boolean interactOnBlock(BlockPos pos, Vec3 eyePos, Vec3 hit, boolean swing) {
+        if (mc.level == null) return false;
+        BlockState blockState = mc.level.getBlockState(pos);
+        AABB blockAABB = blockState.getShape(mc.level, pos).bounds();
+        BlockHitResult result = RotationUtils.collisionRayTrace(pos, blockAABB, eyePos, hit);
+        if (result == null) return false;
+
+        SwapManager.sendBlockC08(result.getLocation(), result.getDirection(), swing, true);
+        return true;
+    }
+
     /// Call this from {@link PacketOrderManager#register(PacketOrderManager.STATE, Runnable)} in {@link PacketOrderManager.STATE#ATTACK} or risk a ban!
     public boolean attackEntity(Entity entity) {
         if (mc.player == null || mc.level == null || mc.gameMode == null) return false;
@@ -142,6 +154,35 @@ public class InteractUtils implements Accessor {
             }
         }
         return minDist;
+    }
+
+    public Vec3 getFaceVec(Direction direction, Vec3 pos) {
+        double offsetX = 0;
+        double offsetY = 0;
+        double offsetZ = 0;
+
+        switch (direction) {
+            case DOWN:
+                offsetY = -0.5;
+                break;
+            case UP:
+                offsetY = 0.5;
+                break;
+            case NORTH:
+                offsetZ = -0.5;
+                break;
+            case SOUTH:
+                offsetZ = 0.5;
+                break;
+            case WEST:
+                offsetX = -0.5;
+                break;
+            case EAST:
+                offsetX = 0.5;
+                break;
+        }
+
+        return pos.add(0.5 + offsetX, 0.5 + offsetY, 0.5 + offsetZ);
     }
 
     public Direction closestFace(Vec3 pos, Vec3 player) {
