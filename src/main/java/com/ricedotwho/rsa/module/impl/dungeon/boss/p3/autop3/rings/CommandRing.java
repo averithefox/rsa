@@ -58,7 +58,7 @@ public class CommandRing extends Ring implements Accessor {
     @Override
     public JsonObject serialize() {
         JsonObject obj = super.serialize();
-        obj.addProperty("message", this.command);
+        obj.addProperty("command", this.command);
         return obj;
     }
 
