@@ -53,6 +53,7 @@ public abstract class MixinMinecraft {
         }
 
         SwapManager.onPreTickStart(); // Must be called first, unless you have a good reason don't change the order
+        PacketOrderManager.onPreTickStart();
     }
 
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;handleKeybinds()V"))

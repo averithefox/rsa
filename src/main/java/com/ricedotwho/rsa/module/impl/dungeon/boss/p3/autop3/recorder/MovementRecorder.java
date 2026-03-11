@@ -143,8 +143,16 @@ public class MovementRecorder extends SubModule<AutoP3> {
         }
     }
 
+    public static void resumeRecording() {
+        if (state == State.PAUSED) state = State.PLAYING;
+    }
+
+    public static void pauseRecording() {
+        if (state == State.PLAYING) state = State.PAUSED;
+    }
+
     public static void playRecording(String name) {
-        if (state != State.IDLE) {
+        if (state != State.IDLE && state != State.PAUSED) {
             AutoP3.modMessage("Cannot start playing while not idle! State: %s", state);
             return;
         }
@@ -161,6 +169,7 @@ public class MovementRecorder extends SubModule<AutoP3> {
 
     private enum State {
         RECORDING,
+        PAUSED,
         PLAYING,
         IDLE
     }

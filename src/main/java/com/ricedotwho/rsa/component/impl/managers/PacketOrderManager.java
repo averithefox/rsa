@@ -16,8 +16,13 @@ public class PacketOrderManager {
     }
 
     public enum STATE {
+        START,
         ITEM_USE,
         ATTACK
+    }
+
+    public static void onPreTickStart() {
+        execute(STATE.START);
     }
 
     public static void register(STATE state, Runnable runnable) {

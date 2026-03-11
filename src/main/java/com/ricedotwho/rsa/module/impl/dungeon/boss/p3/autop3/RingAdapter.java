@@ -46,6 +46,7 @@ public class RingAdapter implements JsonDeserializer<Ring>, JsonSerializer<Ring>
         return switch (type) {
             case BONZO -> new BonzoRing(min, max, obj.get("yaw").getAsFloat(), obj.get("pitch").getAsFloat(), args, sub);
             case FAST_BONZO -> new FastBonzoRing(min, max, obj.get("yaw").getAsFloat(), obj.get("pitch").getAsFloat(), args, sub);
+            case BLINK -> new BlinkRing(min, max, obj.get("route").getAsString(), args, sub, obj.get("size").getAsInt());
             case JUMP -> new JumpRing(min, max, args, sub);
             case LOOK -> new LookRing(min, max, obj.get("yaw").getAsFloat(), obj.get("pitch").getAsFloat(), args, sub);
             case STOP -> new StopRing(min, max, args, sub);

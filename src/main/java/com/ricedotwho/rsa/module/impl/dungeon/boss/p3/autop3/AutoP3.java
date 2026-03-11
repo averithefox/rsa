@@ -9,6 +9,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.TermArg;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.TermCloseArg;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.TriggerArg;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.recorder.MovementRecorder;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.BlinkRing;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.Ring;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationHandler;
@@ -20,6 +21,7 @@ import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.MutableInput;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
+import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.event.impl.game.TerminalEvent;
 import com.ricedotwho.rsm.event.impl.render.Render3DEvent;
@@ -39,6 +41,8 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
@@ -62,6 +66,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     @Getter private static final NumberSetting edgeDist = new NumberSetting("Edge Dist", 0, 0.1, 0.001, 0.001);
     private final BooleanSetting depth = new BooleanSetting("Depth", false);
     private final BooleanSetting strafe = new BooleanSetting("45", true);
+    @Getter private final BooleanSetting freecamBlink = new BooleanSetting("Freecam Blink", false);
     private final GroupSetting<MovementRecorder> movement = new GroupSetting<>("Movement", new MovementRecorder(this));
 
     private final SaveSetting<List<Ring>> data = new SaveSetting<>("Rings", "dungeon/ap3", "rings.json", ArrayList::new,
@@ -84,6 +89,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
                 yap,
                 triggerBind,
                 edgeDist,
+                freecamBlink,
                 depth,
                 strafe,
                 forceSkyblock,
@@ -144,6 +150,20 @@ public class AutoP3 extends Module implements ClientRotationProvider {
             activeRings.remove(i--);
         }
     }
+
+//    @SubscribeEvent
+//    public void onSendPacket(PacketEvent.Send event) {
+//        if (!dungeonCheck()) return;
+//        if (activeRings.isEmpty()) return;
+//
+//        Packet<?> packet = event.getPacket();
+//        if (!(packet instanceof ServerboundMovePlayerPacket movePlayerPacket)) return;
+//        for (int i = 0 ; i < activeRings.size(); i++) {
+//            Ring r = activeRings.get(i);
+//            if (!(r instanceof BlinkRing blinkRing)) continue;
+//            blinkRing.onSendPacket(movePlayerPacket);
+//        }
+//    }
 
     private void reload() {
         this.rings.clear();
@@ -235,6 +255,9 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         consumeArg(TermCloseArg.class, true);
         consumeArg(TermArg.class, null);
         consumeArg(LeapArg.class, true);
+        if (!activeRings.isEmpty()) {
+            activeRings.stream().filter(r -> r instanceof BlinkRing).forEach(r -> ((BlinkRing) r).flushNext());
+        }
     }
 
     private <T> void consumeArg(Class<? extends Argument<T>> clazz, T value) {

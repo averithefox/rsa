@@ -117,7 +117,7 @@ public class BBGCommand extends Command {
                                 sb.append(type.getName()).append(" ");
                             }
                             sb.append("\nGeneral Arguments:\n");
-                            sb.append("w<number>, h<number>, l<number>, r<number>, exact, yaw<number>, pitch<number> (movement/blink: route\"route\", command: command\"command\", chat: message\"message\")");
+                            sb.append("w<number>, h<number>, l<number>, r<number>, exact, blink<number>, yaw<number>, pitch<number> (movement/blink: route\"route\", command: command\"command\", chat: message\"message\")");
                             sb.append("\n\nArguments: ");
                             for (RingArgType type : RingArgType.values()) {
                                 sb.append(type.getAliases().getFirst()).append(" ");
@@ -200,6 +200,9 @@ public class BBGCommand extends Command {
                 }
                 case "c", "command" -> {
                     if (stringValue != null) dataMap.put("command", stringValue);
+                }
+                case "b", "blink" -> {
+                    if (stringValue != null && value != null) dataMap.put("blink", value.intValue());
                 }
             }
             RingArgType a = RingArgType.fromAliases(key.toLowerCase());

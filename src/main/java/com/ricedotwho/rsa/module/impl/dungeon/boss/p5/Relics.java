@@ -186,6 +186,7 @@ public class Relics extends Module {
 
     @SubscribeEvent
     public void onTick(ClientTickEvent.Start event) {
+        // Stupid in boss check but ok
         if (!aura.getValue() || !Location.getArea().is(Island.Dungeon) || !DungeonUtils.isPhase(Phase7.P5) || !Dungeon.isInBoss() || mc.player == null || mc.level == null) return;
         long now = System.currentTimeMillis();
         if (now - lastClick <  delay.getValue().longValue()) return;

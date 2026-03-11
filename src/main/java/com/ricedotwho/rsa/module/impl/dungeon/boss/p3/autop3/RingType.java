@@ -27,7 +27,8 @@ public enum RingType {
     LEAP("leap", LeapRing::new, 0.010f),
     USE("use", UseRing::new, 0.011f),
     CHAT("chat", ChatRing::new, 0.012f),
-    COMMAND("command", CommandRing::new, 0.013f);
+    COMMAND("command", CommandRing::new, 0.013f),
+    BLINK("blink", BlinkRing::new, 0.014f);
 
     @Getter
     private final String name;
