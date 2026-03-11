@@ -71,6 +71,7 @@ public class SecretAura extends Module {
 
     private final HashSet<Integer> BOSS_LEVERS = new HashSet<>();
     private final HashSet<Integer> LIGHTS_DEV = new HashSet<>();
+    private final int jewLeverHash = new BlockPos(61, 134, 142).hashCode();
 
 
     private final ModeSetting type = new ModeSetting("Type", "Aura", List.of("Aura", "Triggerbot", "None"));
@@ -260,7 +261,8 @@ public class SecretAura extends Module {
 
     // Only pass in LeverBlock here, otherwise it will crash
     private boolean checkF7BossBlock(BlockPos pos, BlockState block) {
-        return this.BOSS_LEVERS.contains(pos.hashCode()) || (this.LIGHTS_DEV.contains(pos.hashCode()) && !block.getValue(LeverBlock.POWERED)); // tf you mean tspmo ?
+        int hash = pos.hashCode();
+        return this.BOSS_LEVERS.contains(hash) || (checkLightsDev(pos) && ((this.LIGHTS_DEV.contains(hash) && !block.getValue(LeverBlock.POWERED)) || hash == jewLeverHash));
     }
 
     private boolean isValidBlock(Block block) {
