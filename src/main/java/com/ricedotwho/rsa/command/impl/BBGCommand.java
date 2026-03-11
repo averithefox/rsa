@@ -30,6 +30,8 @@ import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.EnumUtils;
 
@@ -46,7 +48,7 @@ import java.util.stream.Stream;
 @CommandInfo(name = "bbg", aliases = "p3", description = "Auto P3 command")
 public class BBGCommand extends Command {
     private final Pattern argPattern = Pattern.compile("^(\\w+?)(?:(\\d*\\.?\\d*)|\"([^\"]*)\")$");
-    private final Pattern splitter = Pattern.compile("\\w+(?:\\d+(?:\\.\\d+)?|\"[^\"]*\")");
+    private final Pattern splitter = Pattern.compile("\\w+(?:\\d+(?:\\.\\d+)?|\"[^\"]*\")?");
 
     @Override
     public LiteralArgumentBuilder<ClientSuggestionProvider> build() {
@@ -215,7 +217,17 @@ public class BBGCommand extends Command {
             }
         }
 
-        // todo: check if the dataMap has all the required args for the type!
+        for (String s : type.getRequired()) {
+            if (!dataMap.containsKey(s)) {
+                AutoP3.modMessage("Failed to place ring! %s required the argument %s!", type.getName(),  s);
+                return null;
+            }
+        }
+
+        if (type.getHitResult() != null && mc.hitResult != null && mc.hitResult.getType() != type.getHitResult()) {
+            AutoP3.modMessage("Failed to place ring! %s requires you to look at %s!", type.getName(), type.getHitResult() == HitResult.Type.BLOCK ? "block" : "entity"); //  idk why it would need entity but wtv
+            return null;
+        }
 
         Pos playerPos = getPlayerPos(exact);
         return type.supply(playerPos.subtract(whl.x(), 0, whl.z()), playerPos.add(whl), manager, subActions, dataMap);
