@@ -145,6 +145,10 @@ public class MovementRecorder extends SubModule<AutoP3> {
 
     public static void resumeRecording() {
         if (state == State.PAUSED) state = State.PLAYING;
+        if (data.getValue() == null || playIndex >= data.getValue().size() || data.getValue().get(playIndex) == null) return;
+        PlayerInput next = data.getValue().get(playIndex);
+        mc.player.setYRot(next.yaw);
+        mc.player.setXRot(next.pitch);
     }
 
     public static void pauseRecording() {
