@@ -3,7 +3,10 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p5;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.FastLeap;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.Blink;
 import com.ricedotwho.rsa.utils.InteractUtils;
+import com.ricedotwho.rsm.RSM;
+import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
@@ -34,12 +37,18 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.protocol.game.ServerboundInteractPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Input;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.EnumUtils;
 
@@ -150,7 +159,7 @@ public class Relics extends Module {
     }
 
     private boolean hasRelic() {
-        return mc.player == null || Type.getTypeByName(mc.player.getInventory().getItem(8).getHoverName().getString()) == Type.NONE;
+        return mc.player != null && Type.getTypeByName(mc.player.getInventory().getItem(8).getHoverName().getString()) != Type.NONE;
     }
 
     private DungeonClass getClassForRelic(Type type) {
@@ -184,21 +193,74 @@ public class Relics extends Module {
         event.getInput().apply(new Input(true, false, false, false, false, false, true));
     }
 
+    private void sigmaInteractBlock(BlockPos pos, Vec3 playerPos) {
+        if (mc.player == null || mc.level == null) return;
+
+        Vec3 eyePos = playerPos.add(0.0d, mc.player.getEyeHeight(), 0.0d);
+        BlockState blockState = mc.level.getBlockState(pos);
+        AABB blockAABB = blockState.getShape(mc.level, pos).bounds();
+
+        Vec3 center = new Vec3((blockAABB.minX + blockAABB.maxX) * 0.5 + pos.getX(), (blockAABB.minY + blockAABB.maxY) * 0.5 + pos.getY(), (blockAABB.minZ + blockAABB.maxZ) * 0.5 + pos.getZ());
+        BlockHitResult result = RotationUtils.collisionRayTrace(pos, blockAABB, eyePos, center);
+        if (result == null) return;
+
+        SwapManager.sendBlinkBlockC08(result, true, true);
+    }
+
+    private boolean sigmaInteractEntity(Entity entity, Vec3 playerPos) {
+        if (mc.player == null || mc.level == null || mc.gameMode == null) return false;
+        Vec3 eyePos = playerPos.add(0.0d, mc.player.getEyeHeight(), 0.0d);
+        Vec3 location = MathUtils.clamp(entity.getBoundingBox(), eyePos).subtract(entity.getX(), entity.getY(), entity.getZ());
+
+        Blink blink = RSM.getModule(Blink.class);
+        synchronized (blink) {
+            boolean bl = blink.isEnabled();
+            for (InteractionHand interactionHand : InteractionHand.values()) {
+                ItemStack itemStack = mc.player.getItemInHand(interactionHand);
+                if (!itemStack.isItemEnabled(mc.level.enabledFeatures())) {
+                    return false;
+                }
+
+                if (bl) blink.enableFlush();
+                InteractionResult interactionResult = mc.gameMode.interactAt(mc.player, entity, new EntityHitResult(entity, location), interactionHand);
+                if (!interactionResult.consumesAction()) {
+                    interactionResult = mc.gameMode.interact(mc.player, entity, interactionHand);
+                }
+
+                if (interactionResult instanceof InteractionResult.Success success) {
+                    if (success.swingSource() == InteractionResult.SwingSource.CLIENT) {
+                        mc.player.swing(interactionHand);
+                    }
+                    if (bl) blink.disableFlush();
+                    return true;
+                }
+                if (bl) blink.disableFlush();
+            }
+            return true;
+        }
+    }
+
     @SubscribeEvent
     public void onTick(ClientTickEvent.Start event) {
         // Stupid in boss check but ok
-        if (!aura.getValue() || !Location.getArea().is(Island.Dungeon) || !DungeonUtils.isPhase(Phase7.P5) || !Dungeon.isInBoss() || mc.player == null || mc.level == null) return;
+        if (!aura.getValue() || mc.player == null || mc.level == null) return;
+        if ((!Location.getArea().is(Island.Dungeon) || !DungeonUtils.isPhase(Phase7.P5) || (Location.getFloor() != Floor.M7))) return;
         long now = System.currentTimeMillis();
         if (now - lastClick <  delay.getValue().longValue()) return;
+
+
+        Blink blink = RSM.getModule(Blink.class);
+        Vec3 playerPos = blink.isEnabled() ? blink.getServerPosition() : mc.player.position();
+        if (!DungeonUtils.isPositionInF7Boss(playerPos)) return;
 
         double max = auraRange.getValue().doubleValue() * auraRange.getValue().doubleValue();
 
         if (placeAura.getValue()) {
             Type type = Type.getTypeByName(mc.player.getInventory().getItem(8).getHoverName().getString());
-            if (type != Type.NONE && mc.player.distanceToSqr(type.place) < max) {
+            if (type != Type.NONE && playerPos.distanceToSqr(type.place) < max) {
                 SwapManager.swapSlot(8);
 
-                InteractUtils.interactOnBlock(BlockPos.containing(type.place), true);
+                sigmaInteractBlock(BlockPos.containing(type.place), playerPos);
                 lastClick = now;
                 walk = false;
                 return;
@@ -206,7 +268,7 @@ public class Relics extends Module {
         }
 
         if (aura.getValue() && !hasRelic()) {
-            Vec3 eye = mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0);
+            Vec3 eye = playerPos.add(0, mc.player.getEyeHeight(mc.player.getPose()), 0);
             AABB box = new AABB(eye, eye).inflate(4.5, 4.5, 4.5);
             List<ArmorStand> stands = mc.level.getEntitiesOfClass(ArmorStand.class, box);
 
@@ -214,12 +276,14 @@ public class Relics extends Module {
                 String name = ChatFormatting.stripFormatting(stand.getItemBySlot(EquipmentSlot.HEAD).getHoverName().getString());
                 Type type = Type.getTypeByName(name);
                 if (type == Type.NONE) continue;
-                double dist = mc.player.distanceToSqr(stand);
+                double dist = playerPos.distanceToSqr(stand.position());
                 if (dist > max) continue;
 
-                InteractUtils.interactOnEntity(stand);
-                lastClick = now;
-                return;
+                if (sigmaInteractEntity(stand, playerPos)) {
+                    blink.flushIfInRing();
+                    lastClick = now;
+                    return;
+                }
             }
         }
     }

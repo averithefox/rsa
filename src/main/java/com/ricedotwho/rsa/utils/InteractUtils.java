@@ -61,6 +61,7 @@ public class InteractUtils implements Accessor {
         return true;
     }
 
+
     /// Call this from {@link PacketOrderManager#register(PacketOrderManager.STATE, Runnable)} or risk a ban!
     public boolean interactOnBlock(BlockPos pos, boolean swing) {
         if (mc.player == null || mc.level == null) return false;

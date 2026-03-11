@@ -3,7 +3,6 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss;
 import com.ricedotwho.rsa.IMixin.IConnection;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.BlinkRing;
 import com.ricedotwho.rsm.RSM;
-import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.render.Render2DEvent;
@@ -11,39 +10,30 @@ import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
-import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.DragSetting;
-import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.common.ClientboundPingPacket;
 import net.minecraft.network.protocol.common.ServerboundPongPacket;
-import net.minecraft.network.protocol.game.*;
-import net.minecraft.network.protocol.ping.ServerboundPingRequestPacket;
-import net.minecraft.sounds.SoundEvents;
+import net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket;
+import net.minecraft.network.protocol.game.ServerboundClientTickEndPacket;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
+import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector2d;
-import org.lwjgl.glfw.GLFW;
 
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.IntStream;
 
 
 @ModuleInfo(aliases = "Blink", id = "Blink", category = Category.MOVEMENT, hasKeybind = true)
 public class Blink extends Module {
     private static Blink INSTANCE;
-    private Input lastInput;
+    private Vec3 lastMove;
 
     private final DragSetting gui = new DragSetting("Blink Hud", new Vector2d(100, 100), new Vector2d(144, 80));
     private final NumberSetting maxBlinkPacket = new NumberSetting("Max Blink Ticks", 1, 30, 17, 1);
@@ -52,6 +42,7 @@ public class Blink extends Module {
 
 
     private final LinkedList<Packet<?>> queue = new LinkedList<>();
+    @Getter
     private boolean flushing = false;
     private int packetCount = 0;
 
@@ -71,12 +62,12 @@ public class Blink extends Module {
 
     @SubscribeEvent
     public void onSendPacket(PacketEvent.Send event) {
-        // needed to avoid BadPacketsX on grim
-        if (!(event.getPacket() instanceof ServerboundPlayerInputPacket inputPacket)) return;
-        if (lastInput != null && inputEquals(inputPacket.input(), lastInput)) {
-            event.setCancelled(true);
+        if (event.getPacket() instanceof ServerboundPongPacket) {
+            System.out.println(((ServerboundPongPacket) event.getPacket()).getId());
         }
-        lastInput = inputPacket.input();
+        if (!(event.getPacket() instanceof ServerboundMovePlayerPacket movePlayerPacket)) return;
+        if (!movePlayerPacket.hasPosition()) return;
+        lastMove = new Vec3(movePlayerPacket.getX(0d), movePlayerPacket.getY(0d), movePlayerPacket.getZ(0d));
     }
 
     private boolean inputEquals(Input input1, Input input2) {
@@ -99,6 +90,11 @@ public class Blink extends Module {
         }
     }
 
+    public void flushIfInRing() {
+        if (this.currentRing == null || !this.isEnabled() || this.isFlushing()) return;
+        this.currentRing.flush();
+    }
+
     public static boolean onSendPacket(Packet<?> packet) {
         if (INSTANCE == null) INSTANCE = RSM.getModule(Blink.class);
         return INSTANCE.onPreSendPacket(packet);
@@ -119,18 +115,27 @@ public class Blink extends Module {
                     if (this.isEnabled()) this.onKeyToggle();
                     return false;
                 }
-//                if (packet instanceof ServerboundPongPacket) {
-//                    queue.add(packet);
-//                    int firstPong = IntStream.range(0, queue.size()).filter(p -> (queue.get(p) instanceof ServerboundPongPacket)).findFirst().orElse(-1);
-//                    if (firstPong == -1) {
-//                        if (this.isEnabled()) this.onKeyToggle();
-//                        return false;
-//                    }
-//
-//                    Packet<?> ping = queue.remove(firstPong);
-//                    actuallySendImmediately(ping);
-//                    return true;
-//                }
+                if (packet instanceof ServerboundPongPacket) {
+                    queue.add(packet);
+                    int firstPong = -1;
+                    int index = 0;
+                    for (Packet<?> p : queue) {
+                        if (p instanceof ServerboundPongPacket) {
+                            firstPong = index;
+                            break;
+                        }
+                        index++;
+                    }
+
+                    if (firstPong == -1) {
+                        if (this.isEnabled()) this.onKeyToggle();
+                        return false;
+                    }
+
+                    Packet<?> ping = queue.remove(firstPong);
+                    actuallySendImmediately(ping);
+                    return true;
+                }
                 // This should probably check for other packets...
                 // Cancel blink if we get a velocity or teleport
                 // Let autoterms through aand shit
@@ -156,6 +161,10 @@ public class Blink extends Module {
             }
             return false;
         }
+    }
+
+    public Vec3 getServerPosition() {
+        return lastMove;
     }
 
     public int getChargedCount() {
@@ -216,8 +225,16 @@ public class Blink extends Module {
         synchronized (queue) { // Need to block, to make sure that other threads don't modify flushing
             this.flushing = true;
             ((IConnection) Minecraft.getInstance().getConnection().getConnection()).sendPacketImmediately(packet);
-            this.flushing = true;
+            this.flushing = false;
         }
+    }
+
+    public void enableFlush() {
+        this.flushing = true;
+    }
+
+    public void disableFlush() {
+        this.flushing = false;
     }
 
     public void actuallySend(Packet<?> packet) {
@@ -235,7 +252,8 @@ public class Blink extends Module {
         super.onEnable();
         this.flush();
         currentRing = null;
-        lastInput = null;
+        if (Minecraft.getInstance().player != null)
+            lastMove = Minecraft.getInstance().player.position();
         this.packetCount = 0;
     }
 
@@ -246,7 +264,7 @@ public class Blink extends Module {
         //this.queue.stream().forEach(p -> System.out.println(p.getClass()));
         this.flush();
         currentRing = null;
-        lastInput = null;
+        lastMove = null;
         this.packetCount = 0;
     }
 

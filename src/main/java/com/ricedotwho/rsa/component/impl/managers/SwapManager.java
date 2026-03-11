@@ -2,6 +2,8 @@ package com.ricedotwho.rsa.component.impl.managers;
 
 import com.ricedotwho.rsa.IMixin.IMultiPlayerGameMode;
 import com.ricedotwho.rsa.RSA;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.Blink;
+import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.data.Rotation;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
@@ -13,10 +15,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
-import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket;
-import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
-import net.minecraft.network.protocol.game.ServerboundUseItemPacket;
+import net.minecraft.network.protocol.game.*;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -164,6 +163,46 @@ public class SwapManager {
         ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode).sendPacketSequenced(Minecraft.getInstance().level, sequence -> new ServerboundUseItemOnPacket(InteractionHand.MAIN_HAND, result, sequence));
         if (swing) Minecraft.getInstance().player.swing(InteractionHand.MAIN_HAND);
         return true;
+    }
+
+    public static boolean sendBlinkBlockC08(BlockHitResult result, boolean swing, boolean syncSlot) {
+        if (Minecraft.getInstance().player == null || Minecraft.getInstance().player.gameMode() == GameType.SPECTATOR) return false;
+        if (Minecraft.getInstance().gameMode == null || Minecraft.getInstance().level == null) return false;
+
+        Blink blink = RSM.getModule(Blink.class);
+
+        synchronized (blink) {
+            if (syncSlot && (!blink.isEnabled() || blink.isFlushing())) {
+                IMultiPlayerGameMode manager = ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode);
+                int i = Minecraft.getInstance().player.getInventory().getSelectedSlot();
+                manager.syncSlot();
+                if (!checkServerSlot(i)) {
+                    RSA.chat("Failed to swap to slot : " + i);
+                    return false;
+                }
+            } else if (syncSlot && blink.isEnabled() && !blink.isFlushing()) {
+                IMultiPlayerGameMode manager = ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode);
+                int i = Minecraft.getInstance().player.getInventory().getSelectedSlot();
+
+                blink.enableFlush();
+                manager.syncSlot();
+                blink.disableFlush();
+                if (!checkServerSlot(i)) {
+                    RSA.chat("Failed to swap to slot : " + i);
+                    return false;
+                }
+            }
+
+            if (blink.isEnabled()) {
+                blink.actuallySend(new ServerboundUseItemOnPacket(InteractionHand.MAIN_HAND, result, 0));
+                if (swing) blink.actuallySend(new ServerboundSwingPacket(InteractionHand.MAIN_HAND));
+                return true;
+            }
+
+            ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode).sendPacketSequenced(Minecraft.getInstance().level, sequence -> new ServerboundUseItemOnPacket(InteractionHand.MAIN_HAND, result, sequence));
+            if (swing) Minecraft.getInstance().player.swing(InteractionHand.MAIN_HAND);
+            return true;
+        }
     }
 
     public static boolean sendBlockC08(float yaw, float pitch, boolean swing, boolean syncSlot) {

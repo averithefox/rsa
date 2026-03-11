@@ -82,7 +82,7 @@ public class BlinkRing extends Ring {
         }
     }
 
-    private void flush() {
+    public void flush() {
         Blink blink = RSM.getModule(Blink.class);
         if (blink.isEnabled())
             blink.onKeyToggle();
@@ -101,10 +101,6 @@ public class BlinkRing extends Ring {
 
     public boolean isDonePlaying() {
         return ticks > size;
-    }
-
-    public void flushNext() {
-        PacketOrderManager.register(PacketOrderManager.STATE.START, this::flush);
     }
 
     @Override

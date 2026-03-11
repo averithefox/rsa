@@ -256,7 +256,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         consumeArg(TermArg.class, null);
         consumeArg(LeapArg.class, true);
         if (!activeRings.isEmpty()) {
-            activeRings.stream().filter(r -> r instanceof BlinkRing).forEach(r -> ((BlinkRing) r).flushNext());
+            activeRings.stream().filter(r -> r instanceof BlinkRing).forEach(r -> ((BlinkRing) r).flush());
         }
     }
 
