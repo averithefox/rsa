@@ -6,6 +6,7 @@ import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
+import com.ricedotwho.rsm.event.impl.game.ChatEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
@@ -38,16 +39,19 @@ public class AutoAutoPet extends Module {
     private boolean clicked;
     private boolean foundPet;
     private String swapID;
+    private String last;
     private AbstractContainerMenu container;
 
     private BooleanSetting yap = new BooleanSetting("Feedback", true);
+    private BooleanSetting phoenixSwap = new BooleanSetting("Phoenix Swap Back", true);
     private List<PetRule> petRules;
 
 
     public AutoAutoPet() {
         this.petRules = new ArrayList<>();
         registerProperty(
-            yap
+                yap,
+                phoenixSwap
         );
         clear();
     }
@@ -88,7 +92,7 @@ public class AutoAutoPet extends Module {
     }
 
     public void swapTo(String swapID) {
-        if (Minecraft.getInstance().getConnection() == null || swapping) return;
+        if (Minecraft.getInstance().getConnection() == null || swapping || swapID.isEmpty()) return;
         this.swapID = swapID.toLowerCase();
         this.swapping = true;
         Minecraft.getInstance().getConnection().sendCommand("pet");
@@ -99,6 +103,13 @@ public class AutoAutoPet extends Module {
         awaitingOpen = false;
         clicked = false;
         this.container = null;
+    }
+
+    @SubscribeEvent
+    public void onChatPacket(ChatEvent.Chat event) {
+        if (!phoenixSwap.getValue()) return;
+        if (!event.getMessage().getString().equals("Your Phoenix Pet saved you from certain death!")) return;
+        swapTo(last);
     }
 
     @SubscribeEvent
@@ -124,10 +135,9 @@ public class AutoAutoPet extends Module {
             if (packet.getContainerId() < 1 || packet.getContainerId() > 100 || mc.player == null || this.container == null || this.container.containerId != packet.getContainerId()) return;
             event.setCancelled(true);
             container.setItem(packet.getSlot(), packet.getStateId(), packet.getItem());
-            if (!awaitingOpen) return;
 
-            if (clicked || packet.getSlot() < 10) return; // First pet slot
-            if (this.swapping && packet.getSlot() > 43) { // Last pet slot
+            if (packet.getSlot() < 10) return; // First pet slot
+            if (this.swapping && packet.getSlot() > 43 && awaitingOpen) { // Last pet slot
                 this.swapping = false;
                 if (!foundPet)
                     ChatUtils.chat("Failed to find pet " + swapID + "!");
@@ -139,9 +149,17 @@ public class AutoAutoPet extends Module {
             ItemStack item = packet.getItem();
             if (!item.getItem().equals(Items.PLAYER_HEAD)) return;
 
-            if (!ChatFormatting.stripFormatting(item.getHoverName().getString()).toLowerCase().contains(swapID) && !ItemUtils.getID(item).equals(swapID)) return;
             foundPet = true;
-            if (((ItemLore) item.getOrDefault(DataComponents.LORE, CustomData.EMPTY)).lines().stream().anyMatch(p -> p.getString().equals("Click to despawn!"))) return;
+            if (((ItemLore) item.getOrDefault(DataComponents.LORE, CustomData.EMPTY)).lines().stream().anyMatch(p -> p.getString().equals("Click to despawn!"))) {
+                // Check if it's a phoenix before setting to last
+                if (item.getDisplayName().getString().contains("Phoenix")) return;
+                this.last = ItemUtils.getUUID(item);
+                return;
+            }
+
+            if (clicked || !awaitingOpen) return; // Don't return earlier so we can check last
+            if (!ChatFormatting.stripFormatting(item.getHoverName().getString()).toLowerCase().contains(swapID) && !ItemUtils.getUUID(item).equals(swapID)  && !ItemUtils.getID(item).equals(swapID)) return;
+
             GuiUtils.sendWindowClick(packet.getSlot(), mc.player, this.container);
             if (yap.getValue()) ChatUtils.chat(Component.literal("Swapping to ").append(item.getDisplayName()));
 
