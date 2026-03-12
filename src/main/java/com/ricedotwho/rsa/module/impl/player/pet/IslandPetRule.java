@@ -16,7 +16,7 @@ public class IslandPetRule extends PetRule {
 
     @SubscribeEvent
     public void onLocationChange(LocationEvent.Changed event) {
-        if (!event.getNewIsland().is(location)) return;
+        if (event.getNewIsland() != location) return;
         this.callback.accept(getId());
     }
 
