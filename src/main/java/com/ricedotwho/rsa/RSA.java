@@ -25,6 +25,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.*;
 import com.ricedotwho.rsa.module.impl.player.AutoAutoPet;
 import com.ricedotwho.rsa.module.impl.player.BonzoHelper;
 import com.ricedotwho.rsa.module.impl.player.CancelInteract;
+import com.ricedotwho.rsa.module.impl.player.pet.LocationPetRule;
 import com.ricedotwho.rsa.module.impl.render.*;
 import com.ricedotwho.rsa.packet.sb.BloodClipHelperStartPacket;
 import com.ricedotwho.rsa.packet.sb.BloodClipHelperStopPacket;
@@ -138,7 +139,9 @@ public class RSA implements Addon {
 
     @Override
     public List<Class<? extends ModComponent>> getComponents() {
-        return List.of(Edge.class, Jump.class);
+        return List.of(Edge.class,
+                Jump.class
+                );
     }
 
     @Override

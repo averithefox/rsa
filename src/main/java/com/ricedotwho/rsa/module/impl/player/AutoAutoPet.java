@@ -1,6 +1,10 @@
 package com.ricedotwho.rsa.module.impl.player;
 
+import com.ricedotwho.rsa.module.impl.player.pet.LocationPetRule;
+import com.ricedotwho.rsa.module.impl.player.pet.PetRule;
 import com.ricedotwho.rsa.utils.GuiUtils;
+import com.ricedotwho.rsm.RSM;
+import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
@@ -13,10 +17,8 @@ import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
@@ -26,6 +28,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemLore;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @ModuleInfo(aliases = "Auto Auto Pet", id = "AutoAutoPet", category = Category.PLAYER)
 public class AutoAutoPet extends Module {
@@ -37,18 +42,26 @@ public class AutoAutoPet extends Module {
     private AbstractContainerMenu container;
 
     private BooleanSetting yap = new BooleanSetting("Feedback", true);
+    private List<PetRule> petRules;
 
 
     public AutoAutoPet() {
+        this.petRules = new ArrayList<>();
         registerProperty(
             yap
         );
         clear();
     }
 
+    public void addPetRule(PetRule petRule) {
+        this.petRules.add(petRule);
+        RSM.getInstance().getEventBus().register(petRule);
+    }
+
     @SubscribeEvent
     public void onWorldLoad(WorldEvent.Load event) {
         this.swapping = false;
+        //addPetRule(new LocationPetRule("sheep", this::swapTo, Island.Hub));
         clear();
     }
 
@@ -140,9 +153,5 @@ public class AutoAutoPet extends Module {
         if (container == null || mc.getConnection() == null) return;
         mc.getConnection().send(new ServerboundContainerClosePacket(this.container.containerId));
         clear();
-    }
-
-    private void swapToPet(String name) {
-
     }
 }
