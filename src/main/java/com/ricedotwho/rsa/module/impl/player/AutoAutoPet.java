@@ -7,11 +7,13 @@ import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ChatEvent;
+import com.ricedotwho.rsm.event.impl.game.ServerTickEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.ModeSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
 import net.minecraft.ChatFormatting;
@@ -36,6 +38,7 @@ import java.util.List;
 public class AutoAutoPet extends Module {
     private boolean swapping;
     private boolean awaitingOpen;
+    private boolean awaitingPhoenix;
     private boolean clicked;
     private boolean foundPet;
     private String swapID;
@@ -43,7 +46,8 @@ public class AutoAutoPet extends Module {
     private AbstractContainerMenu container;
 
     private BooleanSetting yap = new BooleanSetting("Feedback", true);
-    private BooleanSetting phoenixSwap = new BooleanSetting("Phoenix Swap Back", true);
+    private ModeSetting phoenixSwap = new ModeSetting("Phoenix Swap", "Death Tick", List.of("None", "Death Tick", "Duration", "Use"));
+    private int phoenixTicks = -1;
     private List<PetRule> petRules;
 
 
@@ -74,6 +78,8 @@ public class AutoAutoPet extends Module {
     @SubscribeEvent
     public void onWorldLoad(WorldEvent.Load event) {
         this.swapping = false;
+        this.phoenixTicks = -1;
+        this.awaitingPhoenix = false;
         clear();
     }
 
@@ -81,6 +87,8 @@ public class AutoAutoPet extends Module {
     public void onDisable() {
         super.onDisable();
         swapping = false;
+        this.phoenixTicks = -1;
+        this.awaitingPhoenix = false;
         clear();
     }
 
@@ -88,6 +96,8 @@ public class AutoAutoPet extends Module {
     public void onEnable() {
         super.onEnable();
         swapping = false;
+        this.phoenixTicks = -1;
+        this.awaitingPhoenix = false;
         clear();
     }
 
@@ -106,8 +116,25 @@ public class AutoAutoPet extends Module {
     }
 
     @SubscribeEvent
+    public void onDeathTick(ServerTickEvent event) {
+        if (!awaitingPhoenix) return;
+        if (phoenixTicks > 0)
+            phoenixTicks--;
+
+        if (phoenixSwap.getIndex() == 2 && phoenixTicks <= 0) {
+            swapTo(last);
+            return;
+        }
+
+        if (phoenixSwap.getIndex() == 1 && phoenixTicks <= 0 && event.getTime() % 40 == 0) {
+            swapTo(last);
+            return;
+        }
+    }
+
+    @SubscribeEvent
     public void onChatPacket(ChatEvent.Chat event) {
-        if (!phoenixSwap.getValue()) return;
+        if (phoenixSwap.getIndex() != 3 || !awaitingPhoenix) return;
         if (!event.getMessage().getString().equals("Your Phoenix Pet saved you from certain death!")) return;
         swapTo(last);
     }
@@ -150,9 +177,11 @@ public class AutoAutoPet extends Module {
             if (!item.getItem().equals(Items.PLAYER_HEAD)) return;
 
             foundPet = true;
+            boolean isPhoenix = item.getDisplayName().getString().contains("Phoenix");
+
             if (((ItemLore) item.getOrDefault(DataComponents.LORE, CustomData.EMPTY)).lines().stream().anyMatch(p -> p.getString().equals("Click to despawn!"))) {
                 // Check if it's a phoenix before setting to last
-                if (item.getDisplayName().getString().contains("Phoenix")) return;
+                if (isPhoenix) return;
                 this.last = ItemUtils.getUUID(item);
                 return;
             }
@@ -162,6 +191,10 @@ public class AutoAutoPet extends Module {
 
             GuiUtils.sendWindowClick(packet.getSlot(), mc.player, this.container);
             if (yap.getValue()) ChatUtils.chat(Component.literal("Swapping to ").append(item.getDisplayName()));
+            this.phoenixTicks = -1;
+            if (isPhoenix && phoenixSwap.getIndex() == 2) phoenixTicks = 45;
+            if (isPhoenix && phoenixSwap.getIndex() == 1) phoenixTicks = 5;
+            this.awaitingPhoenix = isPhoenix;
 
             awaitingOpen = false;
             swapping = false;
