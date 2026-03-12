@@ -22,6 +22,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.device.AutoSS;
 import com.ricedotwho.rsa.module.impl.dungeon.puzzle.Puzzles;
 import com.ricedotwho.rsa.module.impl.other.*;
 import com.ricedotwho.rsa.module.impl.dungeon.*;
+import com.ricedotwho.rsa.module.impl.player.AutoAutoPet;
 import com.ricedotwho.rsa.module.impl.player.BonzoHelper;
 import com.ricedotwho.rsa.module.impl.player.CancelInteract;
 import com.ricedotwho.rsa.module.impl.render.*;
@@ -130,6 +131,7 @@ public class RSA implements Addon {
                 Relics.class,
                 VelocityBuffer.class,
                 BreakerAura.class,
+                AutoAutoPet.class,
                 Blink.class
         );
     }
@@ -149,7 +151,8 @@ public class RSA implements Addon {
                 RSADevCommand.class,
                 AutoCroesusCommand.class,
                 SecretAuraCommand.class,
-                VelocityBufferCommand.class
+                VelocityBufferCommand.class,
+                AutoPetCommand.class
         );
     }
 

@@ -7,6 +7,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsa.utils.GuiUtils;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.Terminals;
 import com.ricedotwho.rsm.component.impl.location.Floor;
@@ -187,7 +188,7 @@ public class FastLeap extends Module {
 
             String name = ChatFormatting.stripFormatting(item.getHoverName().getString());
             if (!name.equals(leap)) continue;
-            sendWindowClick(slot.index, mc.player, menu);
+            GuiUtils.sendWindowClick(slot.index, mc.player, menu);
 
             FastLeap fl = RSM.getModule(FastLeap.class);
             if (fl == null) return true;
@@ -252,7 +253,7 @@ public class FastLeap extends Module {
 
             String name = ChatFormatting.stripFormatting(item.getHoverName().getString());
             if (!name.equals(toLeap)) return;
-            sendWindowClick(packet.getSlot(), mc.player, this.container);
+            GuiUtils.sendWindowClick(packet.getSlot(), mc.player, this.container);
 
             if (getFlMessage().getValue()) {
                 mc.getConnection().sendCommand("pc Leaping to " + toLeap);
@@ -268,34 +269,6 @@ public class FastLeap extends Module {
         if (container == null || mc.getConnection() == null) return;
         mc.getConnection().send(new ServerboundContainerClosePacket(this.container.containerId));
         reset();
-    }
-
-    private static void sendWindowClick(int slotNumber, Player player, AbstractContainerMenu abstractContainerMenu) {
-        ClientPacketListener connection = Minecraft.getInstance().getConnection();
-        if (connection == null) return;
-
-        NonNullList<Slot> nonNullList = abstractContainerMenu.slots;
-        int l = nonNullList.size();
-        List<ItemStack> list = Lists.newArrayListWithCapacity(l);
-
-        for (Slot slot : nonNullList) {
-            list.add(slot.getItem().copy());
-        }
-
-        abstractContainerMenu.clicked(slotNumber, 0, ClickType.CLONE, player);
-
-        Int2ObjectMap<HashedStack> int2ObjectMap = new Int2ObjectOpenHashMap<>();
-
-        for (int m = 0; m < l; m++) {
-            ItemStack itemStack = list.get(m);
-            ItemStack itemStack2 = nonNullList.get(m).getItem();
-            if (!ItemStack.matches(itemStack, itemStack2)) {
-                int2ObjectMap.put(m, HashedStack.create(itemStack2, connection.decoratedHashOpsGenenerator()));
-            }
-        }
-
-        HashedStack hashedStack = HashedStack.create(abstractContainerMenu.getCarried(), connection.decoratedHashOpsGenenerator());
-        connection.send(new ServerboundContainerClickPacket(abstractContainerMenu.containerId, abstractContainerMenu.getStateId(), Shorts.checkedCast(slotNumber), SignedBytes.checkedCast(0), ClickType.CLONE, int2ObjectMap, hashedStack));
     }
 
     private static String getLeap() {

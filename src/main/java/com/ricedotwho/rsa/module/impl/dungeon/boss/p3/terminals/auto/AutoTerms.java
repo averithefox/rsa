@@ -154,8 +154,7 @@ public class AutoTerms extends Module {
         }
 
         abstractContainerMenu.clicked(click.index(), click.button(), click.type(), player);
-//        ChatUtils.chat("ClickType : " + click.type().name());
-//        ChatUtils.chat("Button : " + click.button());
+
         Int2ObjectMap<HashedStack> int2ObjectMap = new Int2ObjectOpenHashMap<>();
 
         for (int m = 0; m < l; m++) {
