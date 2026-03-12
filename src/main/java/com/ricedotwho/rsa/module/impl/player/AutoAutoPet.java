@@ -1,10 +1,8 @@
 package com.ricedotwho.rsa.module.impl.player;
 
-import com.ricedotwho.rsa.module.impl.player.pet.LocationPetRule;
 import com.ricedotwho.rsa.module.impl.player.pet.PetRule;
 import com.ricedotwho.rsa.utils.GuiUtils;
 import com.ricedotwho.rsm.RSM;
-import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
@@ -30,6 +28,7 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemLore;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 @ModuleInfo(aliases = "Auto Auto Pet", id = "AutoAutoPet", category = Category.PLAYER)
@@ -53,6 +52,16 @@ public class AutoAutoPet extends Module {
         clear();
     }
 
+    public void removeRule(int index) {
+        if (index < 0 || index >= petRules.size()) return;
+        PetRule rule = petRules.remove(index);
+        RSM.getInstance().getEventBus().unregister(rule);
+    }
+
+    public Iterator<PetRule> iterateRules() {
+        return petRules.iterator();
+    }
+
     public void addPetRule(PetRule petRule) {
         this.petRules.add(petRule);
         RSM.getInstance().getEventBus().register(petRule);
@@ -61,7 +70,6 @@ public class AutoAutoPet extends Module {
     @SubscribeEvent
     public void onWorldLoad(WorldEvent.Load event) {
         this.swapping = false;
-        //addPetRule(new LocationPetRule("sheep", this::swapTo, Island.Hub));
         clear();
     }
 

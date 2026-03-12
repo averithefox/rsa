@@ -6,10 +6,10 @@ import com.ricedotwho.rsm.event.impl.game.LocationEvent;
 
 import java.util.function.Consumer;
 
-public class LocationPetRule extends PetRule {
+public class IslandPetRule extends PetRule {
     private final Island location;
 
-    public LocationPetRule(String id, Consumer<String> callback, Island location) {
+    public IslandPetRule(String id, Consumer<String> callback, Island location) {
         super(id, callback);
         this.location = location;
     }
@@ -18,6 +18,11 @@ public class LocationPetRule extends PetRule {
     public void onLocationChange(LocationEvent.Changed event) {
         if (!event.getNewIsland().is(location)) return;
         this.callback.accept(getId());
+    }
+
+    @Override
+    public String toString() {
+        return "IslandPetRule -> " + location.getEnumName() + " -> " + this.getId();
     }
 
 }
