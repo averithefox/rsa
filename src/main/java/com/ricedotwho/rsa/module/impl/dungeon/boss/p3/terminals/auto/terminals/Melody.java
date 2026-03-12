@@ -2,8 +2,10 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals;
 
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
 import com.ricedotwho.rsm.RSM;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
+import net.minecraft.network.protocol.game.ServerboundChatPacket;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
@@ -15,10 +17,12 @@ import java.util.*;
 public class Melody extends Terminal {
 
     private LinkedList<SolutionClick> queue;
+    private byte melodyState; // Only used to announce
 
     protected Melody(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
         super(TerminalType.MELODY, packet, menu);
         this.queue = new LinkedList<>();
+        this.melodyState = 0;
     }
 
     @Override
@@ -67,6 +71,10 @@ public class Melody extends Terminal {
         this.queue.clear();
         AutoTerms module = RSM.getModule(AutoTerms.class);
         boolean skip = module.getMelodySkip().getValue() && (mod == 1 || mod == 5) && (!module.getMelodySkipFirst().getValue() || buttonIndex > 18);
+        if (module.isAnnounceMelody()) {
+            Melody.sendMelodyMessage(buttonIndex / 9);
+        }
+
         if (!skip) {
             this.queue.add(new SolutionClick(ClickType.CLONE, buttonIndex, 0));
             return;
@@ -81,6 +89,36 @@ public class Melody extends Terminal {
     @Override
     public boolean isEnabled() {
         return AutoTerms.getTerminals().get("Melody");
+    }
+
+    public static void sendMelodyMessage(int state) {
+        if (Minecraft.getInstance().getConnection() == null) return;
+        switch (state) {
+            case 0 -> {
+                Minecraft.getInstance().getConnection().sendChat("Camel Terminal Start!");
+                return;
+            }
+
+            case 1 -> {
+                Minecraft.getInstance().getConnection().sendChat("Camel Terminal 1/4!");
+                return;
+            }
+
+            case 2 -> {
+                Minecraft.getInstance().getConnection().sendChat("Camel Terminal 2/4!");
+                return;
+            }
+
+            case 3 -> {
+                Minecraft.getInstance().getConnection().sendChat("Camel Terminal 3/4!");
+                return;
+            }
+
+            case 4 -> {
+                Minecraft.getInstance().getConnection().sendChat("Camel Terminal 4/4!");
+                return;
+            }
+        }
     }
 
 

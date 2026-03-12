@@ -59,6 +59,7 @@ public class AutoTerms extends Module {
 
     private final BooleanSetting melodySkip = new BooleanSetting("Melody Skip", true);
     private final BooleanSetting melodySkipFirst = new BooleanSetting("Don't Skip First", true);
+    private final BooleanSetting announceMelody = new BooleanSetting("Announce Melody", true);
 
     private final GroupSetting<InvWalk> invWalkGroup = new GroupSetting<>("Invwalk", new InvWalk(this));
 
@@ -72,6 +73,7 @@ public class AutoTerms extends Module {
                 breakThreshold,
                 melodySkip,
                 melodySkipFirst,
+                announceMelody,
                 invWalkGroup
         );
     }
@@ -203,6 +205,10 @@ public class AutoTerms extends Module {
         }
     }
 
+    public boolean isAnnounceMelody() {
+        return announceMelody.getValue();
+    }
+
     @SubscribeEvent
     public void onRawTick(RawTickEvent event) {
         if (isInTerm() && terminal instanceof Melody melody && melody.isEnabled()) {
@@ -230,6 +236,10 @@ public class AutoTerms extends Module {
             if (this.terminal == null) {
                 this.terminalContainer = null;
                 return;
+            }
+
+            if (announceMelody.getValue() && this.terminal instanceof Melody) {
+                Melody.sendMelodyMessage(0);
             }
 
             this.predictedState = predictionState;
