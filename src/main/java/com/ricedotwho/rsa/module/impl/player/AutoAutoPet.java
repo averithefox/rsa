@@ -1,6 +1,9 @@
 package com.ricedotwho.rsa.module.impl.player;
 
 import com.google.common.reflect.TypeToken;
+import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
+import com.ricedotwho.rsa.module.impl.dungeon.FastLeap;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
 import com.ricedotwho.rsa.module.impl.player.pet.PetRule;
 import com.ricedotwho.rsa.utils.GuiUtils;
 import com.ricedotwho.rsm.RSM;
@@ -8,6 +11,7 @@ import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ChatEvent;
+import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.event.impl.game.ServerTickEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
@@ -20,6 +24,7 @@ import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket;
@@ -46,6 +51,8 @@ public class AutoAutoPet extends Module {
     private String swapID;
     private String last;
     private AbstractContainerMenu container;
+
+    private boolean awaitTick;
 
     private BooleanSetting yap = new BooleanSetting("Feedback", true);
     private ModeSetting phoenixSwap = new ModeSetting("Phoenix Swap", "Death Tick", List.of("None", "Death Tick", "Duration", "Use"));
@@ -92,6 +99,7 @@ public class AutoAutoPet extends Module {
         swapping = false;
         this.phoenixTicks = -1;
         this.awaitingPhoenix = false;
+        this.awaitTick = false;
         clear();
     }
 
@@ -105,8 +113,15 @@ public class AutoAutoPet extends Module {
     }
 
     public void swapTo(String swapID) {
-        if (Minecraft.getInstance().getConnection() == null || swapping || swapID.isEmpty()) return;
+        if (Minecraft.getInstance().getConnection() == null || swapping || awaitTick || swapID.isEmpty()) return;
         this.swapID = swapID.toLowerCase();
+
+        // Maybe can ignore inventory? Need to check; if so maybe it might fuck if we click something in inventory on the same tick
+        if (Minecraft.getInstance().screen instanceof AbstractContainerScreen<?> || RSM.getModule(AutoTerms.class).isInTerm() || RSM.getModule(FastLeap.class).isWindowOpen()) {
+            awaitTick = true;
+            return;
+        }
+
         this.swapping = true;
         Minecraft.getInstance().getConnection().sendCommand("pet");
     }
@@ -116,6 +131,13 @@ public class AutoAutoPet extends Module {
         awaitingOpen = false;
         clicked = false;
         this.container = null;
+    }
+
+    @SubscribeEvent
+    public void onTickStart(ClientTickEvent.Start event) {
+        if (!awaitTick) return;
+        awaitTick = false;
+        swapTo(swapID);
     }
 
     @SubscribeEvent

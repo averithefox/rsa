@@ -32,9 +32,6 @@ import java.util.stream.Stream;
 
 @CommandInfo(name = "ap", aliases = "pet", description = "Auto Auto Pet Command")
 public class AutoPetCommand extends Command {
-
-    GameRenderer
-
     @Override
     public LiteralArgumentBuilder<ClientSuggestionProvider> build() {
         return literal(name())

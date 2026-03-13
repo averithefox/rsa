@@ -10,6 +10,7 @@ import com.ricedotwho.rsa.module.impl.other.AutoGfs;
 import com.ricedotwho.rsa.packet.sb.BloodClipHelperStartPacket;
 import com.ricedotwho.rsa.utils.Util;
 import com.ricedotwho.rsm.RSM;
+import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
@@ -41,6 +42,7 @@ import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.ModeSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import com.ricedotwho.rsm.utils.DungeonUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
 import lombok.Getter;
@@ -193,7 +195,10 @@ public class BloodBlink extends Module {
 
         switch (state) {
             case -1: {
-                if (!auto.getValue()) break;
+                if (!auto.getValue() || DungeonUtils.isPositionInF7Boss(mc.player.position())) { // Should stop it from blood blinking if your rejoin in boss ?
+                    state = 31;
+                    break;
+                }
                 KeyMapping.releaseAll();
                 state = 0;
                 // Don't break here, overflow into next state
