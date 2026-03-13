@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.player;
 
+import com.google.common.reflect.TypeToken;
 import com.ricedotwho.rsa.module.impl.player.pet.PetRule;
 import com.ricedotwho.rsa.utils.GuiUtils;
 import com.ricedotwho.rsm.RSM;
@@ -14,6 +15,7 @@ import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.ModeSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.SaveSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
 import net.minecraft.ChatFormatting;
@@ -48,30 +50,31 @@ public class AutoAutoPet extends Module {
     private BooleanSetting yap = new BooleanSetting("Feedback", true);
     private ModeSetting phoenixSwap = new ModeSetting("Phoenix Swap", "Death Tick", List.of("None", "Death Tick", "Duration", "Use"));
     private int phoenixTicks = -1;
-    private List<PetRule> petRules;
+    private final SaveSetting<List<PetRule>> rules = new SaveSetting<>("Rules", "player/pets", "autopet.json", ArrayList::new, new TypeToken<List<PetRule>>(){}.getType());
 
 
     public AutoAutoPet() {
-        this.petRules = new ArrayList<>();
         registerProperty(
                 yap,
-                phoenixSwap
+                phoenixSwap,
+                rules
         );
         clear();
     }
 
     public void removeRule(int index) {
-        if (index < 0 || index >= petRules.size()) return;
-        PetRule rule = petRules.remove(index);
+        if (index < 0 || index >= rules.getValue().size()) return;
+        PetRule rule = rules.getValue().remove(index);
         RSM.getInstance().getEventBus().unregister(rule);
     }
 
     public Iterator<PetRule> iterateRules() {
-        return petRules.iterator();
+        return rules.getValue().iterator();
     }
 
     public void addPetRule(PetRule petRule) {
-        this.petRules.add(petRule);
+        this.rules.getValue().add(petRule);
+        this.rules.save();
         RSM.getInstance().getEventBus().register(petRule);
     }
 

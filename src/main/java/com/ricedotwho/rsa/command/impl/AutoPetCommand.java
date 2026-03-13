@@ -19,6 +19,7 @@ import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
 
@@ -31,6 +32,8 @@ import java.util.stream.Stream;
 
 @CommandInfo(name = "ap", aliases = "pet", description = "Auto Auto Pet Command")
 public class AutoPetCommand extends Command {
+
+    GameRenderer
 
     @Override
     public LiteralArgumentBuilder<ClientSuggestionProvider> build() {

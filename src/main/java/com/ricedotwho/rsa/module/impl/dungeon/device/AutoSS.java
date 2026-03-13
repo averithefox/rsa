@@ -46,6 +46,7 @@ import java.util.List;
 @Getter
 @ModuleInfo(aliases = "AutoSS", id = "AutoSS", category = Category.DUNGEONS)
 public class AutoSS extends Module {
+    private static final double REACH = 5.745d * 5.745d;
     private static final Vec3 START_BUTTON = new Vec3(110.875, 121.5, 91.5);
     private static final BlockPos DETECT = new BlockPos(110, 123, 92);
     //private static final AABB DEVICE_AABB = new AABB(START_BUTTON.subtract(-40d, -40d, -40d), START_BUTTON.add(40d, 40d, 40d));
@@ -181,7 +182,7 @@ public class AutoSS extends Module {
     private void clickButton(Vec3 vec3) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
-        if (player.distanceToSqr(vec3) > 36) {
+        if (player.distanceToSqr(vec3) > REACH) {
             RSA.chat("Button too far!");
             return;
         }
@@ -192,7 +193,7 @@ public class AutoSS extends Module {
     private void clickButton0(Vec3 vec3) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
-        if (player.distanceToSqr(vec3) > 36) {
+        if (player.distanceToSqr(vec3) > REACH) {
             RSA.chat("Button too far!");
             return;
         }

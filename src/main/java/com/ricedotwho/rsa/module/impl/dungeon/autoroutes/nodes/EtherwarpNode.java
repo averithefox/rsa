@@ -61,7 +61,7 @@ public class EtherwarpNode extends Node {
         }
 
         // Hypixel uses old sneak height to find etherwarp position (2 packets ago)\
-        Pos playerCopy = playerPos.add(0.0d, EtherUtils.SNEAK_EYE_HEIGHT, 0.0d);
+        Pos playerCopy = playerPos.add(0.0d, EtherUtils.getEyeHeight(), 0.0d);
         //ChatUtils.chat(playerCopy);
         Pos targetDirection = this.realTargetPos.subtract(playerCopy);
         Pos targetDeltaCopy = targetDirection.copy();

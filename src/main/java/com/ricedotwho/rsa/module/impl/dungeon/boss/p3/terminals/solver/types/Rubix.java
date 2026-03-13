@@ -3,6 +3,7 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.solver.types;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.solver.TerminalSolver;
 import com.ricedotwho.rsm.component.impl.Terminals;
 import com.ricedotwho.rsm.module.impl.dungeon.boss.p3.terminal.TermSol;
+import org.lwjgl.glfw.GLFW;
 
 public class Rubix extends com.ricedotwho.rsm.module.impl.dungeon.boss.p3.terminal.types.Rubix {
 
@@ -37,10 +38,10 @@ public class Rubix extends com.ricedotwho.rsm.module.impl.dungeon.boss.p3.termin
             if (TerminalSolver.getAnyRubix().getValue()) {
                 if (realClicks < 0) {
                     sol.setClicks(sol.getClicks() + 1);
-                    button = 1;
+                    button = GLFW.GLFW_MOUSE_BUTTON_2;
                 } else {
                     sol.setClicks(sol.getClicks() - 1);
-                    button = 2;
+                    button = GLFW.GLFW_MOUSE_BUTTON_3;
                 }
             } else {
                 if (button == 1) {
