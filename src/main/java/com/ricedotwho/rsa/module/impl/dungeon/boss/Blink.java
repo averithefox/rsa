@@ -32,6 +32,7 @@ import java.util.stream.IntStream;
 
 @ModuleInfo(aliases = "Blink", id = "Blink", category = Category.MOVEMENT, hasKeybind = true)
 public class Blink extends Module {
+    private static Blink INSTANCE;
     private Vec3 lastMove;
 
     private final DragSetting gui = new DragSetting("Blink Hud", new Vector2d(100, 100), new Vector2d(144, 80));
@@ -94,8 +95,14 @@ public class Blink extends Module {
         this.currentRing.flush();
     }
 
+    public static boolean onSendPacket(Packet<?> packet) {
+        if (INSTANCE == null) INSTANCE = RSM.getModule(Blink.class);
+        // if the instance is still null after this, the module should probably just be disabled as well
+        return INSTANCE != null && INSTANCE.onPreSendPacket(packet);
+    }
+
     // Holy schizo
-    public boolean onPreSendPacket(Packet<?> packet) {
+    private boolean onPreSendPacket(Packet<?> packet) {
         if (Minecraft.getInstance().player == null || !this.isEnabled()) return false;
         synchronized (queue) {
             if (flushing) return false;
