@@ -4,6 +4,7 @@ import com.ricedotwho.rsa.IMixin.IConnection;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.Blink;
 import com.ricedotwho.rsa.module.impl.movement.VelocityBuffer;
+import com.ricedotwho.rsm.RSM;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import net.minecraft.network.Connection;
@@ -33,11 +34,11 @@ public abstract class MixinLowPriorityConnection implements IConnection {
     // This gets called earlier, before other hooks hopefully and isin't triggered by receivePacket
     @Inject(method = "sendPacket", at = @At(value = "HEAD"), cancellable = true)
     private void onSendPacket(Packet<?> packet, @Nullable ChannelFutureListener channelFutureListener, boolean bl, CallbackInfo ci) {
-        if (Blink.onSendPacket(packet)) {
+        Blink blink = RSM.getModule(Blink.class);
+        if (blink != null && blink.onPreSendPacket(packet)) {
             ci.cancel();
         }
     }
-
 
     @Override
     public void sendPacketImmediately(Packet<?> packet) {

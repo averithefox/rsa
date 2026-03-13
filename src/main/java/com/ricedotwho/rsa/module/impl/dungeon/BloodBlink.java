@@ -96,6 +96,7 @@ public class BloodBlink extends Module {
     private final List<Entry> roomPriority = new ArrayList<>(5);
 
     //todo: add coords to target?
+    @Getter
     private static List<String> rooms = List.of();
 
     // Options
