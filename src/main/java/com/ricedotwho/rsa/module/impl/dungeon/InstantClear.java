@@ -16,6 +16,7 @@ import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.RotationUtils;
@@ -47,6 +48,14 @@ public class InstantClear extends Module {
             MAP_BOTTOM = 25;
 
     private final NumberSetting minDeathTick = new NumberSetting("Min Death Tick", 0, 40, 35, 1);
+    private final BooleanSetting witherRooms = new BooleanSetting("Wither Rooms", false);
+
+    public InstantClear() {
+        this.registerProperty(
+                minDeathTick,
+                witherRooms
+        );
+    }
 
     private Room targetRoom;
     private State state = State.NONE;
@@ -107,7 +116,7 @@ public class InstantClear extends Module {
             }
 
             switch (state) {
-                case PEARLING -> pearl(player.getYRot(), -90.0F);
+                case PEARLING -> pearl(player.getYRot(), -90.0F, null);
                 case TELEPORTING -> teleport((int) Math.ceil(distance / 12F), player.getYRot(), -90.0F, player);
             }
 
@@ -125,38 +134,29 @@ public class InstantClear extends Module {
             Vec2 targetPos = getOutsideVec((float) playerX, (float) playerZ);
             teleportTo(player, targetPos);
 
+            // teleport down
+            teleport(10, player.getYRot(), 90.0F, player);
+
             return;
         }
 
-        // teleport below the map
+        // wait for teleports
         if (!isBelow) {
-            setState(State.TELEPORTING);
-
-            double distance = playerY - bottomDepth;
-            int teleports = (int) Math.ceil(distance / 12) + 1;
-            teleport(teleports, player.getYRot(), 90.0F, player);
-
             return;
         }
 
         // teleport to the room
-        state = targetRoom.equals(currentRoom) ? State.PEARLING : State.TELEPORTING;
+        Vec2 targetPos = new Vec2(targetRoom.getX(), targetRoom.getZ());
+        teleportTo(player, targetPos);
 
-        switch (state) {
-            case TELEPORTING -> {
-                Vec2 targetPos = new Vec2(targetRoom.getX(), targetRoom.getZ());
-                teleportTo(player, targetPos);
-            }
-            case PEARLING -> {
-                int distance = getCeilingDistance(playerX, playerY, playerZ, level);
-                state = distance > 5 ? State.TELEPORTING : State.PEARLING;
+        // teleport up to have less pearl hang time
+        teleport(5, player.getYRot(), -90.0F, player);
 
-                switch (state) {
-                    case PEARLING -> pearl(player.getYRot(), -90.0F);
-                    case TELEPORTING -> teleport((int) Math.ceil(distance / 12F), player.getYRot(), -90.0F, player);
-                }
-            }
-        }
+        // double pearl in
+        pearl(player.getYRot(), -90.0F, p -> {
+            setState(State.PEARLING);
+            pearl(player.getYRot(), -90.0F, null);
+        });
     }
 
     @SubscribeEvent
@@ -199,6 +199,7 @@ public class InstantClear extends Module {
         deathTicks = 0;
     }
 
+    // this uses the current position of the player, so you can only use this once all teleports have been received
     private void teleportTo(LocalPlayer player, Vec2 vec) {
         double diffX = vec.x - player.getX();
         double diffZ = vec.y - player.getZ();
@@ -231,9 +232,9 @@ public class InstantClear extends Module {
         });
     }
 
-    private void pearl(float yaw, float pitch) {
+    private void pearl(float yaw, float pitch, Consumer<ClientboundPlayerPositionPacket> onTP) {
         setState(State.WAITING);
-        onTeleport = packet -> setState(State.PEARLING);
+        onTeleport = onTP != null ? onTP : packet -> setState(State.PEARLING);
 
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
             if (!SwapManager.swapItem("ENDER_PEARL")) {
@@ -273,7 +274,7 @@ public class InstantClear extends Module {
     }
 
     private boolean isValidRoom(UniqueRoom room, ClientLevel level) {
-        Room mainRoom = room.getMainRoom();
+        Room mainRoom = room.getTiles().getFirst();
         if (mainRoom == null || Util.equalsOneOf(mainRoom.getState(), RoomState.CLEARED, RoomState.GREEN)) return false;
 
         RoomType type = mainRoom.getData().type();
@@ -281,32 +282,34 @@ public class InstantClear extends Module {
 
         boolean isValid = room.getDoors()
                 .stream()
-                .noneMatch(d -> Utils.equalsOneOf(d.getType(), DoorType.ENTRANCE, DoorType.WITHER));
+                .noneMatch(d -> d.getType() == DoorType.ENTRANCE || (!witherRooms.getValue() && d.getType() == DoorType.WITHER));
 
         if (!isValid) return false;
 
-        boolean isUndiscovered =
-                mainRoom.getState().equals(RoomState.UNDISCOVERED) &&
-                        room.getDoors()
-                                .stream()
-                                .allMatch(d -> Util.equalsOneOf(d.getState(), RoomState.UNDISCOVERED, RoomState.UNOPENED));
+        ChatUtils.chat(room.getName());
 
-        return isUndiscovered || room.getTiles()
+        return room.getTiles()
                 .stream()
                 .allMatch(tile -> {
-                    int topX = tile.getX();
-                    int topY = tile.getZ();
-                    int bottomX = topX - 32;
-                    int bottomY = topY - 32;
-
-                    AABB bounds = new AABB(
-                            bottomX, tile.getBottom(), bottomY,
-                            topX, tile.getRoofHeight(), topY
-                    );
-
-                    List<Entity> entities = level.getEntities(null, bounds);
+                    List<Entity> entities = level.getEntities(null, getTileBounds(tile));
                     return entities.isEmpty();
                 });
+    }
+
+    private AABB getTileBounds(Room tile) {
+        int tileX = tile.getX();
+        int tileZ = tile.getZ();
+
+        int topX = tileX + 16;
+        int topZ = tileZ + 16;
+
+        int bottomX = tileX - 16;
+        int bottomZ = tileZ - 16;
+
+        return new AABB(
+                bottomX, tile.getBottom(), bottomZ,
+                topX, tile.getRoofHeight() + 1, topZ
+        );
     }
 
     private int getCeilingDistance(double x, double y, double z, ClientLevel level) {
