@@ -215,7 +215,7 @@ public class FastLeap extends Module {
     @SubscribeEvent
     public void onOpenWindow(PacketEvent.Receive event) {
         if (event.getPacket() instanceof ClientboundOpenScreenPacket packet) {
-            if (Minecraft.getInstance().screen instanceof AbstractContainerScreen<?>) {
+            if (Minecraft.getInstance().screen instanceof AbstractContainerScreen<?> abstractContainerScreen && abstractContainerScreen.getMenu().containerId != 0) {
                 // o7 Balding
                 Minecraft.getInstance().setScreen(null);
             }

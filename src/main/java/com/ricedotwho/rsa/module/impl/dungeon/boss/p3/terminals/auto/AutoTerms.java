@@ -226,7 +226,7 @@ public class AutoTerms extends Module {
     @SubscribeEvent(priority = EventPriority.HIGH) 
     public void onReceivePacket(PacketEvent.Receive event) {
         if (event.getPacket() instanceof ClientboundOpenScreenPacket packet) {
-            if (Minecraft.getInstance().screen instanceof AbstractContainerScreen<?>) {
+            if (Minecraft.getInstance().screen instanceof AbstractContainerScreen<?> abstractContainerScreen && abstractContainerScreen.getMenu().containerId != 0) {
                 // o7 Balding
                 Minecraft.getInstance().setScreen(null);
             }
