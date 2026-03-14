@@ -1,20 +1,32 @@
 package com.ricedotwho.rsa.module.impl.dungeon.device;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsa.module.impl.dungeon.FastLeap;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
+import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.component.impl.task.TaskComponent;
+import com.ricedotwho.rsm.data.DungeonPlayer;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.data.Rotation;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
+import com.ricedotwho.rsm.event.impl.game.ChatEvent;
 import com.ricedotwho.rsm.event.impl.world.BlockChangeEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
+import com.ricedotwho.rsm.module.impl.dungeon.boss.p3.terminal.P3Qol;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.ModeSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.StringSetting;
+import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
+import it.unimi.dsi.fastutil.booleans.BooleanSet;
 import lombok.Getter;
+import net.minecraft.ChatFormatting;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
@@ -22,12 +34,16 @@ import net.minecraft.world.phys.Vec3;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
 
 @Getter
 @ModuleInfo(aliases = "Auto4", id = "Auto4", category = Category.DUNGEONS)
 public class Auto4 extends Module {
-
     private final NumberSetting delay = new NumberSetting("Delay", 0, 400, 250, 10);
+    private final BooleanSetting auto = new BooleanSetting("Auto", true);
+    private final BooleanSetting leap = new BooleanSetting("Leap out", false);
+    private final ModeSetting who = new ModeSetting("Target", "Tank", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom"));
+    private final StringSetting custom = new StringSetting("Custom", "", true, false, () -> who.is("Custom"));
 
     private final List<Integer> done = new ArrayList<>();
     private static final List<Pos> blocks = Arrays.asList(
@@ -41,13 +57,17 @@ public class Auto4 extends Module {
 
     public Auto4() {
         this.registerProperty(
-                delay
+                delay,
+                auto,
+                leap,
+                who,
+                custom
         );
     }
 
     @SubscribeEvent
     public void onBlockChange(BlockChangeEvent event) {
-        if (!Location.getArea().is(Island.Dungeon) || mc.player == null || !on4thDev() || !isHoldingBow()) return;
+        if (!Location.getArea().is(Island.Dungeon) || mc.player == null || !on4thDev() || !isHoldingBow() || !auto.getValue()) return;
         Pos pos = event.getPos();
         int index = blocks.indexOf(pos);
         if (index == -1) return;
@@ -128,5 +148,31 @@ public class Auto4 extends Module {
                 );
         }
         return Rotation.from(target.asVec3());
+    }
+
+    @SubscribeEvent
+    public void onChat(ChatEvent.Chat event) {
+        if (!Location.getArea().is(Island.Dungeon) || mc.player == null || !on4thDev() || !leap.getValue()) return;
+        String text = ChatFormatting.stripFormatting(event.getMessage().getString());
+        Matcher m = P3Qol.TERM.matcher(text);
+        if (m.find() && m.group(1).contains(mc.player.getName().getString()) && m.group(2).contains("device")) {
+            if (SwapManager.swapItem("SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP")) {
+                String leap = getLeap();
+                if (leap == null) {
+                    RSA.chat("Failed to find i4 leap player!");
+                    return;
+                }
+                FastLeap.doLeap(leap);
+            }
+        }
+    }
+
+    private String getLeap() {
+        if (this.who.is("Custom")) {
+            return this.custom.getValue();
+        }
+        DungeonPlayer dp = Dungeon.getClazz(this.who.getIndex());
+        if (dp == null) return null;
+        return dp.getName();
     }
 }

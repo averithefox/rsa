@@ -598,12 +598,14 @@ public class BloodBlink extends Module {
             return;
         }
 
-        this.targetRoom = this.roomPriority.get(this.priority.getValue().intValue() - 1).room().getMainRoom();
+        this.targetRoom = this.roomPriority.get(this.priority.getValue().intValue() - 1).room().getTiles().getFirst();
         if (this.targetRoom != null) {
             RSA.chat("Found a room to insta: \"%s\"", this.targetRoom.getData().name());
             if (RSM.getModule(ClickGUI.class).getDevInfo().getValue()) {
                 RSA.chat("InstaClear candidates: %s", this.roomPriority.stream().map(r -> r.room().getName()).toList());
             }
+        } else {
+            RSA.chat("Failed to find a target? report pls %s", this.roomPriority);
         }
     }
 

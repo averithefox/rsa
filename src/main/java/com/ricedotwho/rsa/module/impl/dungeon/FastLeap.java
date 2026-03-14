@@ -215,10 +215,6 @@ public class FastLeap extends Module {
     @SubscribeEvent
     public void onOpenWindow(PacketEvent.Receive event) {
         if (event.getPacket() instanceof ClientboundOpenScreenPacket packet) {
-            if (Minecraft.getInstance().screen instanceof AbstractContainerScreen<?> abstractContainerScreen && abstractContainerScreen.getMenu().containerId != 0) {
-                // o7 Balding
-                Minecraft.getInstance().setScreen(null);
-            }
             if (packet.getContainerId() < 1
                     || packet.getContainerId() > 100
                     || mc.player == null
@@ -230,6 +226,10 @@ public class FastLeap extends Module {
                 windowOpen = true;
                 this.container = packet.getType().create(packet.getContainerId(), mc.player.getInventory());
                 event.setCancelled(true);
+                if (Minecraft.getInstance().screen instanceof AbstractContainerScreen<?> abstractContainerScreen && abstractContainerScreen.getMenu().containerId != 0) {
+                    // o7 Balding
+                    Minecraft.getInstance().setScreen(null);
+                }
             } else {
                 reset();
             }

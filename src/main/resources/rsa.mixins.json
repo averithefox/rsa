@@ -13,7 +13,8 @@
     "MixinLowPriorityConnection",
     "MixinMinecraft",
     "MixinMultiPlayerGameMode",
-    "MixinPlayer"
+    "MixinPlayer",
+    "MixinRSM"
   ],
   "client": [
     "MixinClientPacketListener",
