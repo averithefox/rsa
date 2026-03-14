@@ -1,4 +1,4 @@
-package com.ricedotwho.rsa.screen;
+package com.ricedotwho.rsa.screen.sidl;
 
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.stream.MalformedJsonException;

@@ -1,6 +1,6 @@
 package com.ricedotwho.rsa.mixins;
 
-import com.ricedotwho.rsa.screen.SessionLoginScreen;
+import com.ricedotwho.rsa.screen.sidl.SessionLoginScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
