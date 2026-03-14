@@ -19,6 +19,7 @@ import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.RotationUtils;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -43,11 +44,13 @@ import java.util.stream.Collectors;
 @ModuleInfo(aliases = {"Instant Clear", "Insta Clear"}, id = "InstaClear", category = Category.DUNGEONS)
 public class InstantClear extends Module {
 
-    private final float
+    private static final float
             MAP_LEFT = -225,
             MAP_RIGHT = 25,
             MAP_TOP = -225,
             MAP_BOTTOM = 25;
+
+    private final NumberSetting minDeathTick = new NumberSetting("Min Death Tick", 0, 40, 35, 1);
 
     private Room targetRoom;
     private State state = State.NONE;
@@ -103,7 +106,7 @@ public class InstantClear extends Module {
             state = distance > 5 ? State.TELEPORTING : State.PEARLING;
 
             double roofDist = roofHeight - playerY;
-            if (roofDist <= 2 && oddPearl && deathTicks < 37) {
+            if (roofDist <= 2 && oddPearl && deathTicks < minDeathTick.getValue().intValue()) {
                 return;
             }
 
@@ -117,7 +120,7 @@ public class InstantClear extends Module {
 
         // teleport outside the map
         if (isAbove && !isOutside) {
-            if (playerY % 2 == 1 && deathTicks < 37) {
+            if (playerY % 2 == 1 && deathTicks < minDeathTick.getValue().intValue()) {
                 return;
             }
 
