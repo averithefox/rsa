@@ -129,7 +129,8 @@ public class RSA implements Addon {
                 VelocityBuffer.class,
                 BreakerAura.class,
                 AutoPet.class,
-                Blink.class
+                Blink.class,
+                InstantClear.class
         );
     }
 
