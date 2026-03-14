@@ -272,6 +272,8 @@ public class AutoTerms extends Module {
         if (isInTerm() && event.getPacket() instanceof ClientboundContainerClosePacket packet) {
             if (packet.getContainerId() != terminalContainer.containerId) {
                 RSA.chat("Container ID mismatch on close!");
+                this.close();
+                return;
             }
 
             this.close();
@@ -304,6 +306,12 @@ public class AutoTerms extends Module {
     public void onSendPacket(PacketEvent.Send event) {
         if (isInTerm() && event.getPacket() instanceof ServerboundContainerClosePacket packet) {
             this.close();
+            // If we close while we are receiving the next window id it will believe that the new window is a new term
+            // even though it's now invalid, this doesn't seem to ban though?
+            // Im scared to change it because it might have side effects
+            // If it doesn't ban im fine with this
+
+            // We could just cancel this packet and send one once we receive the next term, that would fix it
             return;
         }
     }
