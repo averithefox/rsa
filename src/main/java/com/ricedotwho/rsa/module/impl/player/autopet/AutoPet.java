@@ -22,6 +22,7 @@ import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
@@ -166,6 +167,11 @@ public class AutoPet extends Module {
     public void onReceivePacket(PacketEvent.Receive event) {
         if (Minecraft.getInstance().player == null || !Location.isHypixel() || !Location.isInSkyblock()) return;
         if ((swapping || listing) && event.getPacket() instanceof ClientboundOpenScreenPacket openScreenPacket && !swapID.isEmpty()) { // Only check for swapping here so we don't get errors if swap changes during other sections
+            if (Minecraft.getInstance().screen instanceof AbstractContainerScreen<?>) {
+                // o7 Balding
+                Minecraft.getInstance().setScreen(null);
+            }
+
             clear();
             if (openScreenPacket.getContainerId() < 1 || openScreenPacket.getContainerId() > 100) return;
             this.clicked = false;
