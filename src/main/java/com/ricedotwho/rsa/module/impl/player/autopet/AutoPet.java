@@ -167,11 +167,6 @@ public class AutoPet extends Module {
     public void onReceivePacket(PacketEvent.Receive event) {
         if (Minecraft.getInstance().player == null || !Location.isHypixel() || !Location.isInSkyblock()) return;
         if ((swapping || listing) && event.getPacket() instanceof ClientboundOpenScreenPacket openScreenPacket && !swapID.isEmpty()) { // Only check for swapping here so we don't get errors if swap changes during other sections
-            if (Minecraft.getInstance().screen instanceof AbstractContainerScreen<?> abstractContainerScreen && abstractContainerScreen.getMenu().containerId != 0) {
-                // o7 Balding
-                Minecraft.getInstance().setScreen(null);
-            }
-
             clear();
             if (openScreenPacket.getContainerId() < 1 || openScreenPacket.getContainerId() > 100) return;
             this.clicked = false;
@@ -179,6 +174,10 @@ public class AutoPet extends Module {
                 this.container = openScreenPacket.getType().create(openScreenPacket.getContainerId(), Minecraft.getInstance().player.getInventory());
                 this.awaitingOpen = true;
                 event.setCancelled(true);
+                if (Minecraft.getInstance().screen instanceof AbstractContainerScreen<?> abstractContainerScreen && abstractContainerScreen.getMenu().containerId != 0) {
+                    // o7 Balding
+                    Minecraft.getInstance().setScreen(null);
+                }
             } else {
                 this.container = null;
                 this.awaitingOpen = false;

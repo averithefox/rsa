@@ -507,8 +507,8 @@ public class AutoCroesus extends Module {
                 ult = comp.getStyle().isBold() && comp.getStyle().getColor() != null && comp.getStyle().getColor().equals(ULT_COLOUR);;
             }
 
-            String bookName = matcher.group(2);
-            String levelNumeral = matcher.group(3);
+            String bookName = matcher.group(1);
+            String levelNumeral = matcher.group(2);
 
             int tier;
             if (!NumberUtils.isInteger(levelNumeral)) {
