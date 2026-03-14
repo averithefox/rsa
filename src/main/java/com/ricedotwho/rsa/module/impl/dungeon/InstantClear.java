@@ -6,10 +6,7 @@ import com.ricedotwho.rsa.utils.Util;
 import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.component.impl.map.handler.DungeonInfo;
-import com.ricedotwho.rsm.component.impl.map.map.Room;
-import com.ricedotwho.rsm.component.impl.map.map.RoomState;
-import com.ricedotwho.rsm.component.impl.map.map.RoomType;
-import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
+import com.ricedotwho.rsm.component.impl.map.map.*;
 import com.ricedotwho.rsm.component.impl.task.TaskComponent;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
@@ -22,6 +19,7 @@ import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.RotationUtils;
+import com.ricedotwho.rsm.utils.Utils;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -34,10 +32,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec2;
 
-import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -258,45 +254,59 @@ public class InstantClear extends Module {
 
         List<String> orderedRooms = BloodBlink.getRooms();
 
-        Set<UniqueRoom> rooms = DungeonInfo.getUniqueRooms()
+        java.util.Map<String, UniqueRoom> roomMap = DungeonInfo.getUniqueRooms()
                 .stream()
-                .filter(r -> {
-                    Room mainRoom = r.getMainRoom();
-                    if (mainRoom == null || mainRoom.getState().equals(RoomState.CLEARED)) return false;
-                    RoomType type = mainRoom.getData().type();
-                    return type == RoomType.NORMAL || type == RoomType.RARE;
-                })
-                .sorted(Comparator.comparingDouble(r -> orderedRooms.indexOf(r.getName())))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+                .collect(Collectors.toMap(UniqueRoom::getName, r -> r));
 
-        if (rooms.isEmpty()) return;
+        Optional<UniqueRoom> roomOptional = orderedRooms
+                .stream()
+                .map(roomMap::get)
+                .filter(r -> r != null && isValidRoom(r, level))
+                .findFirst();
 
-        for (UniqueRoom room : rooms) {
-            boolean isEmpty = room.getDoors()
-                    .stream()
-                    .allMatch(d -> Util.equalsOneOf(d.getState(), RoomState.UNDISCOVERED, RoomState.UNOPENED)) ||
-                    room.getTiles().stream().allMatch(tile -> {
-                        int topX = tile.getX();
-                        int topY = tile.getZ();
-                        int bottomX = topX + 32;
-                        int bottomY = topY + 32;
+        if (roomOptional.isEmpty()) return;
 
-                        AABB bounds = new AABB(
-                                bottomX, tile.getBottom(), bottomY,
-                                topX, tile.getRoofHeight(), topY
-                        );
+        UniqueRoom room = roomOptional.get();
+        targetRoom = room.getTiles().getFirst();
 
-                        List<Entity> entities = level.getEntities(null, bounds);
-                        return entities.isEmpty();
-                    });
+        ChatUtils.chat("Targeted room: " + room.getName());
+    }
 
-            if (!isEmpty) continue;
+    private boolean isValidRoom(UniqueRoom room, ClientLevel level) {
+        Room mainRoom = room.getMainRoom();
+        if (mainRoom == null || Util.equalsOneOf(mainRoom.getState(), RoomState.CLEARED, RoomState.GREEN)) return false;
 
-            targetRoom = room.getMainRoom();
-            ChatUtils.chat("Targeted room: " + room.getName());
+        RoomType type = mainRoom.getData().type();
+        if (!Util.equalsOneOf(type, RoomType.NORMAL, RoomType.RARE)) return false;
 
-            break;
-        }
+        boolean isValid = room.getDoors()
+                .stream()
+                .noneMatch(d -> Utils.equalsOneOf(d.getType(), DoorType.ENTRANCE, DoorType.WITHER));
+
+        if (!isValid) return false;
+
+        boolean isUndiscovered =
+                mainRoom.getState().equals(RoomState.UNDISCOVERED) &&
+                        room.getDoors()
+                                .stream()
+                                .allMatch(d -> Util.equalsOneOf(d.getState(), RoomState.UNDISCOVERED, RoomState.UNOPENED));
+
+        return isUndiscovered || room.getTiles()
+                .stream()
+                .allMatch(tile -> {
+                    int topX = tile.getX();
+                    int topY = tile.getZ();
+                    int bottomX = topX - 32;
+                    int bottomY = topY - 32;
+
+                    AABB bounds = new AABB(
+                            bottomX, tile.getBottom(), bottomY,
+                            topX, tile.getRoofHeight(), topY
+                    );
+
+                    List<Entity> entities = level.getEntities(null, bounds);
+                    return entities.isEmpty();
+                });
     }
 
     private int getCeilingDistance(double x, double y, double z, ClientLevel level) {
