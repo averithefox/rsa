@@ -22,7 +22,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.device.AutoSS;
 import com.ricedotwho.rsa.module.impl.dungeon.puzzle.Puzzles;
 import com.ricedotwho.rsa.module.impl.other.*;
 import com.ricedotwho.rsa.module.impl.dungeon.*;
-import com.ricedotwho.rsa.module.impl.player.AutoAutoPet;
+import com.ricedotwho.rsa.module.impl.player.autopet.AutoPet;
 import com.ricedotwho.rsa.module.impl.player.BonzoHelper;
 import com.ricedotwho.rsa.module.impl.player.CancelInteract;
 import com.ricedotwho.rsa.module.impl.render.*;
@@ -70,9 +70,6 @@ public class RSA implements Addon {
         PayloadTypeRegistry.playC2S().register(BloodClipHelperStopPacket.TYPE, BloodClipHelperStopPacket.CODEC);
 
         EffectsAndRender.init();
-
-        //AutoroutesFileManager.init(RSM.getModule(AutoRoutes.class));
-        //AutoroutesFileManager.load();
 
         Renderer3D.registerLine(Ring.class);
 
@@ -131,7 +128,7 @@ public class RSA implements Addon {
                 Relics.class,
                 VelocityBuffer.class,
                 BreakerAura.class,
-                AutoAutoPet.class,
+                AutoPet.class,
                 Blink.class
         );
     }

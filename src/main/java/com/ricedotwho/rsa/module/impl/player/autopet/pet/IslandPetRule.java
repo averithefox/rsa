@@ -1,5 +1,6 @@
-package com.ricedotwho.rsa.module.impl.player.pet;
+package com.ricedotwho.rsa.module.impl.player.autopet.pet;
 
+import com.google.gson.JsonObject;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.game.LocationEvent;
@@ -25,4 +26,15 @@ public class IslandPetRule extends PetRule {
         return "IslandPetRule -> " + location.getEnumName() + " -> " + this.getId();
     }
 
+    @Override
+    protected RuleType getType() {
+        return RuleType.ISLAND;
+    }
+
+    @Override
+    public JsonObject serialize() {
+        JsonObject obj = super.serialize();
+        obj.addProperty("island", this.location.name());
+        return obj;
+    }
 }
