@@ -55,7 +55,7 @@ public class AutoCroesus extends Module {
     private final MultiBoolSetting kismetFloors = new MultiBoolSetting("Kismet Floors", List.of("F1", "F2", "F3", "F4", "F5", "F6", "F7", "M1", "M2", "M3", "M4", "M5", "M6", "M7"), new ArrayList<>());
 
     private final Pattern costPattern = Pattern.compile("^([\\d,]+) Coins$");
-    private final Pattern bookPattern = Pattern.compile("^(?:§.)*Enchanted Book \\((§d§l)?([\\w ]+) (\\w+)(?:§.)*\\)$");
+    private final Pattern bookPattern = Pattern.compile("^Enchanted Book \\(?([\\w ]+) (\\w+)\\)$");
     private final Pattern essencePattern = Pattern.compile("^(\\w+) Essence x(\\d+)$");
 
     private final Map<String, String> ITEM_REPLACEMENTS = new HashMap<>();
