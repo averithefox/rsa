@@ -22,10 +22,12 @@ import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.group.GroupSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.*;
+import com.ricedotwho.rsm.utils.ChatUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.HashedStack;
@@ -217,10 +219,18 @@ public class AutoTerms extends Module {
         }
     }
 
+    // If a gui is open request is sent at the same time as term aura sends a click packet while not in term,
+    // if the original gui opens first, the term gui will open after the client has opened it
+
     /// This should run before {@link Terminals#onPacket(PacketEvent.Receive)}
     @SubscribeEvent(priority = EventPriority.HIGH) 
     public void onReceivePacket(PacketEvent.Receive event) {
         if (event.getPacket() instanceof ClientboundOpenScreenPacket packet) {
+            if (Minecraft.getInstance().screen instanceof AbstractContainerScreen<?>) {
+                // o7 Balding
+                Minecraft.getInstance().setScreen(null);
+            }
+
             if (packet.getContainerId() < 1 || packet.getContainerId() > 100) return;
             if (Minecraft.getInstance().player == null) return;
 
