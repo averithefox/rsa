@@ -58,12 +58,22 @@ public class InstantClear extends Module {
     private Room targetRoom;
     private boolean waiting;
     private Runnable onTeleport;
-    private int deathTicks = 0;
+    private int deathTicks;
     private boolean oddPearl;
 
     @Override
     public void onEnable() {
         this.resetState();
+
+        UniqueRoom room = DungeonInfo.getUniqueRooms()
+                .stream()
+                .filter(r -> r.getName().equals("Fairy"))
+                .findFirst()
+                .orElse(null);
+
+        if (room == null) return;
+
+        targetRoom = room.getMainRoom();
     }
 
     @Override
@@ -258,13 +268,13 @@ public class InstantClear extends Module {
         if (roomOptional.isEmpty()) return;
 
         UniqueRoom room = roomOptional.get();
-        targetRoom = room.getTiles().getFirst();
+        targetRoom = room.getMainRoom();
 
         RSA.chat("Targeted room: " + room.getName());
     }
 
     private boolean isValidRoom(UniqueRoom room, ClientLevel level) {
-        Room mainRoom = room.getTiles().getFirst();
+        Room mainRoom = room.getMainRoom();
         if (mainRoom == null || Util.equalsOneOf(mainRoom.getState(), RoomState.CLEARED, RoomState.GREEN)) return false;
 
         RoomType type = mainRoom.getData().type();
@@ -304,7 +314,7 @@ public class InstantClear extends Module {
         int distance = 255;
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 
-        for (int i = (int) y; i < 255; i++) {
+        for (int i = (int) y + 1; i < 255; i++) {
             BlockState blockState = level.getBlockState(pos.set(x, i, z));
             Block block = blockState.getBlock();
 
