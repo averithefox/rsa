@@ -20,6 +20,7 @@ import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.RotationUtils;
+import com.ricedotwho.rsm.utils.Utils;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -265,10 +266,10 @@ public class InstantClear extends Module {
 
     private boolean isValidRoom(UniqueRoom room, ClientLevel level) {
         Room mainRoom = room.getMainRoom();
-        if (mainRoom == null || Util.equalsOneOf(mainRoom.getState(), RoomState.CLEARED, RoomState.GREEN)) return false;
+        if (mainRoom == null || Utils.equalsOneOf(mainRoom.getState(), RoomState.CLEARED, RoomState.GREEN)) return false;
 
         RoomType type = mainRoom.getData().type();
-        if (!Util.equalsOneOf(type, RoomType.NORMAL, RoomType.RARE)) return false;
+        if (!Utils.equalsOneOf(type, RoomType.NORMAL, RoomType.RARE)) return false;
 
         boolean isValid = room.getDoors()
                 .stream()

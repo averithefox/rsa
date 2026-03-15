@@ -80,20 +80,4 @@ public class Util implements Accessor {
         if (seconds > 0) sb.append(seconds).append("s");
         return sb.toString().trim();
     }
-
-    public boolean equalsOneOf(Object obj, Object... others) {
-        if (obj == null) {
-            for (Object other : others) {
-                if (other == null) return true;
-            }
-
-            return false;
-        }
-
-        for (Object other : others) {
-            if (obj.equals(other)) return true;
-        }
-
-        return false;
-    }
 }

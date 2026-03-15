@@ -2,19 +2,17 @@ package com.ricedotwho.rsa.module.impl.dungeon;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.mojang.blaze3d.platform.InputConstants;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsa.component.impl.pathfinding.score.DungeonRoomScore;
 import com.ricedotwho.rsa.module.impl.other.AutoGfs;
 import com.ricedotwho.rsa.packet.sb.BloodClipHelperStartPacket;
 import com.ricedotwho.rsa.utils.Util;
 import com.ricedotwho.rsm.RSM;
-import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
-import com.ricedotwho.rsm.component.impl.map.handler.DungeonInfo;
 import com.ricedotwho.rsm.component.impl.map.handler.DungeonScanner;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.map.RoomRotation;
@@ -41,7 +39,6 @@ import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.ModeSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.DungeonUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
@@ -584,11 +581,14 @@ public class BloodBlink extends Module {
         // Blood will already be set if the mode is Blood
         if (!this.mode.is("InstaClear")) return;
 
-        DungeonInfo.getUniqueRooms().forEach(room -> {
-            if (!room.isOnBloodRush() && rooms.contains(room.getName())) {
+        DungeonRoomScore.getOrderedRooms().forEach(rn -> {
+            if (!rn.getRoom().isOnBloodRush() && rooms.contains(rn.getRoom().getName())) {
                 addRoom(new Entry(
-                        room,
-                        rooms.indexOf(room.getName()))
+                        rn.getRoom(),
+                        rooms.indexOf(rn.getRoom().getName()),
+                        rn.getDistance(),
+                        rn.isEnd(),
+                        rn.isNextToQuiz())
                 );
             }
         });
@@ -602,7 +602,7 @@ public class BloodBlink extends Module {
         if (this.targetRoom != null) {
             RSA.chat("Found a room to insta: \"%s\"", this.targetRoom.getData().name());
             if (RSM.getModule(ClickGUI.class).getDevInfo().getValue()) {
-                RSA.chat("InstaClear candidates: %s", this.roomPriority.stream().map(r -> r.room().getName()).toList());
+                RSA.chat("InstaClear candidates: %s", this.roomPriority.stream().map(r -> r.room().getName() + (r.quiz ? " (quiz)" : "")).toList());
             }
         } else {
             RSA.chat("Failed to find a target? report pls %s", this.roomPriority);
@@ -611,8 +611,9 @@ public class BloodBlink extends Module {
 
     private void addRoom(Entry e) {
         if (e.room().isOnBloodRush() || this.roomPriority.stream().anyMatch(e1 -> e1.room().getName().equals(e.room().getName()))) return;
+        int total = rooms.size();
         int i = 0;
-        while (i < this.roomPriority.size() && this.roomPriority.get(i).priority() <= e.priority()) {
+        while (i < this.roomPriority.size() && this.roomPriority.get(i).getScore(total) >= e.getScore(total)) {
             i++;
         }
 
@@ -626,9 +627,23 @@ public class BloodBlink extends Module {
 
     private void sendStartPearling(int roof) {
         if (mc.getConnection() == null) return;
-        if (!SwapManager.swapItem("ENDER_PEARL")) return;
+        if (!SwapManager.swapItem("ENDER_PEARL")) {
+            RSA.chat("Failed swap to pearl!");
+            return;
+        }
         TaskComponent.onTick(0, () -> mc.getConnection().send(new ServerboundCustomPayloadPacket(new BloodClipHelperStartPacket(roof))));
     }
 
-    record Entry(UniqueRoom room, int priority) {}
+    private record Entry(UniqueRoom room, int index, int distance, boolean end, boolean quiz) {
+        public int getScore(int total) {
+            int score = 0;
+            score += ((total * 10) - this.index * 10); // highest index will make this 0
+            score += this.distance * 10;
+            score += this.end ? 200 : 0;
+            if (this.quiz) {
+                score += this.end ? 500 : 200;
+            }
+            return score;
+        }
+    }
 }
