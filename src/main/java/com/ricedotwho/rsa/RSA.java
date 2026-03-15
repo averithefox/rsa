@@ -131,7 +131,8 @@ public class RSA implements Addon {
                 BreakerAura.class,
                 AutoPet.class,
                 Blink.class,
-                InstantClear.class
+                InstantClear.class,
+                BloodCamp.class
         );
     }
 
