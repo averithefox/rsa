@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.utils.Util;
@@ -18,9 +19,7 @@ import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.RotationUtils;
-import com.ricedotwho.rsm.utils.Utils;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -35,7 +34,6 @@ import net.minecraft.world.phys.Vec2;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @ModuleInfo(aliases = {"Instant Clear", "Insta Clear"}, id = "InstaClear", category = Category.DUNGEONS)
@@ -58,8 +56,8 @@ public class InstantClear extends Module {
     }
 
     private Room targetRoom;
-    private State state = State.NONE;
-    private Consumer<ClientboundPlayerPositionPacket> onTeleport;
+    private boolean waiting;
+    private Runnable onTeleport;
     private int deathTicks = 0;
     private boolean oddPearl;
 
@@ -79,7 +77,7 @@ public class InstantClear extends Module {
             findRoom();
         }
 
-        if (targetRoom == null || state == State.WAITING) return;
+        if (targetRoom == null || waiting) return;
 
         LocalPlayer player = mc.player;
         ClientLevel level = mc.level;
@@ -101,23 +99,23 @@ public class InstantClear extends Module {
         // pearl out
         if (!isAbove && !isBelow && !isOutside) {
             if (targetRoom.equals(currentRoom)) {
-                ChatUtils.chat("Reached target room.");
-                setState(State.NONE);
+                RSA.chat("Reached target room.");
+                waiting = false;
                 targetRoom = null;
                 return;
             }
-
-            int distance = getCeilingDistance(playerX, playerY, playerZ, level);
-            state = distance > 5 ? State.TELEPORTING : State.PEARLING;
 
             double roofDist = roofHeight - playerY;
             if (roofDist <= 2 && oddPearl && deathTicks < minDeathTick.getValue().intValue()) {
                 return;
             }
 
-            switch (state) {
-                case PEARLING -> pearl(player.getYRot(), -90.0F, null);
-                case TELEPORTING -> teleport((int) Math.ceil(distance / 12F), player.getYRot(), -90.0F, player);
+            int distance = getCeilingDistance(playerX, playerY, playerZ, level);
+
+            if (distance > 5) {
+                teleport((int) Math.ceil(distance / 12F), player.getYRot(), -90.0F, player);
+            } else {
+                pearl(player.getYRot(), -90.0F, null);
             }
 
             return;
@@ -128,8 +126,6 @@ public class InstantClear extends Module {
             if (playerY % 2 == 1 && deathTicks < minDeathTick.getValue().intValue()) {
                 return;
             }
-
-            setState(State.TELEPORTING);
 
             Vec2 targetPos = getOutsideVec((float) playerX, (float) playerZ);
             teleportTo(player, targetPos);
@@ -153,10 +149,7 @@ public class InstantClear extends Module {
         teleport(5, player.getYRot(), -90.0F, player);
 
         // double pearl in
-        pearl(player.getYRot(), -90.0F, p -> {
-            setState(State.PEARLING);
-            pearl(player.getYRot(), -90.0F, null);
-        });
+        pearl(player.getYRot(), -90.0F, () -> pearl(player.getYRot(), -90.0F, null));
     }
 
     @SubscribeEvent
@@ -168,14 +161,14 @@ public class InstantClear extends Module {
     @SubscribeEvent
     public void onReceivePacket(PacketEvent.Receive event) {
         if (event.getPacket() instanceof ClientboundPlayerPositionPacket packet) {
-            double y = packet.change().position().y;
-            oddPearl = y % 2 == 0;
+            double packetY = packet.change().position().y;
+            oddPearl = packetY % 2 == 0;
 
-            if (state == State.WAITING) {
+            if (waiting) {
                 TaskComponent.onServerTick(() -> {
-                    setState(State.NONE);
+                    waiting = false;
                     if (onTeleport != null) {
-                        onTeleport.accept(packet);
+                        onTeleport.run();
                         onTeleport = null;
                     }
                 });
@@ -194,7 +187,7 @@ public class InstantClear extends Module {
 
     private void resetState() {
         targetRoom = null;
-        setState(State.NONE);
+        waiting = false;
         onTeleport = null;
         deathTicks = 0;
     }
@@ -214,8 +207,8 @@ public class InstantClear extends Module {
     private void teleport(int teleports, float yaw, float pitch, LocalPlayer player) {
         if (teleports <= 0) return;
 
-        setState(State.WAITING);
-        onTeleport = packet -> setState(State.TELEPORTING);
+        waiting = true;
+        onTeleport = null;
 
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
             if (!SwapManager.swapItem("ASPECT_OF_THE_VOID") || player.getLastSentInput().shift()) {
@@ -224,25 +217,22 @@ public class InstantClear extends Module {
 
             for (int i = 0; i < teleports; i++) {
                 if (!SwapManager.sendAirC08(yaw, pitch, true, false)) {
-                    setState(State.NONE);
-                    onTeleport = null;
+                    waiting = false;
                     break;
                 }
             }
         });
     }
 
-    private void pearl(float yaw, float pitch, Consumer<ClientboundPlayerPositionPacket> onTP) {
-        setState(State.WAITING);
-        onTeleport = onTP != null ? onTP : packet -> setState(State.PEARLING);
+    private void pearl(float yaw, float pitch, Runnable onTP) {
+        waiting = true;
+        onTeleport = onTP;
 
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
-            if (!SwapManager.swapItem("ENDER_PEARL")) {
-                return;
-            }
+            if (!SwapManager.swapItem("ENDER_PEARL")) return;
 
             if (!SwapManager.sendAirC08(yaw, pitch, true, false)) {
-                setState(State.NONE);
+                waiting = false;
                 onTeleport = null;
             }
         });
@@ -270,7 +260,7 @@ public class InstantClear extends Module {
         UniqueRoom room = roomOptional.get();
         targetRoom = room.getTiles().getFirst();
 
-        ChatUtils.chat("Targeted room: " + room.getName());
+        RSA.chat("Targeted room: " + room.getName());
     }
 
     private boolean isValidRoom(UniqueRoom room, ClientLevel level) {
@@ -285,8 +275,6 @@ public class InstantClear extends Module {
                 .noneMatch(d -> d.getType() == DoorType.ENTRANCE || (!witherRooms.getValue() && d.getType() == DoorType.WITHER));
 
         if (!isValid) return false;
-
-        ChatUtils.chat(room.getName());
 
         return room.getTiles()
                 .stream()
@@ -329,10 +317,6 @@ public class InstantClear extends Module {
         return distance;
     }
 
-    private void setState(State state) {
-        this.state = state;
-    }
-
     private Vec2 getOutsideVec(float x, float z) {
         float leftDist = x - MAP_LEFT;
         float rightDist = MAP_RIGHT - x;
@@ -351,13 +335,6 @@ public class InstantClear extends Module {
 
     private boolean isOutside(double x, double z) {
         return x < MAP_TOP || x > MAP_BOTTOM || z < MAP_LEFT || z > MAP_RIGHT;
-    }
-
-    private enum State {
-        TELEPORTING,
-        PEARLING,
-        WAITING,
-        NONE
     }
 
 }
