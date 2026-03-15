@@ -64,16 +64,6 @@ public class InstantClear extends Module {
     @Override
     public void onEnable() {
         this.resetState();
-
-        UniqueRoom room = DungeonInfo.getUniqueRooms()
-                .stream()
-                .filter(r -> r.getName().equals("Fairy"))
-                .findFirst()
-                .orElse(null);
-
-        if (room == null) return;
-
-        targetRoom = room.getMainRoom();
     }
 
     @Override
