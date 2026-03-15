@@ -50,15 +50,11 @@ public class FreezeState extends Module {
 
     @Override
     public void onEnable() {
-        LocalPlayer player = mc.player;
-        player.setSpeed(1f); player.setDeltaMovement(1, 1, 1);
         frozen = false;
     }
 
     @Override
     public void onDisable() {
-        LocalPlayer player = mc.player;
-        player.setSpeed(1f); player.setDeltaMovement(1, 1, 1);
         frozen = false;
     }
 
