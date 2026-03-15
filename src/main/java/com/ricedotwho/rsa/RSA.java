@@ -156,7 +156,8 @@ public class RSA implements Addon {
                 AutoCroesusCommand.class,
                 SecretAuraCommand.class,
                 VelocityBufferCommand.class,
-                AutoPetCommand.class
+                AutoPetCommand.class,
+                RotateCommand.class
         );
     }
 
