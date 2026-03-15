@@ -11,6 +11,7 @@ import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.component.impl.map.map.RoomType;
 import com.ricedotwho.rsm.component.impl.task.TaskComponent;
 import com.ricedotwho.rsm.data.Colour;
+import com.ricedotwho.rsm.data.DungeonClass;
 import com.ricedotwho.rsm.data.Rotation;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
@@ -80,6 +81,8 @@ public class BloodCamp extends Module {
     private final DefaultGroupSetting auto = new DefaultGroupSetting("Auto", this);
     private final ModeSetting mode = new ModeSetting("Mode", "Off", List.of("Off", "Auto", "Triggerbot"));
     private final NumberSetting click = new NumberSetting("Pre", 0, 20, 1, 1);
+    private final BooleanSetting mageOnly = new BooleanSetting("Mage Only", true);
+    private final BooleanSetting clickOnSpawn = new BooleanSetting("Click on spawn even if pre", true);
 
     private static final Set<String> WATCHER_SKULLS = Set.of(
             "ewogICJ0aW1lc3RhbXAiIDogMTY5NzMwOTQxNzI1NiwKICAicHJvZmlsZUlkIiA6ICJjYjYxY2U5ODc4ZWI0NDljODA5MzliNWYxNTkwMzE1MiIsCiAgInByb2ZpbGVOYW1lIiA6ICJWb2lkZWRUcmFzaDUxODUiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTY2MmI2ZmI0YjhiNTg2ZGM0Y2RmODAzYjA0NDRkOWI0MWQyNDVjZGY2NjhkYWIzOGZhNmMwNjRhZmU4ZTQ2MSIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9",
@@ -147,7 +150,7 @@ public class BloodCamp extends Module {
                 auto,
                 advanced
         );
-        auto.add(mode, click);
+        auto.add(mode, click, mageOnly, clickOnSpawn);
         advanced.add(offset, tick, pingOffset, manualOffset, interpolation);
     }
 
@@ -191,7 +194,7 @@ public class BloodCamp extends Module {
         rd.end = endPoint;
 
         data.ticksRemaining = Math.toIntExact((getTime(data.firstSpawns, timeTook) - offset.getValue().longValue()) / 50);
-        if (mode.is("Off") || click.getValue().intValue() == 0) return;
+        if (mode.is("Off") || click.getValue().intValue() == 0 || !isMage()) return;
 
         if (toClick != null) {
             if (!toClick.entity.isAlive()) {
@@ -201,6 +204,10 @@ public class BloodCamp extends Module {
         }
         if (!data.firstSpawns && data.ticksRemaining - 1 <= click.getValue().intValue())
             toClick = new AutoData(endPoint, entity, data);
+    }
+
+    private boolean isMage() {
+        return !mageOnly.getValue() || Dungeon.isMyClass(DungeonClass.MAGE);
     }
 
     @SubscribeEvent
@@ -266,7 +273,7 @@ public class BloodCamp extends Module {
             EntityData d = entityMap.remove(entity);
             if (d != null && d.firstSpawns) return;
 
-            if (click.getValue().intValue() == 0 || !clicked.contains(entity.getUUID())) {
+            if ((click.getValue().intValue() == 0 || (!clicked.contains(entity.getUUID()) || clickOnSpawn.getValue())) && !isMage()) {
                 // we should rotate and click at this spot
                 click(entity.position().add(0, 2, 0), true);
             }
