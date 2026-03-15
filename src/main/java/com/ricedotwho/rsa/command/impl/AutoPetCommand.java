@@ -10,10 +10,10 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import com.ricedotwho.rsa.module.impl.player.pet.IslandPetRule;
+import com.ricedotwho.rsa.module.impl.player.autopet.pet.ChatPetRule;
+import com.ricedotwho.rsa.module.impl.player.autopet.pet.IslandPetRule;
+import com.ricedotwho.rsa.module.impl.player.autopet.pet.PetRule;
 import com.ricedotwho.rsm.component.impl.location.Island;
-import com.ricedotwho.rsa.module.impl.player.AutoAutoPet;
-import com.ricedotwho.rsa.module.impl.player.pet.PetRule;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
@@ -21,7 +21,9 @@ import com.ricedotwho.rsm.utils.ChatUtils;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
+import com.ricedotwho.rsa.module.impl.player.autopet.AutoPet;
 
+import javax.print.DocFlavor;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -48,6 +50,13 @@ public class AutoPetCommand extends Command {
                                         )
                                 )
                         )
+                        .then(literal("chat")
+                                .then(argument("pet uuid", StringArgumentType.word())
+                                        .then(argument("regex", StringArgumentType.greedyString())
+                                                .executes(this::addChatRule)
+                                        )
+                                )
+                        )
                 )
                 .then(literal("list")
                         .executes(this::listRules)
@@ -56,7 +65,15 @@ public class AutoPetCommand extends Command {
                         .then(argument("index", IntegerArgumentType.integer(0))
                                 .executes(this::removeRule)
                         )
+                )
+                .then(literal("get")
+                        .executes(this::listPets)
                 );
+    }
+
+    private int listPets(CommandContext<ClientSuggestionProvider> clientSuggestionProviderCommandContext) {
+        RSM.getModule(AutoPet.class).listPets();
+        return 1;
     }
 
     private int addIslandRule(CommandContext<ClientSuggestionProvider> ctx) {
@@ -66,14 +83,27 @@ public class AutoPetCommand extends Command {
             return 0;
         }
         String petName = ctx.getArgument("pet", String.class);
-        AutoAutoPet autoAutoPet = RSM.getModule(AutoAutoPet.class);
+        AutoPet autoAutoPet = RSM.getModule(AutoPet.class);
         autoAutoPet.addPetRule(new IslandPetRule(petName, autoAutoPet::swapTo, island));
         ChatUtils.chat("Added new pet rule!");
         return 1;
     }
 
+    private int addChatRule(CommandContext<ClientSuggestionProvider> ctx) {
+        String regex = StringArgumentType.getString(ctx, "regex");
+        if (regex.isBlank()) {
+            ChatUtils.chat("Regex must not be blank!");
+            return 0;
+        }
+        String uuid = ctx.getArgument("pet uuid", String.class);
+        AutoPet autoAutoPet = RSM.getModule(AutoPet.class);
+        autoAutoPet.addPetRule(new ChatPetRule(uuid, autoAutoPet::swapTo, regex));
+        ChatUtils.chat("Added new pet rule!");
+        return 1;
+    }
+
     private int listRules(CommandContext<ClientSuggestionProvider> ctx) {
-        AutoAutoPet autoAutoPet = RSM.getModule(AutoAutoPet.class);
+        AutoPet autoAutoPet = RSM.getModule(AutoPet.class);
         ChatUtils.chat("------------------");
         int index = 0;
         for (Iterator<PetRule> it = autoAutoPet.iterateRules(); it.hasNext(); ) {
@@ -87,7 +117,7 @@ public class AutoPetCommand extends Command {
 
     private int removeRule(CommandContext<ClientSuggestionProvider> ctx) {
         int index = ctx.getArgument("index", Integer.class);
-        AutoAutoPet autoAutoPet = RSM.getModule(AutoAutoPet.class);
+        AutoPet autoAutoPet = RSM.getModule(AutoPet.class);
         autoAutoPet.removeRule(index);
         ChatUtils.chat("Removed pet rule!");
         return 1;
@@ -99,7 +129,7 @@ public class AutoPetCommand extends Command {
             ChatUtils.chat("Please enter a pet!");
             return 0;
         }
-        AutoAutoPet autoAutoPet = RSM.getModule(AutoAutoPet.class);
+        AutoPet autoAutoPet = RSM.getModule(AutoPet.class);
         if (!autoAutoPet.isEnabled()) {
             ChatUtils.chat("Please enable auto auto pet!");
             return 0;

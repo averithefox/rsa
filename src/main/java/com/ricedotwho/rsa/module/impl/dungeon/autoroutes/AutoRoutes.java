@@ -66,7 +66,7 @@ public class AutoRoutes extends Module implements Accessor {
 
     @Getter private static final BooleanSetting centerOnly = new BooleanSetting("Center Only", false);
     @Getter private static final BooleanSetting zeroTickBreak = new BooleanSetting("0t Break", false);
-    @Getter private static final BooleanSetting use1_8Height = new BooleanSetting("Use 1.8 height for placing node", false);
+    @Getter private static final BooleanSetting use1_8Height = new BooleanSetting("Use 1.8 height for placing node", true);
     private final BooleanSetting editMode = new BooleanSetting("Edit Mode", false);
     private final KeybindSetting triggerBind = new KeybindSetting("Trigger Bind", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, this::onTrigger));
     private final KeybindSetting addBlockBind = new KeybindSetting("Add Block Bind", new Keybind(GLFW.GLFW_KEY_SEMICOLON, false, this::addBlockToInNode));
@@ -159,11 +159,15 @@ public class AutoRoutes extends Module implements Accessor {
 
     @SubscribeEvent
     public void onRender(Render3DEvent.Extract event) {
-        if (!Location.getArea().is(Island.Dungeon) || Map.getCurrentRoom() == null) return;
-        Room currentRoom = Map.getCurrentRoom();
-        List<Node> nodes = this.activeNodes.get(currentRoom.getData());
-        if (nodes == null || nodes.isEmpty()) return;
-        nodes.forEach(n -> n.render(nodeDepth.getValue() && (!n.isStart() || startDepth.getValue())));
+        try {
+            if (!Location.getArea().is(Island.Dungeon) || Map.getCurrentRoom() == null) return;
+            Room currentRoom = Map.getCurrentRoom();
+            List<Node> nodes = this.activeNodes.get(currentRoom.getData());
+            if (nodes == null || nodes.isEmpty()) return;
+            nodes.forEach(n -> n.render(nodeDepth.getValue() && (!n.isStart() || startDepth.getValue())));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @SubscribeEvent

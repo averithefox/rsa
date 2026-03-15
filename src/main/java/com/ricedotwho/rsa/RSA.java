@@ -3,6 +3,7 @@ package com.ricedotwho.rsa;
 import com.ricedotwho.rsa.command.impl.*;
 import com.ricedotwho.rsa.component.impl.Edge;
 import com.ricedotwho.rsa.component.impl.Jump;
+import com.ricedotwho.rsa.component.impl.pathfinding.score.DungeonRoomScore;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.Blink;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.BreakerAura;
@@ -22,7 +23,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.device.AutoSS;
 import com.ricedotwho.rsa.module.impl.dungeon.puzzle.Puzzles;
 import com.ricedotwho.rsa.module.impl.other.*;
 import com.ricedotwho.rsa.module.impl.dungeon.*;
-import com.ricedotwho.rsa.module.impl.player.AutoAutoPet;
+import com.ricedotwho.rsa.module.impl.player.autopet.AutoPet;
 import com.ricedotwho.rsa.module.impl.player.BonzoHelper;
 import com.ricedotwho.rsa.module.impl.player.CancelInteract;
 import com.ricedotwho.rsa.module.impl.render.*;
@@ -70,9 +71,6 @@ public class RSA implements Addon {
         PayloadTypeRegistry.playC2S().register(BloodClipHelperStopPacket.TYPE, BloodClipHelperStopPacket.CODEC);
 
         EffectsAndRender.init();
-
-        //AutoroutesFileManager.init(RSM.getModule(AutoRoutes.class));
-        //AutoroutesFileManager.load();
 
         Renderer3D.registerLine(Ring.class);
 
@@ -131,16 +129,20 @@ public class RSA implements Addon {
                 Relics.class,
                 VelocityBuffer.class,
                 BreakerAura.class,
-                AutoAutoPet.class,
-                Blink.class
+                AutoPet.class,
+                Blink.class,
+                InstantClear.class,
+                BloodCamp.class
         );
     }
 
     @Override
     public List<Class<? extends ModComponent>> getComponents() {
-        return List.of(Edge.class,
-                Jump.class
-                );
+        return List.of(
+                Edge.class,
+                Jump.class,
+                DungeonRoomScore.class
+        );
     }
 
     @Override

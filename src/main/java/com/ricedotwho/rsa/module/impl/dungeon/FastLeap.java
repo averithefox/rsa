@@ -35,6 +35,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.HashedStack;
@@ -225,6 +226,10 @@ public class FastLeap extends Module {
                 windowOpen = true;
                 this.container = packet.getType().create(packet.getContainerId(), mc.player.getInventory());
                 event.setCancelled(true);
+                if (Minecraft.getInstance().screen instanceof AbstractContainerScreen<?> abstractContainerScreen && abstractContainerScreen.getMenu().containerId != 0) {
+                    // o7 Balding
+                    Minecraft.getInstance().setScreen(null);
+                }
             } else {
                 reset();
             }

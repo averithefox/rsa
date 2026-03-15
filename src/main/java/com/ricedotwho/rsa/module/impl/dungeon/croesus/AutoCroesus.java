@@ -55,8 +55,8 @@ public class AutoCroesus extends Module {
     private final MultiBoolSetting kismetFloors = new MultiBoolSetting("Kismet Floors", List.of("F1", "F2", "F3", "F4", "F5", "F6", "F7", "M1", "M2", "M3", "M4", "M5", "M6", "M7"), new ArrayList<>());
 
     private final Pattern costPattern = Pattern.compile("^([\\d,]+) Coins$");
-    private final Pattern bookPattern = Pattern.compile("^(?:§.)*Enchanted Book \\((§d§l)?([\\w ]+) (\\w+)(?:§.)*\\)$");
-    private final Pattern essencePattern = Pattern.compile("^§d(\\w+) Essence §8x(\\d+)$");
+    private final Pattern bookPattern = Pattern.compile("^Enchanted Book \\(?([\\w ]+) (\\w+)\\)$");
+    private final Pattern essencePattern = Pattern.compile("^(\\w+) Essence x(\\d+)$");
 
     private final Map<String, String> ITEM_REPLACEMENTS = new HashMap<>();
 
@@ -452,14 +452,14 @@ public class AutoCroesus extends Module {
 
         if(!cost.equals("§aFREE")) {
             Matcher matcher = costPattern.matcher(ChatFormatting.stripFormatting(cost));
-            if(matcher.find()) {
+            if (matcher.find()) {
                 chestInfo.cost = Integer.parseInt(matcher.group(1).replace(",", ""));
             }
         }
 
         boolean alwaysBuy = false;
         for (int i = 0; i < itemLines.size(); i++) {
-            String itemLine = itemLines.get(i);
+            String itemLine = ChatFormatting.stripFormatting(itemLines.get(i));
             Component component = components.get(i);
             ChestItem item = parseItem(itemLine, component);
             if(item == null) continue;
@@ -507,11 +507,11 @@ public class AutoCroesus extends Module {
                 ult = comp.getStyle().isBold() && comp.getStyle().getColor() != null && comp.getStyle().getColor().equals(ULT_COLOUR);;
             }
 
-            String bookName = matcher.group(2);
-            String levelNumeral = matcher.group(3);
+            String bookName = matcher.group(1);
+            String levelNumeral = matcher.group(2);
 
             int tier;
-            if(!NumberUtils.isInteger(levelNumeral)) {
+            if (!NumberUtils.isInteger(levelNumeral)) {
                 tier = NumberUtils.convertRomanToArabic(levelNumeral);
             } else {
                 tier = Integer.parseInt(levelNumeral);

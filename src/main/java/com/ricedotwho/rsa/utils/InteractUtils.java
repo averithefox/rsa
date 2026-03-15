@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.utils;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.data.Pos;
@@ -110,12 +111,22 @@ public class InteractUtils implements Accessor {
     }
 
     public void breakBlock(Pos pos, boolean remove, boolean sync) {
+        breakBlock(pos, remove, false, sync);
+    }
+
+    public void breakBlock(Pos pos, boolean remove, boolean abort, boolean sync) {
         if (faceDistance(pos.asVec3(), mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0)) > BLOCK_RANGE) return;
+        BlockPos bp = pos.asBlockPos();
+        BlockState state = mc.level.getBlockState(bp);
+        if (state.getShape(mc.level, bp).isEmpty()) {
+            RSA.chat("Cannot break empty block!");
+            return;
+        }
         Direction dir = closestFace(pos.asVec3(), mc.player.getEyePosition());
         PacketOrderManager.register(PacketOrderManager.STATE.ATTACK, () -> {
-            BlockPos bp = pos.asBlockPos();
             SwapManager.sendC07(bp, ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK, dir, true, sync);
             if (remove) mc.level.setBlock(bp, Blocks.AIR.defaultBlockState(), 0);
+            else if (abort) SwapManager.sendC07(bp, ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK, Direction.DOWN, false, sync);
         });
     }
 

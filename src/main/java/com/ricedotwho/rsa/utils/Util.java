@@ -1,16 +1,10 @@
 package com.ricedotwho.rsa.utils;
 
 import com.ricedotwho.rsm.utils.Accessor;
-import lombok.Getter;
 import lombok.experimental.UtilityClass;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.TickRateManager;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.shapes.VoxelShape;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

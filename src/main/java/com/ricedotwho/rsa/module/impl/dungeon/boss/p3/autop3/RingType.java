@@ -31,7 +31,8 @@ public enum RingType {
     USE("use", UseRing::new, 0.011f, Set.of(), null),
     CHAT("chat", ChatRing::new, 0.012f, Set.of("message"), null),
     COMMAND("command", CommandRing::new, 0.013f, Set.of("command"), null),
-    BLINK("blink", BlinkRing::new, 0.014f, Set.of(), null);
+    BLINK("blink", BlinkRing::new, 0.014f, Set.of(), null),
+    PET("pet", PetRing::new, 0.015f, Set.of("uuid"), null);
 
 
     @Getter

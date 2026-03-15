@@ -206,6 +206,9 @@ public class BBGCommand extends Command {
                 case "b", "blink" -> {
                     if (stringValue != null && value != null) dataMap.put("blink", value.intValue());
                 }
+                case "uuid" -> {
+                    if (stringValue != null) dataMap.put("uuid", stringValue);
+                }
             }
             RingArgType a = RingArgType.fromAliases(key.toLowerCase());
             if (a != null) {

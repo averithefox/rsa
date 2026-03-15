@@ -72,7 +72,7 @@ public class BreakerAura extends Module {
 
     @SubscribeEvent
     public void onTick(ClientTickEvent.Start event) {
-        if (!Location.getArea().is(Island.Dungeon) || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || edit.getValue() || mc.level == null || mc.player == null || charges <= 0) return;
+        if (!Location.getArea().is(Island.Dungeon) || mc.player == null || !DungeonUtils.isPositionInF7Boss(mc.player.position()) || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || edit.getValue() || mc.level == null || charges <= 0) return;
 
         if (zeroTick.getValue()) {
             List<Pos> f = data.getValue().stream().filter(p -> {

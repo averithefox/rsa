@@ -233,7 +233,11 @@ public class SwapManager {
             }
         }
 
-        ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode).sendPacketSequenced(Minecraft.getInstance().level, sequence -> new ServerboundPlayerActionPacket(action, result, face, sequence));
+        if (action == ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK) {
+            Minecraft.getInstance().getConnection().send(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK, result, Direction.DOWN, 0));
+        } else {
+            ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode).sendPacketSequenced(Minecraft.getInstance().level, sequence -> new ServerboundPlayerActionPacket(action, result, face, sequence));
+        }
         if (swing) Minecraft.getInstance().player.swing(InteractionHand.MAIN_HAND);
         return true;
     }

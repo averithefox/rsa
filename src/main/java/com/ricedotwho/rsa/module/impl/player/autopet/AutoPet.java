@@ -1,6 +1,9 @@
-package com.ricedotwho.rsa.module.impl.player;
+package com.ricedotwho.rsa.module.impl.player.autopet;
 
-import com.ricedotwho.rsa.module.impl.player.pet.PetRule;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.GsonBuilder;
+import com.ricedotwho.rsa.RSA;
+import com.ricedotwho.rsa.module.impl.player.autopet.pet.PetRule;
 import com.ricedotwho.rsa.utils.GuiUtils;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.location.Location;
@@ -14,14 +17,17 @@ import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.ModeSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.SaveSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
-import net.fabricmc.fabric.mixin.screen.HandledScreenMixin;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
@@ -36,9 +42,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-@ModuleInfo(aliases = "Auto Auto Pet", id = "AutoAutoPet", category = Category.PLAYER)
-public class AutoAutoPet extends Module {
-    private boolean swapping;
+@ModuleInfo(aliases = "Auto Pet", id = "AutoPet", category = Category.PLAYER)
+public class AutoPet extends Module {
+    private boolean swapping, listing;
     private boolean awaitingOpen;
     private boolean awaitingPhoenix;
     private boolean clicked;
@@ -50,36 +56,47 @@ public class AutoAutoPet extends Module {
     private BooleanSetting yap = new BooleanSetting("Feedback", true);
     private ModeSetting phoenixSwap = new ModeSetting("Phoenix Swap", "Death Tick", List.of("None", "Death Tick", "Duration", "Use"));
     private int phoenixTicks = -1;
-    private List<PetRule> petRules;
+    private final SaveSetting<List<PetRule>> rules = new SaveSetting<>("Rules", "player", "autopet.json", ArrayList::new,
+            new TypeToken<List<PetRule>>(){}.getType(),
+            new GsonBuilder()
+                    .registerTypeHierarchyAdapter(PetRule.class, new PetRuleAdapter())
+                    .setPrettyPrinting().create(),
+            false, this::reload, null);
 
-
-    public AutoAutoPet() {
-        this.petRules = new ArrayList<>();
+    public AutoPet() {
         registerProperty(
                 yap,
-                phoenixSwap
+                phoenixSwap,
+                rules
         );
         clear();
     }
 
+    private void reload() {
+        // todo: on unload they should unsubscribe
+        rules.getValue().forEach(r -> RSM.getInstance().getEventBus().register(r));
+    }
+
     public void removeRule(int index) {
-        if (index < 0 || index >= petRules.size()) return;
-        PetRule rule = petRules.remove(index);
+        if (index < 0 || index >= rules.getValue().size()) return;
+        PetRule rule = rules.getValue().remove(index);
         RSM.getInstance().getEventBus().unregister(rule);
     }
 
     public Iterator<PetRule> iterateRules() {
-        return petRules.iterator();
+        return rules.getValue().iterator();
     }
 
     public void addPetRule(PetRule petRule) {
-        this.petRules.add(petRule);
+        this.rules.getValue().add(petRule);
+        this.rules.save();
         RSM.getInstance().getEventBus().register(petRule);
     }
 
     @SubscribeEvent
     public void onWorldLoad(WorldEvent.Load event) {
         this.swapping = false;
+        this.listing = false;
         this.phoenixTicks = -1;
         this.awaitingPhoenix = false;
         clear();
@@ -87,7 +104,6 @@ public class AutoAutoPet extends Module {
 
     @Override
     public void onDisable() {
-        super.onDisable();
         swapping = false;
         this.phoenixTicks = -1;
         this.awaitingPhoenix = false;
@@ -96,17 +112,23 @@ public class AutoAutoPet extends Module {
 
     @Override
     public void onEnable() {
-        super.onEnable();
         swapping = false;
+        listing = false;
         this.phoenixTicks = -1;
         this.awaitingPhoenix = false;
         clear();
     }
 
     public void swapTo(String swapID) {
-        if (Minecraft.getInstance().getConnection() == null || swapping || swapID.isEmpty()) return;
+        if (Minecraft.getInstance().getConnection() == null || swapping || listing || swapID.isEmpty()) return;
         this.swapID = swapID.toLowerCase();
         this.swapping = true;
+        Minecraft.getInstance().getConnection().sendCommand("pet");
+    }
+
+    public void listPets() {
+        if (Minecraft.getInstance().getConnection() == null || swapping || listing) return;
+        this.listing = true;
         Minecraft.getInstance().getConnection().sendCommand("pet");
     }
 
@@ -128,7 +150,7 @@ public class AutoAutoPet extends Module {
             return;
         }
 
-        if (phoenixSwap.getIndex() == 1 && phoenixTicks <= 0 && event.getTime() % 60 == 0) {
+        if (phoenixSwap.getIndex() == 1 && phoenixTicks <= 0 && event.getTime() % 40 == 0) {
             swapTo(last);
             return;
         }
@@ -144,20 +166,18 @@ public class AutoAutoPet extends Module {
     @SubscribeEvent
     public void onReceivePacket(PacketEvent.Receive event) {
         if (Minecraft.getInstance().player == null || !Location.isHypixel() || !Location.isInSkyblock()) return;
-        if (swapping && event.getPacket() instanceof ClientboundOpenScreenPacket openScreenPacket && !swapID.isEmpty()) { // Only check for swapping here so we don't get errors if swap changes during other sections
+        if ((swapping || listing) && event.getPacket() instanceof ClientboundOpenScreenPacket openScreenPacket && !swapID.isEmpty()) { // Only check for swapping here so we don't get errors if swap changes during other sections
             clear();
             if (openScreenPacket.getContainerId() < 1 || openScreenPacket.getContainerId() > 100) return;
             this.clicked = false;
             if (openScreenPacket.getTitle().getString().equals("Pets")) {
                 this.container = openScreenPacket.getType().create(openScreenPacket.getContainerId(), Minecraft.getInstance().player.getInventory());
                 this.awaitingOpen = true;
-
-                if (Minecraft.getInstance().screen != null && Minecraft.getInstance().screen instanceof AbstractContainerScreen<?>) {
-                    // Close screen
-                    // may or may not need to send close packet not sure maybe just set screen to null
+                event.setCancelled(true);
+                if (Minecraft.getInstance().screen instanceof AbstractContainerScreen<?> abstractContainerScreen && abstractContainerScreen.getMenu().containerId != 0) {
+                    // o7 Balding
                     Minecraft.getInstance().setScreen(null);
                 }
-                event.setCancelled(true);
             } else {
                 this.container = null;
                 this.awaitingOpen = false;
@@ -172,40 +192,61 @@ public class AutoAutoPet extends Module {
             container.setItem(packet.getSlot(), packet.getStateId(), packet.getItem());
 
             if (packet.getSlot() < 10) return; // First pet slot
-            if (this.swapping && packet.getSlot() > 43 && awaitingOpen) { // Last pet slot
-                this.swapping = false;
-                if (!foundPet)
-                    ChatUtils.chat("Failed to find pet " + swapID + "!");
-                close();
-                return;
+
+
+            if (swapping) {
+                if (packet.getSlot() > 43 && awaitingOpen) {
+                    this.swapping = false;
+                    if (!foundPet)
+                        ChatUtils.chat("Failed to find pet " + swapID + "!");
+                    close();
+                    return;
+                }
+
+                ItemStack item = packet.getItem();
+                if (!item.getItem().equals(Items.PLAYER_HEAD)) return;
+
+                foundPet = true;
+                boolean isPhoenix = item.getDisplayName().getString().contains("Phoenix");
+
+                if (((ItemLore) item.getOrDefault(DataComponents.LORE, CustomData.EMPTY)).lines().stream().anyMatch(p -> p.getString().equals("Click to despawn!"))) {
+                    // Check if it's a phoenix before setting to last
+                    if (isPhoenix) return;
+                    this.last = ItemUtils.getUUID(item);
+                    return;
+                }
+
+                if (clicked || !awaitingOpen) return; // Don't return earlier so we can check last
+                if (!ChatFormatting.stripFormatting(item.getHoverName().getString()).toLowerCase().contains(swapID) && !ItemUtils.getUUID(item).equals(swapID)  && !ItemUtils.getID(item).equals(swapID)) return;
+
+                GuiUtils.sendWindowClick(packet.getSlot(), mc.player, this.container);
+                if (yap.getValue()) ChatUtils.chat(Component.literal("Swapping to ").append(item.getDisplayName()));
+                this.phoenixTicks = -1;
+                if (isPhoenix && phoenixSwap.getIndex() == 2) phoenixTicks = 45;
+                if (isPhoenix && phoenixSwap.getIndex() == 1) phoenixTicks = 5;
+                this.awaitingPhoenix = isPhoenix;
+
+                awaitingOpen = false;
+                swapping = false;
+            } else if (listing) {
+                if (packet.getSlot() > 43 && awaitingOpen) {
+                    listing = false;
+                    close();
+                    return;
+                }
+
+                // listing pets
+                ItemStack item = packet.getItem();
+                if (!item.getItem().equals(Items.PLAYER_HEAD)) return;
+                String uuid = ItemUtils.getUUID(item);
+                if (uuid.isBlank()) return;
+                // now i should chat the pet name and the uuid as a click to copy component
+
+                Component hover = Component.literal("Click to copy UUID").withStyle(ChatFormatting.YELLOW);
+                Style style = Style.EMPTY.withClickEvent(new ClickEvent.CopyToClipboard(ItemUtils.getUUID(item))).withHoverEvent(new HoverEvent.ShowText(hover));
+                Component text = item.getHoverName().copy().setStyle(style);
+                RSA.chat(text);
             }
-
-
-            ItemStack item = packet.getItem();
-            if (!item.getItem().equals(Items.PLAYER_HEAD)) return;
-
-            foundPet = true;
-            boolean isPhoenix = item.getDisplayName().getString().contains("Phoenix");
-
-            if (((ItemLore) item.getOrDefault(DataComponents.LORE, CustomData.EMPTY)).lines().stream().anyMatch(p -> p.getString().equals("Click to despawn!"))) {
-                // Check if it's a phoenix before setting to last
-                if (isPhoenix) return;
-                this.last = ItemUtils.getUUID(item);
-                return;
-            }
-
-            if (clicked || !awaitingOpen) return; // Don't return earlier so we can check last
-            if (!ChatFormatting.stripFormatting(item.getHoverName().getString()).toLowerCase().contains(swapID) && !ItemUtils.getUUID(item).equals(swapID)  && !ItemUtils.getID(item).equals(swapID)) return;
-
-            GuiUtils.sendWindowClick(packet.getSlot(), mc.player, this.container);
-            if (yap.getValue()) ChatUtils.chat(Component.literal("Swapping to ").append(item.getDisplayName()));
-            this.phoenixTicks = -1;
-            if (isPhoenix && phoenixSwap.getIndex() == 2) phoenixTicks = 65;
-            if (isPhoenix && phoenixSwap.getIndex() == 1) phoenixTicks = 5;
-            this.awaitingPhoenix = isPhoenix;
-
-            awaitingOpen = false;
-            swapping = false;
         }
 
         if (event.getPacket() instanceof ClientboundContainerClosePacket packet) {

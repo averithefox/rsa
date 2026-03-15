@@ -97,7 +97,8 @@ public class Blink extends Module {
 
     public static boolean onSendPacket(Packet<?> packet) {
         if (INSTANCE == null) INSTANCE = RSM.getModule(Blink.class);
-        return INSTANCE.onPreSendPacket(packet);
+        // if the instance is still null after this, the module should probably just be disabled as well
+        return INSTANCE != null && INSTANCE.onPreSendPacket(packet);
     }
 
     // Holy schizo

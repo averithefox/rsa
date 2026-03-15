@@ -67,7 +67,8 @@ public class VelocityBuffer extends Module {
 
     public static boolean onReceivePacketPre(Packet<?> packet) {
         if (INSTANCE == null) INSTANCE = RSM.getModule(VelocityBuffer.class);
-        return INSTANCE.onReceivePacket(packet);
+        // if the instance is still null after this, the module should probably just be disabled as well
+        return INSTANCE != null && INSTANCE.onReceivePacket(packet);
     }
 
     private boolean onReceivePacket(Packet<?> packet) {

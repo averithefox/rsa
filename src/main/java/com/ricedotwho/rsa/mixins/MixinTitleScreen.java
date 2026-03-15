@@ -1,6 +1,6 @@
 package com.ricedotwho.rsa.mixins;
 
-import com.ricedotwho.rsa.screen.SessionLoginScreen;
+import com.ricedotwho.rsa.screen.sidl.SessionLoginScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -20,7 +20,7 @@ public class MixinTitleScreen extends Screen {
 
     @Inject(at = @At("HEAD"), method = "init")
     private void onInit(CallbackInfo ci) {
-        Button theButton = Button.builder(Component.literal("Session Login"), button -> Minecraft.getInstance().setScreen(SessionLoginScreen.getInstance())).width(100).pos(this.width - 110, 20).build();
+        Button theButton = Button.builder(Component.literal("Session Login"), button -> Minecraft.getInstance().setScreen(SessionLoginScreen.getInstance())).width(100).pos(this.width - 110, 10).build();
         this.addRenderableWidget(theButton);
     }
 }
