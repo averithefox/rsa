@@ -16,8 +16,10 @@ import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.ModeSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
+import net.fabricmc.fabric.mixin.screen.HandledScreenMixin;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket;
@@ -126,7 +128,7 @@ public class AutoAutoPet extends Module {
             return;
         }
 
-        if (phoenixSwap.getIndex() == 1 && phoenixTicks <= 0 && event.getTime() % 40 == 0) {
+        if (phoenixSwap.getIndex() == 1 && phoenixTicks <= 0 && event.getTime() % 60 == 0) {
             swapTo(last);
             return;
         }
@@ -149,6 +151,12 @@ public class AutoAutoPet extends Module {
             if (openScreenPacket.getTitle().getString().equals("Pets")) {
                 this.container = openScreenPacket.getType().create(openScreenPacket.getContainerId(), Minecraft.getInstance().player.getInventory());
                 this.awaitingOpen = true;
+
+                if (Minecraft.getInstance().screen != null && Minecraft.getInstance().screen instanceof AbstractContainerScreen<?>) {
+                    // Close screen
+                    // may or may not need to send close packet not sure maybe just set screen to null
+                    Minecraft.getInstance().setScreen(null);
+                }
                 event.setCancelled(true);
             } else {
                 this.container = null;
@@ -192,7 +200,7 @@ public class AutoAutoPet extends Module {
             GuiUtils.sendWindowClick(packet.getSlot(), mc.player, this.container);
             if (yap.getValue()) ChatUtils.chat(Component.literal("Swapping to ").append(item.getDisplayName()));
             this.phoenixTicks = -1;
-            if (isPhoenix && phoenixSwap.getIndex() == 2) phoenixTicks = 45;
+            if (isPhoenix && phoenixSwap.getIndex() == 2) phoenixTicks = 65;
             if (isPhoenix && phoenixSwap.getIndex() == 1) phoenixTicks = 5;
             this.awaitingPhoenix = isPhoenix;
 
