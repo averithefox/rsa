@@ -37,9 +37,12 @@ import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import org.apache.logging.log4j.LogManager;
@@ -51,6 +54,8 @@ import java.util.List;
 
 public class RSA implements Addon {
 
+    @Getter
+    public static boolean notInTestEnv;
     @Getter
     private static final Logger logger = LogManager.getLogger("rsa");
     public static Path SOUNDS_FOLDER;
@@ -73,6 +78,18 @@ public class RSA implements Addon {
         EffectsAndRender.init();
 
         Renderer3D.registerLine(Ring.class);
+
+        //server check
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+            ClientPacketListener conn = client.getConnection();
+            if (conn == null) {
+                notInTestEnv = false;
+                return;
+            }
+            String address = conn.getConnection().getRemoteAddress().toString();
+            notInTestEnv = !address.contains("hypixelp3sim.zapto.org");
+        });
+
 
         SOUNDS_FOLDER = FabricLoader.getInstance()
                 .getConfigDir()
@@ -132,7 +149,8 @@ public class RSA implements Addon {
                 AutoPet.class,
                 Blink.class,
                 InstantClear.class,
-                BloodCamp.class
+                BloodCamp.class,
+                FreezeState.class
         );
     }
 
@@ -157,7 +175,8 @@ public class RSA implements Addon {
                 SecretAuraCommand.class,
                 VelocityBufferCommand.class,
                 AutoPetCommand.class,
-                RotateCommand.class
+                RotateCommand.class,
+                StopwatchCommand.class
         );
     }
 
