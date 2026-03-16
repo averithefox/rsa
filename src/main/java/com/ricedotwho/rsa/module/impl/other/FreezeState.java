@@ -72,6 +72,7 @@ public class FreezeState extends Module {
     public void onTick(ClientTickEvent.Start event) {
         if (RSA.notInTestEnv) return;
         if (!frozen) return;
+        if (Minecraft.getInstance().screen != null) return;
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null || PLAYER_POS.isEmpty()) return;
 
