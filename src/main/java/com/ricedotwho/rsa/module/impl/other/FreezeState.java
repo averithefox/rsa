@@ -33,12 +33,14 @@ public class FreezeState extends Module {
     // RSA.notInTestEnv; on servers = true, on singleplayer/p3sim = false
     private static final List<Vec3> PLAYER_POS = new ArrayList();
     private static int currentTick;
-    int delay = heldDelay.getValue().intValue();
+    private int aHolding = 0;
+    private int rHolding  = 0;
+    private static final int delay = 5;
+    private static final int repeat = 3;
     private static final NumberSetting tickDelay = new NumberSetting("Amount of ticks", 1, 200, 20, 1);
-    private static final NumberSetting heldDelay = new NumberSetting("Held Delay", 1, 10, 2, 1);
     private static final KeybindSetting freezeKey = new KeybindSetting("Freeze Key", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, FreezeState::toggleFreeze));
-    private static final KeybindSetting advanceTick = new KeybindSetting("Advance Tick Key", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, FreezeState::advanceTick));
-    private static final KeybindSetting rewindTick = new KeybindSetting("Rewind Tick Key", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, FreezeState::rewindTick));
+    private static final KeybindSetting advanceTick = new KeybindSetting("Advance Tick Key", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> {} ));
+    private static final KeybindSetting rewindTick = new KeybindSetting("Rewind Tick Key", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> {}));
 
 
     public FreezeState() {
@@ -46,8 +48,7 @@ public class FreezeState extends Module {
                 freezeKey,
                 advanceTick,
                 rewindTick,
-                tickDelay,
-                heldDelay
+                tickDelay
         );
     }
 
@@ -67,53 +68,38 @@ public class FreezeState extends Module {
         frozen = !frozen;
     }
 
-    public static void advanceTick(){
-        if(!frozen) return;
-        if(RSA.notInTestEnv) return;
-        LocalPlayer player = mc.player;
-        if(player == null) return;
-        if(currentTick >= PLAYER_POS.size()) return;
-
-        if(PLAYER_POS.size() > 1) currentTick++;
-    }
-
-    public static void rewindTick(){
-        if(!frozen) return;
-        if(RSA.notInTestEnv) return;
-        LocalPlayer player = mc.player;
-        if(player == null) return;
-
-        if(PLAYER_POS.size() > 1) {
-            currentTick--;
-        }
-    }
-
     @SubscribeEvent
     public void onTick(ClientTickEvent.Start event) {
-        if(RSA.notInTestEnv) return;
-        if(frozen) {
-            LocalPlayer player = Minecraft.getInstance().player;
-            if(player == null) return;
-            if(currentTick >= PLAYER_POS.size()) return;
-            if(PLAYER_POS.isEmpty()) return;
-            boolean advance = advanceTick.getValue().isActive();
-            boolean rewind = rewindTick.getValue().isActive();
-            if(advance) {
-                if(delay > 0) {
-                    delay--;
-                    return;
-                }
-                advanceTick();
-                delay = 2;
+        if (RSA.notInTestEnv) return;
+        if (!frozen) return;
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null || PLAYER_POS.isEmpty()) return;
+
+        boolean adv = advanceTick.getValue().isActive();
+        boolean rew = rewindTick.getValue().isActive();
+
+        if (adv) {
+            if (aHolding == 0) {
+                if (currentTick < PLAYER_POS.size() - 1) currentTick++;
+            } else if (aHolding >= delay
+                    && (aHolding - delay) % repeat == 0) {
+                if (currentTick < PLAYER_POS.size() - 1) currentTick++;
             }
-            if(rewind) {
-                if(delay > 0) {
-                    delay--;
-                    return;
-                }
-                rewindTick();
-                delay = 2;
+            aHolding++;
+        } else {
+            aHolding = 0;
+        }
+
+        if (rew) {
+            if (rHolding == 0) {
+                if (currentTick > 0) currentTick--;
+            } else if (rHolding >= delay
+                    && (rHolding - delay) % repeat == 0) {
+                if (currentTick > 0) currentTick--;
             }
+            rHolding++;
+        } else {
+            rHolding = 0;
         }
     }
 
