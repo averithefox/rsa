@@ -5,6 +5,7 @@ import com.ricedotwho.rsa.component.impl.TickFreeze;
 import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
+import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.event.impl.render.Render3DEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
@@ -32,8 +33,9 @@ public class FreezeState extends Module {
     // RSA.notInTestEnv; on servers = true, on singleplayer/p3sim = false
     private static final List<Vec3> PLAYER_POS = new ArrayList();
     private static int currentTick;
-
+    int delay = heldDelay.getValue().intValue();
     private static final NumberSetting tickDelay = new NumberSetting("Amount of ticks", 1, 200, 20, 1);
+    private static final NumberSetting heldDelay = new NumberSetting("Held Delay", 1, 10, 2, 1);
     private static final KeybindSetting freezeKey = new KeybindSetting("Freeze Key", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, FreezeState::toggleFreeze));
     private static final KeybindSetting advanceTick = new KeybindSetting("Advance Tick Key", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, FreezeState::advanceTick));
     private static final KeybindSetting rewindTick = new KeybindSetting("Rewind Tick Key", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, FreezeState::rewindTick));
@@ -44,7 +46,8 @@ public class FreezeState extends Module {
                 freezeKey,
                 advanceTick,
                 rewindTick,
-                tickDelay
+                tickDelay,
+                heldDelay
         );
     }
 
@@ -60,7 +63,6 @@ public class FreezeState extends Module {
 
     private static void toggleFreeze(){
         if(RSA.notInTestEnv) return;
-        LocalPlayer player = mc.player;
         currentTick = PLAYER_POS.size();
         frozen = !frozen;
     }
@@ -72,9 +74,7 @@ public class FreezeState extends Module {
         if(player == null) return;
         if(currentTick >= PLAYER_POS.size()) return;
 
-        if(PLAYER_POS.size() > 1) {
-            currentTick++;
-        }
+        if(PLAYER_POS.size() > 1) currentTick++;
     }
 
     public static void rewindTick(){
@@ -85,6 +85,35 @@ public class FreezeState extends Module {
 
         if(PLAYER_POS.size() > 1) {
             currentTick--;
+        }
+    }
+
+    @SubscribeEvent
+    public void onTick(ClientTickEvent.Start event) {
+        if(RSA.notInTestEnv) return;
+        if(frozen) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if(player == null) return;
+            if(currentTick >= PLAYER_POS.size()) return;
+            if(PLAYER_POS.isEmpty()) return;
+            boolean advance = advanceTick.getValue().isActive();
+            boolean rewind = rewindTick.getValue().isActive();
+            if(advance) {
+                if(delay > 0) {
+                    delay--;
+                    return;
+                }
+                advanceTick();
+                delay = 2;
+            }
+            if(rewind) {
+                if(delay > 0) {
+                    delay--;
+                    return;
+                }
+                rewindTick();
+                delay = 2;
+            }
         }
     }
 

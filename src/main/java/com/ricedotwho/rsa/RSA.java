@@ -83,11 +83,13 @@ public class RSA implements Addon {
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             ClientPacketListener conn = client.getConnection();
             if (conn == null) {
-                notInTestEnv = false;
+                notInTestEnv = true;
                 return;
             }
             String address = conn.getConnection().getRemoteAddress().toString();
-            notInTestEnv = !address.contains("hypixelp3sim.zapto.org");
+            boolean isTestServer = address.contains("hypixelp3sim.zapto.org");
+            boolean isSingleplayer = client.hasSingleplayerServer();
+            notInTestEnv = !isTestServer && !isSingleplayer;
         });
 
 
