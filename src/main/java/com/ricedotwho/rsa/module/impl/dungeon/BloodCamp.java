@@ -1,9 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
-import com.ricedotwho.rsa.RSA;
-import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.utils.PlayerUtils;
-import com.ricedotwho.rsm.component.impl.EventComponent;
 import com.ricedotwho.rsm.component.impl.Ping;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.component.impl.map.Map;
@@ -28,20 +25,18 @@ import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.ColourSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.ModeSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
 import com.ricedotwho.rsm.utils.NumberUtils;
 import com.ricedotwho.rsm.utils.RotationUtils;
 import com.ricedotwho.rsm.utils.render.render3d.type.Line;
 import com.ricedotwho.rsm.utils.render.render3d.type.OutlineBox;
 import com.ricedotwho.rsm.utils.render.render3d.type.Text;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import net.fabricmc.loader.impl.lib.sat4j.core.Vec;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.monster.Zombie;
@@ -50,14 +45,15 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-import java.awt.*;
-import java.util.*;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 @Getter
-@ModuleInfo(aliases = "Blood Camp", id = "BloodCamp", category = Category.DUNGEONS)
+@ModuleInfo(aliases = "byebyewatcher", id = "BloodCamp", category = Category.DUNGEONS)
 public class BloodCamp extends Module {
 
     private final BooleanSetting assist = new BooleanSetting("Assist", true);
@@ -79,7 +75,7 @@ public class BloodCamp extends Module {
     private final BooleanSetting interpolation = new BooleanSetting("Interpolation", true);
 
     private final DefaultGroupSetting auto = new DefaultGroupSetting("Auto", this);
-    private final ModeSetting mode = new ModeSetting("Mode", "Off", List.of("Off", "Auto", "Triggerbot"));
+    private final ModeSetting mode = new ModeSetting("Mode", "Off", List.of("Off", "Auto", "Triggerbot", "Click"));
     private final NumberSetting click = new NumberSetting("Pre", 0, 20, 1, 1);
     private final BooleanSetting mageOnly = new BooleanSetting("Mage Only", true);
     private final BooleanSetting clickOnSpawn = new BooleanSetting("Click on spawn even if pre", true);
@@ -122,6 +118,7 @@ public class BloodCamp extends Module {
             "ewogICJ0aW1lc3RhbXAiIDogMTU5ODk3NzI1OTM1NywKICAicHJvZmlsZUlkIiA6ICJlNzkzYjJjYTdhMmY0MTI2YTA5ODA5MmQ3Yzk5NDE3YiIsCiAgInByb2ZpbGVOYW1lIiA6ICJUaGVfSG9zdGVyX01hbiIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9jMTAwN2M1YjcxMTRhYmVjNzM0MjA2ZDRmYzYxM2RhNGYzYTBlOTlmNzFmZjk0OWNlZGFkYzk5MDc5MTM1YTBiIgogICAgfQogIH0KfQ=="
     );
 
+    private static final AABB HITBOX = new AABB(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5);
     private static final Pattern BLOOD_START_REGEX = Pattern.compile("^\\[BOSS] The Watcher: (Congratulations, you made it through the Entrance\\.|Ah, you've finally arrived\\.|Ah, we meet again\\.\\.\\.|So you made it this far\\.\\.\\. interesting\\.|You've managed to scratch and claw your way here, eh\\?|I'm starting to get tired of seeing you around here\\.\\.\\.|Oh\\.\\. hello\\?|Things feel a little more roomy now, eh\\?)$");
     private static final Pattern BLOOD_MOVE_REGEX = Pattern.compile("^\\[BOSS] The Watcher: Let's see how you can handle this\\.$");
 
@@ -157,28 +154,30 @@ public class BloodCamp extends Module {
     @SubscribeEvent
     public void onEntityMove(PacketEvent.Receive event) {
         if (!(event.getPacket() instanceof ClientboundMoveEntityPacket packet)) return;
-        if (packet.getXa() == (short) 0 && packet.getYa() == (short) 0 && packet.getZa() == (short) 0 || mc.level == null || mc.player == null || !Dungeon.isStarted() || Dungeon.isInBoss() || currentWatcher == null) return;
-        if (!(packet.getEntity(mc.level) instanceof ArmorStand entity) || currentWatcher.distanceTo(entity) > 40) return;
+        if (!packet.hasPosition() || packet.getXa() == (short) 0 && packet.getYa() == (short) 0 && packet.getZa() == (short) 0 || mc.level == null || mc.player == null || !Dungeon.isStarted() || Dungeon.isInBoss() || currentWatcher == null) return;
+        if (!(packet.getEntity(mc.level) instanceof ArmorStand entity) || currentWatcher.distanceTo(entity) > 20) return;
         ItemStack head = entity.getItemBySlot(EquipmentSlot.HEAD);
         if (!head.is(Items.PLAYER_HEAD)) return;
         String tex = ItemUtils.getTexture(head);
         if (tex == null || !ALLOWED_SKULLS.contains(tex)) return;
 
-        Vec3 packetVector = new Vec3(entity.getX() + (packet.getXa() / 4096.0), entity.getY() + (packet.getYa() / 4096.0), entity.getZ() + (packet.getZa() / 4096.0));
+        Vec3 delta = new Vec3(
+                packet.getXa() / 4096.0,
+                packet.getYa() / 4096.0,
+                packet.getZa() / 4096.0
+        );
 
-        EntityData data = entityMap.computeIfAbsent(entity, k -> new EntityData(packetVector, currentTickTime, firstSpawns));
-        Vec3 delta = packetVector.subtract(data.lastPos);
+        Vec3 packetVector = entity.position().add(delta);
+
+        EntityData data = entityMap.computeIfAbsent(entity, k -> new EntityData(entity.position(), currentTickTime, firstSpawns, entity.position()));
         data.lastPos = packetVector;
 
-        if (delta.lengthSqr() > 0) data.deltaHistory.addLast(delta);
+        Vec3 totalDelta = packetVector.subtract(data.startVector);
 
-        Vec3 acc = Vec3.ZERO;
-        for (Vec3 d : data.deltaHistory) {
-            acc = acc.add(d);
-        }
-        Vec3 totalDelta = acc;
+        Vec3 endPoint = data.startVector.add(
+                (totalDelta.lengthSqr() > 0 ? totalDelta.normalize() : Vec3.ZERO)
+                        .scale(data.firstSpawns ? 16.1 : 11.9));
 
-        Vec3 endPoint = data.startVector.add((totalDelta.lengthSqr() > 0 ? totalDelta.normalize() : Vec3.ZERO).scale(firstSpawns ? 16.1 : 11.9));
         long timeTook = currentTickTime - data.started;
         Vec3 speedVec = new Vec3(
                 (packetVector.x() - data.startVector.x()) / timeTook,
@@ -217,19 +216,32 @@ public class BloodCamp extends Module {
             toClick = null;
             return;
         }
+
+        Vec3 pos = toClick.pos.add(0, 2, 0);
+
+        // looking check
+        if (mode.is("Triggerbot")) {
+            Vec3 eyePos = mc.player.position().add(0.0d, mc.player.getEyeHeight(), 0.0d);
+            Vec3 end = eyePos.add(mc.player.getLookAngle().scale(25));
+            AABB aabb = HITBOX.move(pos);
+            if (aabb.clip(eyePos, end).isEmpty()) return;
+        }
+
         clicked.add(toClick.entity().getUUID());
         click(toClick.pos.add(0, 2, 0), false);
     }
 
     private void click(Vec3 target, boolean delay) {
-        if (mode.is("Auto") && target != null) {
+        if (mode.is("Auto")) {
             Vec3 eyePos = mc.player.position().add(0.0d, mc.player.getEyeHeight(), 0.0d);
             Rotation rot = RotationUtils.getRotation(eyePos, target);
             mc.player.setYRot(rot.getYaw());
             mc.player.setXRot(rot.getPitch());
-        }
-        if (delay) {
-            TaskComponent.onTick(PlayerUtils::leftClick);
+            if (delay) {
+                TaskComponent.onTick(PlayerUtils::leftClick);
+            } else {
+                PlayerUtils.leftClick();
+            }
         } else {
             PlayerUtils.leftClick();
         }
@@ -263,6 +275,7 @@ public class BloodCamp extends Module {
     public void onRemoveEntity(PacketEvent.Receive event) {
         if (!(event.getPacket() instanceof ClientboundRemoveEntitiesPacket packet) || currentWatcher == null) return;
         if (packet.getEntityIds().contains(currentWatcher.getId())) currentWatcher = null;
+        boolean noClick = mode.is("Off") || firstSpawns || Map.getCurrentRoom() == null || Map.getCurrentRoom().getData().type() != RoomType.BLOOD;
 
         for (int i : packet.getEntityIds()) {
             if (!(mc.level.getEntity(i) instanceof ArmorStand entity)) continue;
@@ -271,11 +284,21 @@ public class BloodCamp extends Module {
             String tex = ItemUtils.getTexture(head);
             if (tex == null || !ALLOWED_SKULLS.contains(tex)) continue;
             EntityData d = entityMap.remove(entity);
-            if (d != null && d.firstSpawns) return;
+            if (d != null && d.firstSpawns || noClick) continue;
 
-            if ((click.getValue().intValue() == 0 || (!clicked.contains(entity.getUUID()) || clickOnSpawn.getValue())) && !isMage()) {
-                // we should rotate and click at this spot
-                click(entity.position().add(0, 2, 0), true);
+            if ((click.getValue().intValue() == 0 || (!clicked.contains(entity.getUUID()) || clickOnSpawn.getValue())) && isMage()) {
+                Vec3 delta = entity.oldPosition().subtract(entity.position());
+                Vec3 pos = entity.position().subtract(delta).add(0, 1, 0);
+
+                if (mode.is("Triggerbot")) {
+                    Vec3 eyePos = mc.player.position().add(0.0d, mc.player.getEyeHeight(), 0.0d);
+                    Vec3 end = eyePos.add(mc.player.getLookAngle().scale(25));
+                    AABB aabb = HITBOX.move(pos);
+                    if (aabb.clip(eyePos, end).isEmpty()) continue;
+                }
+
+                click(pos, true);
+                return;
             }
         }
     }
@@ -283,23 +306,25 @@ public class BloodCamp extends Module {
     @SubscribeEvent
     public void onRender(Render3DEvent.Extract event) {
         if (!assist.getValue() || !Dungeon.isStarted() || Dungeon.isInBoss()) return;
-        float boxSizeF = boxSize.getValue().floatValue();
-        Vec3 boxOffset = new Vec3(boxSizeF / -2f, 1.5, boxSizeF / -2f);
-        float partial = event.getContext().camera().getPartialTickTime();
+        float boxSizeF = this.boxSize.getValue().floatValue();
+        Vec3 boxOffset = new Vec3(boxSizeF / -2.0, 1.5, boxSizeF / -2.0);
+        float partial = event.getContext().gameRenderer().getMainCamera().getPartialTickTime();
 
         renderMap.forEach((entity, render) -> {
             if (!entity.isAlive()) return;
             EntityData data = entityMap.get(entity);
             if (data == null) return;
-            Vec3 endPoint = calcEndVector(render.end, render.lastEnd, Math.min(currentTickTime - render.endUpdated, 100) / 100f, false);
+
+            Vec3 endPoint = calcEndVector(render.end, render.lastEnd, Math.min(currentTickTime - render.endUpdated, 100) / 100f);
+
             long timeTook = currentTickTime - data.started;
             long time = getTime(data.firstSpawns, timeTook);
 
             float mobOffset = pingOffset.getValue() ? Ping.getAveragePing() : manualOffset.getValue().floatValue();
             Vec3 pingPoint = new Vec3(entity.getX() + render.speedVec.x() * mobOffset, entity.getY() + render.speedVec.y() * mobOffset, entity.getZ() + render.speedVec.z() * mobOffset);
 
-            AABB pingAABB = new AABB(boxSizeF, boxSizeF, boxSizeF, 0, 0, 0).move(boxOffset.add(calcEndVector(pingPoint, render.lastPingPoint, partial, !interpolation.getValue())));
-            AABB endAABB = new AABB(boxSizeF, boxSizeF, boxSizeF, 0, 0, 0).move(boxOffset.add(calcEndVector(endPoint, render.lastEndPoint, partial, !interpolation.getValue())));
+            AABB pingAABB = new AABB(boxSizeF, boxSizeF, boxSizeF, 0.0, 0.0, 0.0).move(boxOffset.add(calcEndVector(pingPoint, render.lastPingPoint, partial, !interpolation.getValue())));
+            AABB endAABB =  new AABB(boxSizeF, boxSizeF, boxSizeF, 0.0, 0.0, 0.0).move(boxOffset.add(calcEndVector(endPoint,  render.lastEndPoint,  partial, !interpolation.getValue())));
 
             render.lastEndPoint = endPoint;
             render.lastPingPoint = pingPoint;
@@ -308,7 +333,7 @@ public class BloodCamp extends Module {
                 Renderer3D.addTask(new OutlineBox(pingAABB, posColour.getValue(), depth.getValue()));
                 Renderer3D.addTask(new OutlineBox(endAABB, spawnColour.getValue(), depth.getValue()));
                 if (line.getValue()) {
-                    Renderer3D.addTask(new Line(render.curr.add(0, 2, 0), render.end.add(0, 2, 0), lineFrom.getValue(), lineTo.getValue(), depth.getValue()));
+                    Renderer3D.addTask(new Line(pingPoint.add(0, 2, 0), endPoint.add(0, 2, 0), lineFrom.getValue(), lineTo.getValue(), depth.getValue()));
                 }
             } else {
                 Renderer3D.addTask(new OutlineBox(endAABB, finalColour.getValue(), depth.getValue()));
@@ -338,9 +363,13 @@ public class BloodCamp extends Module {
         return (firstSpawn ? 2000 : 0) + (tick.getValue().intValue() * 50L) - timeTook + offset.getValue().intValue();
     }
 
+    private Vec3 calcEndVector(Vec3 currVector, Vec3 lastVector, float multiplier) {
+        return calcEndVector(currVector, lastVector, multiplier, false);
+    }
+
     private Vec3 calcEndVector(Vec3 currVector, Vec3 lastVector, float multiplier, boolean skip) {
-        return lastVector == null || skip ? currVector
-                : new Vec3(lastVector.x + (currVector.x - lastVector.x) * multiplier, lastVector.y + (currVector.y - lastVector.y) * multiplier, lastVector.z + (currVector.z - lastVector.z) * multiplier);
+        if (lastVector == null || skip) return currVector;
+        return new Vec3(lastVector.x + ((currVector.x - lastVector.x) * multiplier), lastVector.y + ((currVector.y - lastVector.y) * multiplier), lastVector.z + ((currVector.z - lastVector.z) * multiplier));
     }
 
     @SubscribeEvent
@@ -366,22 +395,20 @@ public class BloodCamp extends Module {
     }
 
     private static class EntityData {
-        public Vec3 startVector;
-        public long started;
-        public boolean firstSpawns;
-        public ArrayDeque<Vec3> deltaHistory = new ArrayDeque<>();
+        public final Vec3 startVector;
+        public final long started;
+        public final boolean firstSpawns;
         public Vec3 lastPos;
-        public int ticksRemaining;
+        public int ticksRemaining = 67;
 
-        public EntityData(Vec3 startVec, long started, boolean firstSpawns) {
-            this.startVector = startVec;
+        public EntityData(Vec3 startVector, long started, boolean firstSpawns, Vec3 lastPos) {
+            this.startVector = startVector;
             this.started = started;
             this.firstSpawns = firstSpawns;
-            this.lastPos = startVec;
+            this.lastPos = lastPos;
         }
     }
 
-    @AllArgsConstructor
     private static class RenderData {
         public Vec3 curr;
         public Vec3 end;

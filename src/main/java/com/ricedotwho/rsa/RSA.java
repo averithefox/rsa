@@ -123,7 +123,6 @@ public class RSA implements Addon {
                 SecretAura.class,
                 EffectsAndRender.class,
                 PresetWaypoints.class,
-                CustomKeybinds.class,
                 AutoGfs.class,
                 AutoTerms.class,
                 InstaMid.class,
