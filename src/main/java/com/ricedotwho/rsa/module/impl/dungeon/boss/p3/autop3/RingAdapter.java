@@ -61,6 +61,7 @@ public class RingAdapter implements JsonDeserializer<Ring>, JsonSerializer<Ring>
             case CHAT -> new ChatRing(min, max, obj.get("message").getAsString(), args, sub);
             case COMMAND -> new CommandRing(min, max, obj.get("command").getAsString(), args, sub);
             case PET -> new PetRing(min, max, obj.get("uuid").getAsString(), args, sub);
+            case STOPWATCH -> new StopWatchRing(min, max, args, sub);
             case null -> throw new IllegalStateException("Unexpected value: " + obj.get("type"));
         };
     }

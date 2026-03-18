@@ -32,7 +32,8 @@ public enum RingType {
     CHAT("chat", ChatRing::new, 0.012f, Set.of("message"), null),
     COMMAND("command", CommandRing::new, 0.013f, Set.of("command"), null),
     BLINK("blink", BlinkRing::new, 0.014f, Set.of(), null),
-    PET("pet", PetRing::new, 0.015f, Set.of("uuid"), null);
+    PET("pet", PetRing::new, 0.015f, Set.of("uuid"), null),
+    STOPWATCH("stopwatch", StopWatchRing::new, 0.016f, Set.of(), null);
 
 
     @Getter

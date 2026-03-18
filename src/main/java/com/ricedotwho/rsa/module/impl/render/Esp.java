@@ -233,7 +233,7 @@ public class Esp extends Module {
             // Withers
             if (withers.getValue() && entity instanceof WitherBoss e && !entity.isInvisible()) {
                 LocalPlayer Player = Minecraft.getInstance().player;
-                if (e.getMaxHealth() != 300f) {
+                if (e.getMaxHealth() != 300f && e.getScale() == 1f) {
                     if (wither == -1) {
                         wither = entity.getId();
                         continue;
