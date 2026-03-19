@@ -70,7 +70,7 @@ public abstract class Ring implements Accessor {
 
     public boolean isInNode(Vec3 curr, Vec3 prev) {
         AABB feet = new AABB(curr.x - 0.2, curr.y, curr.z - 0.2, curr.x + 0.3, curr.y + 0.5, curr.z);
-        boolean intercept = box.intersects(curr, prev);
+        boolean intercept = box.clip(curr, prev).isPresent();
         boolean intersects = box.intersects(feet);
         return intercept || intersects;
     }
