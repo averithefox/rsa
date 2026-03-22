@@ -135,7 +135,7 @@ public class DungeonMapPathfinder {
                     if (!(tile instanceof Room newRoom)) continue;
 
                     if (newRoom.getUniqueRoom() != this.room.getUniqueRoom()) {
-                        if (!(DungeonInfo.getDungeonList()[doorX + doorZ * 11] instanceof Door door)) {
+                        if (!(DungeonInfo.getDungeonList()[doorX + doorZ * 11] instanceof Door door) || ((door.getType() == DoorType.WITHER || door.getType() == DoorType.BLOOD) && !door.isOpened())) {
                             //RSA.chat("No door found!");
                             continue;
                         }

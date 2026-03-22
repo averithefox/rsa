@@ -17,6 +17,7 @@ import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.map.RoomData;
+import com.ricedotwho.rsm.component.impl.map.map.Tile;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Keybind;
@@ -214,6 +215,21 @@ public class AutoRoutes extends Module implements Accessor {
         event.getInput().apply(newInputs);
     }
 
+    public List<Node> getStartNodes(UniqueRoom uniqueRoom) {
+        if (uniqueRoom.getTiles().isEmpty()) return null;
+        Room room = uniqueRoom.getMainRoom();
+        if (room == null || room.getData() == null) return null;
+
+        if (activeNodes.containsKey(room.getData())) return activeNodes.get(room.getData()).stream().filter(Node::isStart).toList();
+
+        List<Node> rawNodes = this.data.getValue().get(uniqueRoom.getName());
+        if (rawNodes == null || rawNodes.isEmpty()) return null;
+
+        List<Node> ret = rawNodes.stream().filter(Node::isStart).toList();
+        ret.forEach(n -> n.calculate(uniqueRoom));
+        return ret;
+    }
+
     private void cacheRoomNodes(Room room) {
         List<Node> nodes = data.getValue().get(room.getData().name());
         if (nodes == null || nodes.isEmpty()) return;
@@ -320,6 +336,9 @@ public class AutoRoutes extends Module implements Accessor {
     public void onTrigger() {
         if (!this.isEnabled() || !Location.getArea().is(Island.Dungeon) || Map.getCurrentRoom() == null) return;
 
+        List<Node> nodes = this.activeNodes.get(Map.getCurrentRoom().getData());
+        if (nodes != null)
+            nodes.forEach(Node::reset);
         if (this.inNode instanceof BatNode) this.inNode.setTriggered(true);
         if (this.inNode == null || !this.inNode.hasAwaits()) return;
         this.inNode.getAwaitManager().consume(AwaitClick.class, true);
@@ -429,12 +448,12 @@ public class AutoRoutes extends Module implements Accessor {
         Room currentRoom = Map.getCurrentRoom();
         if (currentRoom == null || !this.activeNodes.containsKey(currentRoom.getData())) return;
 
-        BlockPos startPos = mc.player.blockPosition().below();
+        Vec3 startPos = mc.player.position();
 
         Node closestStart = this.activeNodes.get(currentRoom.getData())
                 .stream()
                 .filter(Node::isStart)
-                .min(Comparator.comparingDouble(n -> n.getRealPos().squaredDistanceTo(startPos.getCenter())))
+                .min(Comparator.comparingDouble(n -> n.getRealPos().squaredDistanceTo(startPos)))
                 .orElse(null);
 
         if (closestStart == null) {

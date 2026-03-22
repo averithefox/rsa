@@ -28,4 +28,9 @@ public class GoalXYZ implements Goal {
     public boolean isPossible() {
         return EtherUtils.isValidEtherwarpPosition(endPos);
     }
+
+    @Override
+    public BlockPos getEndBlockPos() {
+        return endPos;
+    }
 }

@@ -38,6 +38,14 @@ public class DynamicRouteCommand extends Command {
                 .then(literal("stop")
                         .executes(DynamicRouteCommand::stopPathing)
                 )
+                .then(literal("map")
+                        .executes(ctx -> {
+                            DynamicRoutes routes = RSM.getModule(DynamicRoutes.class);
+                            if (!routes.isEnabled()) return 0;
+                            routes.openMap();
+                            return 1;
+                        })
+                )
                 .then(literal("path")
                         .then(argument("pos", BlockPosArgument.blockPos())
                                 .executes((ctx) -> path(ctx, ctx.getArgument("pos", WorldCoordinates.class)))
@@ -99,8 +107,8 @@ public class DynamicRouteCommand extends Command {
     private static int path(CommandContext<ClientSuggestionProvider> ctx, WorldCoordinates pos) {
         if (Minecraft.getInstance().player == null) return 0;
         BlockPos blockPos = BlockPos.containing(pos.x().value(), pos.y().value(), pos.z().value());
-        BlockPos startPos = BlockPos.containing(Minecraft.getInstance().player.position().subtract(0, EtherUtils.EPSILON, 0d));
-        RSM.getModule(DynamicRoutes.class).executePath(startPos, new GoalXYZ(blockPos));
+        //BlockPos startPos = BlockPos.containing(Minecraft.getInstance().player.position().subtract(0, EtherUtils.EPSILON, 0d));
+        RSM.getModule(DynamicRoutes.class).executePath(Minecraft.getInstance().player.position(), new GoalXYZ(blockPos));
         return 1;
     }
 
@@ -139,28 +147,27 @@ public class DynamicRouteCommand extends Command {
             RSA.chat("Room not loaded!");
         }
 
-        BlockPos startPos = BlockPos.containing(Minecraft.getInstance().player.position().subtract(0, EtherUtils.EPSILON, 0d));
         GoalDungeonRoom goal = GoalDungeonRoom.create(uniqueRoom);
         if (goal == null) {
             RSA.chat("Failed to create goal!");
             return 0;
         }
 
-        RSM.getModule(DynamicRoutes.class).executePath(startPos, goal);
+        RSM.getModule(DynamicRoutes.class).executePath(Minecraft.getInstance().player.position(), goal);
         return 1;
     }
 
     private static int dungeonPath(CommandContext<ClientSuggestionProvider> ctx, WorldCoordinates pos) {
         if (Minecraft.getInstance().player == null) return 0;
         BlockPos blockPos = BlockPos.containing(pos.x().value(), pos.y().value(), pos.z().value());
-        BlockPos startPos = BlockPos.containing(Minecraft.getInstance().player.position().subtract(0, EtherUtils.EPSILON, 0d));
+        //BlockPos startPos = BlockPos.containing(Minecraft.getInstance().player.position().subtract(0, EtherUtils.EPSILON, 0d));
         GoalDungeonXYZ goal = GoalDungeonXYZ.create(blockPos);
         if (goal == null) {
             RSA.chat("Failed to create goal!");
             return 0;
         }
 
-        RSM.getModule(DynamicRoutes.class).executePath(startPos, goal);
+        RSM.getModule(DynamicRoutes.class).executePath(Minecraft.getInstance().player.position(), goal);
         return 1;
     }
 

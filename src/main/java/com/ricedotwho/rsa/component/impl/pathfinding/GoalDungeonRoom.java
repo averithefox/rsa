@@ -78,4 +78,9 @@ public class GoalDungeonRoom implements Goal {
     public boolean isPossible() {
         return this.endRoom != null;
     }
+
+    @Override
+    public BlockPos getEndBlockPos() {
+        return null;
+    }
 }
