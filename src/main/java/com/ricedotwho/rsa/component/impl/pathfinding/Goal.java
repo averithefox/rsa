@@ -20,4 +20,6 @@ public interface Goal {
     default boolean isPossible() {
         return true;
     }
+
+    BlockPos getEndBlockPos();
 }

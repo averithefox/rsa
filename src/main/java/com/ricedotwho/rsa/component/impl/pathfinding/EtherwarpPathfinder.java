@@ -2,9 +2,11 @@ package com.ricedotwho.rsa.component.impl.pathfinding;
 
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.pathfinding.openset.BinaryHeapOpenSet;
+import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.apache.logging.log4j.util.TriConsumer;
 
@@ -49,7 +51,10 @@ public class EtherwarpPathfinder {
 
         long time = System.currentTimeMillis();
 
-        PathNode startNode = new PathNode(context.startBlock(), null, goal);
+        BlockPos startBlock = BlockPos.containing(context.startPos().subtract(0d, EtherUtils.EPSILON, 0d).asVec3());
+        Pos start = context.startPos();
+
+        PathNode startNode = new PathNode((int) Math.floor(start.x), (float) start.y - 1f, (int) Math.floor(start.z), null, goal);
 
         // Important for recognition of new nodes, removing may lead to worse performance
         startNode.setYaw(Float.MAX_VALUE);
@@ -58,21 +63,34 @@ public class EtherwarpPathfinder {
         this.nodes.insert(startNode);
         this.bestNode = startNode;
 
+        List<Thread> threads = new ArrayList<>();
         for (int i = 0; i < context.threadCount() - 1; i ++) {
             Thread thread = new Thread(this::run);
+            threads.add(thread);
+            thread.setDaemon(true);
             thread.start();
         }
 
         this.run();
+        //ChatUtils.chat("Completed, waiting for others!");
+
+        threads.forEach(Thread::interrupt);
+        threads.forEach(thread -> {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
 
         RSA.chat("Found path! Took " + (System.currentTimeMillis() - time) + "ms!");
-        this.path = new Path(context.startBlock(), startNode, bestNode, goal);
+        this.path = new Path(startBlock, startNode, bestNode, goal);
         this.solved = true;
         return this.path;
     }
 
     private void run() {
-        while (!this.isComplete()) { //!this.isDone()
+        while (!this.isComplete() && !Thread.interrupted()) { //!this.isDone()
             checkNode(getLowest());
         }
     }
@@ -80,8 +98,8 @@ public class EtherwarpPathfinder {
     private void checkNode(PathNode checkNode) {
         if (checkNode == null) return;
         double moveCost = checkNode.getMoveCost(context.newNodeCost());
-        if (goal.test(checkNode.getPos())) {
-            RSA.chat("Found valid route length " + checkNode.getIndex());
+        if (goal.test(checkNode.getX(), (int) checkNode.getY(), checkNode.getZ())) {
+            //RSA.chat("Found valid route length " + checkNode.getIndex());
             if (!isComplete() || moveCost < getBestNodeMoveCost()) setBestNode(checkNode);
         }
 
@@ -178,7 +196,7 @@ public class EtherwarpPathfinder {
             return;
         }
 
-        if (goal.test(node.getPos())) {
+        if (goal.test(node.getX(), (int) node.getY(), node.getZ())) {
             bestNode = node;
             bestCachedPath = new CachedPath(node);
             this.solved = true;
@@ -194,7 +212,7 @@ public class EtherwarpPathfinder {
     public synchronized PathNode getNodeAt(BlockPos pos, long hashcode, PathNode parent) {
         PathNode node = cache.get(hashcode);
         if (node == null) {
-            node = new PathNode(pos, parent, goal);
+            node = new PathNode(pos.getX(), pos.getY() + 0.05f, pos.getZ(), parent, goal);
             cache.put(hashcode, node);
         }
 
@@ -211,14 +229,16 @@ public class EtherwarpPathfinder {
         HashSet<Integer> blockPosCache = new HashSet<>();
         // The first node might be wrong, because the player isin't actually at +0.05 offset
         // This might break since we aren't using vec3 anymore for DynEtherNode
-        Vec3 eyePos = new Vec3(parent.getPos().getX() + 0.5, parent.getPos().getY() + 1.05 + EtherUtils.SNEAK_EYE_HEIGHT, parent.getPos().getZ() + 0.5);
+
+        // +0.05 should already be in the node position?
+        Vec3 eyePos = new Vec3(parent.getX() + 0.5, parent.getY() + 1 + EtherUtils.SNEAK_EYE_HEIGHT, parent.getZ() + 0.5);
 
         for (float pitch = -90f; pitch <= 90f; pitch += context.pitchStep()) {
             float pitchRadians = (float) Math.toRadians(pitch);
             float yawStepAtThisPitch = context.yawStep() / Math.max(0.01f, (float) cos(pitchRadians)); // avoid div/0
 
             for (float yaw = 0f; yaw < 360f; yaw += yawStepAtThisPitch) {
-                BlockPos etherPos = EtherUtils.fastGetEtherFromOrigin(eyePos, yaw, pitch, 61);
+                BlockPos etherPos = EtherUtils.fastGetEtherFromOrigin(eyePos, yaw, pitch, 61, context.fullBlocks());
                 if (etherPos == null) continue;
                 int hash = PathNode.hashCode(etherPos);
                 if (!blockPosCache.add(hash)) continue;

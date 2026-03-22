@@ -165,7 +165,7 @@ public class AutoPet extends Module {
 
     @SubscribeEvent
     public void onReceivePacket(PacketEvent.Receive event) {
-        if (Minecraft.getInstance().player == null || !Location.isHypixel() || !Location.isInSkyblock()) return;
+        if (Minecraft.getInstance().player == null || !Location.isInSkyblock()) return;
         if ((swapping || listing) && event.getPacket() instanceof ClientboundOpenScreenPacket openScreenPacket && !swapID.isEmpty()) { // Only check for swapping here so we don't get errors if swap changes during other sections
             clear();
             if (openScreenPacket.getContainerId() < 1 || openScreenPacket.getContainerId() > 100) return;

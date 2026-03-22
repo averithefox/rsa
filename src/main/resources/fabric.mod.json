@@ -7,7 +7,7 @@
   "authors": [
     "ricedotwho"
   ],
-  "icon": "assets/rsa/icon.png",
+  "icon": "assets/rsa/logo.png",
   "environment": "client",
   "entrypoints": {
     "rsm": [

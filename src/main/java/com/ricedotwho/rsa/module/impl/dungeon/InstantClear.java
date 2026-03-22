@@ -3,7 +3,6 @@ package com.ricedotwho.rsa.module.impl.dungeon;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
-import com.ricedotwho.rsa.utils.Util;
 import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.component.impl.map.handler.DungeonInfo;
@@ -12,6 +11,7 @@ import com.ricedotwho.rsm.component.impl.task.TaskComponent;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
+import com.ricedotwho.rsm.event.impl.game.DungeonEvent;
 import com.ricedotwho.rsm.event.impl.game.ServerTickEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
@@ -112,7 +112,6 @@ public class InstantClear extends Module {
             }
 
             int distance = getCeilingDistance(playerX, playerY, playerZ, level);
-
             if (distance > 5) {
                 teleport((int) Math.ceil(distance / 12F), player.getYRot(), -90.0F, player);
             } else {
@@ -151,6 +150,16 @@ public class InstantClear extends Module {
 
         // double pearl in
         pearl(player.getYRot(), -90.0F, () -> pearl(player.getYRot(), -90.0F, null));
+    }
+
+    @SubscribeEvent
+    public void onStateChangeEvent(DungeonEvent.StateChange event) {
+        if (!event.getNewState().equals(RoomState.CLEARED)) return;
+
+        Room currentRoom = Map.getCurrentRoom();
+        if (!event.getRoom().equals(currentRoom)) return;
+
+        RSA.chat("Successfully cleared %s.", currentRoom.getData().name());
     }
 
     @SubscribeEvent
@@ -266,10 +275,20 @@ public class InstantClear extends Module {
 
     private boolean isValidRoom(UniqueRoom room, ClientLevel level) {
         Room mainRoom = room.getMainRoom();
-        if (mainRoom == null || Utils.equalsOneOf(mainRoom.getState(), RoomState.CLEARED, RoomState.GREEN)) return false;
+        if (mainRoom == null) return false;
 
-        RoomType type = mainRoom.getData().type();
-        if (!Utils.equalsOneOf(type, RoomType.NORMAL, RoomType.RARE)) return false;
+        RoomType roomType = mainRoom.getData().type();
+        if (!Utils.equalsOneOf(roomType, RoomType.NORMAL, RoomType.RARE)) return false;
+
+        boolean isUncleared =
+                room.getTiles()
+                        .stream()
+                        .noneMatch(t -> Utils.equalsOneOf(t.getState(), RoomState.CLEARED, RoomState.GREEN)) &&
+                room.getTiles()
+                        .stream()
+                        .anyMatch(t -> Utils.equalsOneOf(t.getState(), RoomState.UNDISCOVERED, RoomState.UNOPENED));
+
+        if (!isUncleared) return false;
 
         boolean isValid = room.getDoors()
                 .stream()

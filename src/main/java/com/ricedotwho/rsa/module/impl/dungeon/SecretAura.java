@@ -358,8 +358,8 @@ public class SecretAura extends Module {
 
     @SubscribeEvent
     public void onBlockChange(BlockChangeEvent event) {
-        if (mc.player == null || mc.level == null || type.is("None") || mc.player.distanceToSqr(event.getPos().asVec3()) > 40) return;
-        if (event.getOldState().is(Blocks.LEVER)) {
+        if (mc.player == null || mc.level == null || type.is("None")) return;
+        if (event.getOldState().is(Blocks.LEVER) && mc.player.distanceToSqr(event.getPos().asVec3()) < 40) {
             blocksDone.add(getBlockPosHash(event.getBlockPos()));
             //RSA.chat("Added %s", event.getPos().toChatString());
         } else if (event.getOldState().is(Blocks.PLAYER_HEAD)) {

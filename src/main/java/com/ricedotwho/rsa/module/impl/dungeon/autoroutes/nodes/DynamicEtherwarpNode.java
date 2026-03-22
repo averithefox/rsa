@@ -4,9 +4,9 @@ import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.DynamicRoutes;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitManager;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.Node;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.NodeType;
 import com.ricedotwho.rsa.utils.render3d.type.Ring;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
@@ -40,6 +40,11 @@ public class DynamicEtherwarpNode extends Node {
 
     public DynamicEtherwarpNode(Pos localPos, float yaw, float pitch, boolean await, int priority) {
         this(localPos, yaw, pitch, await, priority, null, false);
+    }
+
+    @Override
+    public boolean isInNode(Pos playerPos) {
+        return playerPos.squaredDistanceTo(this.realPos) <= EtherUtils.EPSILON;
     }
 
     @Override
@@ -124,8 +129,9 @@ public class DynamicEtherwarpNode extends Node {
         return DynamicRoutes.getNodeColor().getValue();
     }
 
-    public static DynamicEtherwarpNode fromBlockPos(BlockPos pos, float yaw, float pitch, boolean await, int priority) {
-        Pos nodePos = new Pos(pos.getBottomCenter()).selfAdd(0d, 1d, 0d);
+    public static DynamicEtherwarpNode fromPos(int x, float y, int z, float yaw, float pitch, boolean await, int priority) {
+        // +0.05 should already be in the node position
+        Pos nodePos = new Pos(x + 0.5, y + 1f, z + 0.5);
         return new DynamicEtherwarpNode(nodePos, yaw, pitch, await, Integer.MAX_VALUE - priority);
     }
 

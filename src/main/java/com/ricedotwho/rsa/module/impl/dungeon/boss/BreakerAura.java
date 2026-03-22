@@ -53,6 +53,7 @@ public class BreakerAura extends Module {
     private final ColourSetting colour = new ColourSetting("Colour", Colour.YELLOW.copy());
     private final BooleanSetting zeroTick = new BooleanSetting("Zero Tick", false);
     private final NumberSetting timeout = new NumberSetting("Timeout", 0, 1000, 500, 10);
+    private final BooleanSetting debug = new BooleanSetting("Force Breaker Load", false);
     private final SaveSetting<Set<Pos>> data = new SaveSetting<>("Aura Blocks", "dungeon/breaker", "breaker_aura.json", HashSet::new, new TypeToken<Set<Pos>>(){}.getType(), FileUtils.getPgson(), true, null, null);
 
     private int charges = 20;
@@ -60,6 +61,7 @@ public class BreakerAura extends Module {
     public BreakerAura() {
         this.registerProperty(
                 edit,
+                debug,
                 addBlockBind,
                 swap,
                 renderBlocks,
@@ -72,7 +74,10 @@ public class BreakerAura extends Module {
 
     @SubscribeEvent
     public void onTick(ClientTickEvent.Start event) {
-        if (!Location.getArea().is(Island.Dungeon) || mc.player == null || !DungeonUtils.isPositionInF7Boss(mc.player.position()) || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || edit.getValue() || mc.level == null || charges <= 0) return;
+        if(!debug.getValue() || RSA.isNotInTestEnv()) {
+            if (!Location.getArea().is(Island.Dungeon) || mc.player == null || !DungeonUtils.isPositionInF7Boss(mc.player.position()) || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || edit.getValue() || mc.level == null || charges <= 0)
+                return;
+        }
 
         if (zeroTick.getValue()) {
             List<Pos> f = data.getValue().stream().filter(p -> {
@@ -101,7 +106,11 @@ public class BreakerAura extends Module {
 
     @SubscribeEvent
     public void onRender3D(Render3DEvent.Extract event) {
-        if (!Location.getArea().is(Island.Dungeon) || !renderBlocks.getValue() || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || mc.level == null || mc.player == null) return;
+        if(!debug.getValue() || RSA.isNotInTestEnv()) {
+            if (!Location.getArea().is(Island.Dungeon) || !renderBlocks.getValue() || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || mc.level == null || mc.player == null)
+                return;
+        }
+
         for (Pos pos : data.getValue()) {
             BlockPos bp = pos.asBlockPos();
             BlockState state = mc.level.getBlockState(bp);
@@ -119,7 +128,11 @@ public class BreakerAura extends Module {
 
     @SubscribeEvent
     public void onItemUpdate(PacketEvent.PostReceive event) {
-        if (!(event.getPacket() instanceof ClientboundContainerSetSlotPacket packet) || !Location.getArea().is(Island.Dungeon) || !"DUNGEONBREAKER".equals(ItemUtils.getID(packet.getItem()))) return;
+        if (!(event.getPacket() instanceof ClientboundContainerSetSlotPacket packet) || !"DUNGEONBREAKER".equals(ItemUtils.getID(packet.getItem()))) return;
+        if(!debug.getValue() || RSA.isNotInTestEnv()){
+            if (!Location.getArea().is(Island.Dungeon))
+                return;
+        }
         charges = ItemUtils.getDbCharges(packet.getItem()).getFirst();
     }
 
@@ -144,7 +157,9 @@ public class BreakerAura extends Module {
     }
 
     public void addOrRemoveBlock() {
-        if (!Location.getArea().is(Island.Dungeon) || !Dungeon.isInBoss() || mc.player == null) return;
+        if(!debug.getValue() || RSA.isNotInTestEnv()) {
+            if (!Location.getArea().is(Island.Dungeon) || !Dungeon.isInBoss() || mc.player == null) return;
+        }
         if (!(Minecraft.getInstance().hitResult instanceof BlockHitResult blockHitResult) || blockHitResult.getType() == HitResult.Type.MISS) {
             RSA.chat(ChatFormatting.RED + "Not looking at a block");
             return;

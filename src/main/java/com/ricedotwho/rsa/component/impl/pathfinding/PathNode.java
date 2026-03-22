@@ -11,7 +11,11 @@ import java.util.function.Predicate;
 
 public class PathNode {
     @Getter
-    private final BlockPos pos;
+    private final int x;
+    @Getter
+    private final float y;
+    @Getter
+    private final int z;
     @Getter
     private final double heuristicCost;
     public int heapPosition;
@@ -27,12 +31,14 @@ public class PathNode {
     private int index;
 
 
-    public PathNode(BlockPos pos, PathNode parent, Goal goal) {
-        this.pos = pos;
+    public PathNode(int x, float y, int z, PathNode parent, Goal goal) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
         this.parent = parent;
         this.index = (parent == null ? 0 : (parent.index + 1));
         this.heapPosition = -1;
-        this.heuristicCost = goal.heuristic(pos);
+        this.heuristicCost = goal.heuristic(x, (int) y, z);
     }
 
 
@@ -58,9 +64,9 @@ public class PathNode {
     @Override
     public int hashCode() {
         long hash = 3241;
-        hash = 3457689L * hash + this.pos.getX();
-        hash = 8734625L * hash + this.pos.getY();
-        hash = 2873465L * hash + this.pos.getZ();
+        hash = 3457689L * hash + getX();
+        hash = 8734625L * hash + ((int) (getY() * 100f));
+        hash = 2873465L * hash + getZ();
         return (int) hash;
     }
 
@@ -94,10 +100,14 @@ public class PathNode {
         this.index = parent.index + 1;
     }
 
+    public BlockPos getBlockPos() {
+        return BlockPos.containing(x, y, z);
+    }
+
     @Override
     public synchronized boolean equals(Object obj) {
         PathNode other = (PathNode) obj;
-        return pos.getX() == other.pos.getX() && pos.getY() == other.pos.getY() && pos.getZ() == other.pos.getZ();
+        return getX() == other.getX() && getY() == other.getY() && getZ() == other.getZ();
     }
 
 }
