@@ -213,6 +213,7 @@ public class MapScreen extends Screen {
                 }
 
                 GoalDungeonRoom goal = GoalDungeonRoom.create(room);
+                if (goal == null) return true;
                 dynamicRoutes.executePath(Minecraft.getInstance().player.position(), goal);
                 if (SwapManager.swapItem("ASPECT_OF_THE_VOID")) {
                     SwapManager.sendAirC08(Minecraft.getInstance().player.getYRot(), 90f, true, false);

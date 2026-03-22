@@ -193,6 +193,7 @@ public class DynamicRoutes extends Module {
     private void pathNextQueued(BlockPos pos) {
         if (pathQueue.isEmpty()) return;
         Goal goal = pathQueue.removeFirst();
+        if (goal == null) return;
 
         BlockPos endPos = goal.getEndBlockPos();
         boolean bl = (endPos == null || Minecraft.getInstance().level == null || Minecraft.getInstance().level.getBlockState(endPos).isCollisionShapeFullBlock(Minecraft.getInstance().level, endPos)); // Check so it doesn't get stuck
@@ -201,6 +202,7 @@ public class DynamicRoutes extends Module {
     }
 
     public void executePath(Vec3 startPos, Goal goal) {
+        if (goal == null) return;
         BlockPos endPos = goal.getEndBlockPos();
         boolean bl = (endPos == null || Minecraft.getInstance().level == null || Minecraft.getInstance().level.getBlockState(endPos).isCollisionShapeFullBlock(Minecraft.getInstance().level, endPos)); // Check so it doesn't get stuck
 
