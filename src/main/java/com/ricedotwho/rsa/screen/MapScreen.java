@@ -62,6 +62,8 @@ public class MapScreen extends Screen {
         int scaledConnectorSize = (int) (3F / 10.0F * getMapSize());
         int scaledRoomSize = (int) (13.16666667F / 10.0F * getMapSize());
 
+        if (rooms.isEmpty()) return;
+
         RoomData data = rooms.getFirst().getData();
         if (data == null) return;
 
@@ -169,6 +171,12 @@ public class MapScreen extends Screen {
             case CLEARED, DISCOVERED -> 0xFFFFFFFF;
             default -> 0xFFA0A0A0;
         };
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics guiGraphics, int i, int j, float f) {
+        // Don't call superclass
+
     }
 
     @Override

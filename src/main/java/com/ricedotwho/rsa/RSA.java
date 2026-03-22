@@ -177,7 +177,8 @@ public class RSA implements Addon {
                 VelocityBufferCommand.class,
                 AutoPetCommand.class,
                 RotateCommand.class,
-                StopwatchCommand.class
+                StopwatchCommand.class,
+                LimboCommand.class
         );
     }
 
