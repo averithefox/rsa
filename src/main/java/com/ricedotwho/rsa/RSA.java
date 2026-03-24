@@ -178,7 +178,8 @@ public class RSA implements Addon {
                 AutoPetCommand.class,
                 RotateCommand.class,
                 StopwatchCommand.class,
-                LimboCommand.class
+                LimboCommand.class,
+                DungeonBreakerCommand.class
         );
     }
 

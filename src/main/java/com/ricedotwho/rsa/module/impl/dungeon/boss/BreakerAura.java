@@ -8,6 +8,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.DungeonBreaker;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingAdapter;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.Ring;
 import com.ricedotwho.rsa.utils.InteractUtils;
+import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
@@ -70,6 +71,14 @@ public class BreakerAura extends Module {
                 timeout,
                 data
         );
+    }
+
+    public static void load(String file) {
+        BreakerAura inst = RSM.getModule(BreakerAura.class);
+        if (inst != null) {
+            inst.data.setFileName(file);
+            inst.data.load();
+        }
     }
 
     @SubscribeEvent
