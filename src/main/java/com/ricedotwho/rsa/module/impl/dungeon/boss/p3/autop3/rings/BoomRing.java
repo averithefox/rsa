@@ -83,7 +83,7 @@ public class BoomRing extends Ring {
 
     @Override
     public Colour getColour() {
-        return Colour.RED;
+        return AutoP3.getBoom().getValue();
     }
 
     @Override

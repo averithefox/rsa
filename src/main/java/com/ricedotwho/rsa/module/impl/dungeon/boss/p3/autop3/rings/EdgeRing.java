@@ -38,7 +38,7 @@ public class EdgeRing extends Ring {
 
     @Override
     public Colour getColour() {
-        return Colour.BLACK;
+        return AutoP3.getEdge().getValue();
     }
 
     @Override

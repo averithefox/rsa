@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 
 @Mixin(ClientCommonPacketListenerImpl.class)
 public class MixinDisconnect {
+
     @Inject(method = "handleDisconnect", at = @At("HEAD"))
     private void onDisconnect(ClientboundDisconnectPacket pPacket, CallbackInfo ci) {
         FakeBan.BanInfo banInfo = FakeBan.extractBanInfo(pPacket.reason());

@@ -66,7 +66,7 @@ public class BlinkRing extends Ring {
 
     @Override
     public Colour getColour() {
-        return Colour.pink;
+        return AutoP3.getBlink().getValue();
     }
 
     @Override

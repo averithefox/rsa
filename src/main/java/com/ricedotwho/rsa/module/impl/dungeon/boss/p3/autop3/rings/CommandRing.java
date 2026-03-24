@@ -42,7 +42,7 @@ public class CommandRing extends Ring implements Accessor {
 
     @Override
     public Colour getColour() {
-        return Colour.DARK_GRAY;
+        return AutoP3.getCommand().getValue();
     }
 
     @Override

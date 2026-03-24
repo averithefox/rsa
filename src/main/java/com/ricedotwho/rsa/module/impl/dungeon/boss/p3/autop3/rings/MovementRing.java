@@ -39,7 +39,7 @@ public class MovementRing extends Ring implements Accessor {
 
     @Override
     public Colour getColour() {
-        return Colour.WHITE;
+        return AutoP3.getMovement().getValue();
     }
 
     @Override

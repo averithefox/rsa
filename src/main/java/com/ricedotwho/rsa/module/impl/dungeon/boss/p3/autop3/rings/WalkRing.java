@@ -39,7 +39,7 @@ public class WalkRing extends Ring {
 
     @Override
     public Colour getColour() {
-        return Colour.CYAN;
+        return AutoP3.getWalk().getValue();
     }
 
     @Override

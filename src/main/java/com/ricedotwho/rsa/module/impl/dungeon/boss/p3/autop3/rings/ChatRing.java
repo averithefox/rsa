@@ -44,7 +44,7 @@ public class ChatRing extends Ring implements Accessor {
 
     @Override
     public Colour getColour() {
-        return Colour.YELLOW;
+        return AutoP3.getChat().getValue();
     }
 
     @Override

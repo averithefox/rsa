@@ -38,7 +38,7 @@ public class JumpRing extends Ring {
 
     @Override
     public Colour getColour() {
-        return Colour.ORANGE;
+        return AutoP3.getJump().getValue();
     }
 
     @Override

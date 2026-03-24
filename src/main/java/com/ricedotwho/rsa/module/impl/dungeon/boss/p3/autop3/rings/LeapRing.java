@@ -37,7 +37,7 @@ public class LeapRing extends Ring {
 
     @Override
     public Colour getColour() {
-        return Colour.PINK;
+        return AutoP3.getLeap().getValue();
     }
 
     @Override

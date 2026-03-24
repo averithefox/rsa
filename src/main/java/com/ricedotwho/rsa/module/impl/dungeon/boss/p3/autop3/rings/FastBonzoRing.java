@@ -1,6 +1,7 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
@@ -38,7 +39,7 @@ public class FastBonzoRing extends BonzoRing {
 
     @Override
     public Colour getColour() {
-        return Colour.PINK;
+        return AutoP3.getFastBonzo().getValue();
     }
 
     @Override

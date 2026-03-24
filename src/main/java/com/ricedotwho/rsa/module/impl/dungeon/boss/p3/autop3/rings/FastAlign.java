@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class FastAlign extends AlignRing {
-    private final Colour colour = Colour.GREEN.darker();
 
     public FastAlign(Pos min, Pos max, ArgumentManager manager, SubActionManager actions) {
         super(min, max, RingType.FAST_ALIGN.getRenderSizeOffset(), manager, actions);
@@ -41,7 +40,7 @@ public class FastAlign extends AlignRing {
 
     @Override
     public Colour getColour() {
-        return colour;
+        return AutoP3.getFastAlign().getValue();
     }
 
     @Override

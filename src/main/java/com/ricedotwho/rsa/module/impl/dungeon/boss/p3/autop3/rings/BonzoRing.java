@@ -103,7 +103,7 @@ public class BonzoRing extends Ring {
 
     @Override
     public Colour getColour() {
-        return Colour.MAGENTA;
+        return AutoP3.getBonzo().getValue();
     }
 
     @Override

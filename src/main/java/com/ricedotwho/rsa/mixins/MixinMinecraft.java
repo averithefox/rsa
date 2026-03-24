@@ -28,6 +28,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(value = Minecraft.class, priority = 600) // Low prio for SwapManager
 public abstract class MixinMinecraft {
+
     @Shadow
     private @Nullable Overlay overlay;
     @Shadow

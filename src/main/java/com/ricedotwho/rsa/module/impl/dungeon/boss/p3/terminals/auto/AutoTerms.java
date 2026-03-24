@@ -291,6 +291,21 @@ public class AutoTerms extends Module {
             if (packet.containerId() != 0 && invWalkGroup.getValue().isEnabled()) event.setCancelled(true);
             return;
         }
+
+        if (isInTerm() && event.getPacket() instanceof ClientboundHorseScreenOpenPacket) {
+            reset();
+            return;
+        }
+
+        if (isInTerm() && event.getPacket() instanceof ClientboundContainerSetDataPacket packet) {
+            if (packet.getContainerId() != 0 && invWalkGroup.getValue().isEnabled()) event.setCancelled(true);
+            return;
+        }
+
+        if (isInTerm() && event.getPacket() instanceof ClientboundMerchantOffersPacket) {
+            reset();
+            return;
+        }
     }
 
     private void close() {

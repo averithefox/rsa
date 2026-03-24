@@ -40,7 +40,7 @@ public class StopRing extends Ring {
 
     @Override
     public Colour getColour() {
-        return Colour.RED;
+        return AutoP3.getStop().getValue();
     }
 
     @Override

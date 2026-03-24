@@ -84,7 +84,7 @@ public class AlignRing extends Ring {
 
     @Override
     public Colour getColour() {
-        return Colour.GREEN;
+        return AutoP3.getAlign().getValue();
     }
 
     @Override

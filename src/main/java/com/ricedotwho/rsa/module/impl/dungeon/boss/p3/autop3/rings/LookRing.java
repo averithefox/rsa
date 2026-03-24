@@ -47,7 +47,7 @@ public class LookRing extends Ring implements Accessor {
 
     @Override
     public Colour getColour() {
-        return Colour.GREEN;
+        return AutoP3.getLook().getValue();
     }
 
     @Override

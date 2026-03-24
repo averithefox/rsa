@@ -18,10 +18,6 @@ import java.io.IOException;
 @Mixin(ClientHandshakePacketListenerImpl.class)
 public class MixinLoginDisconnect {
 
-    @Shadow
-    @Final
-    private boolean newWorld;
-
     @Inject(method = "handleDisconnect", at = @At("HEAD"))
     private void onLoginDisconnect(ClientboundLoginDisconnectPacket pPacket, CallbackInfo ci) {
         FakeBan.BanInfo banInfo = FakeBan.extractBanInfo(pPacket.reason());

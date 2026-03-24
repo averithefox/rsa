@@ -40,7 +40,7 @@ public class StopWatchRing extends Ring implements Accessor {
 
     @Override
     public Colour getColour() {
-        return Colour.DARK_GRAY;
+        return AutoP3.getStopWatch().getValue();
     }
 
     @Override

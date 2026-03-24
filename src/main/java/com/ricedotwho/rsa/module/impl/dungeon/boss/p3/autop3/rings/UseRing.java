@@ -68,7 +68,7 @@ public class UseRing extends Ring implements Accessor {
 
     @Override
     public Colour getColour() {
-        return Colour.GRAY;
+        return AutoP3.getUse().getValue();
     }
 
     @Override

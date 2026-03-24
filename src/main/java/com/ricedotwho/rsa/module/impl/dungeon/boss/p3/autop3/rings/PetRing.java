@@ -45,7 +45,7 @@ public class PetRing extends Ring implements Accessor {
 
     @Override
     public Colour getColour() {
-        return Colour.YELLOW;
+        return AutoP3.getPet().getValue();
     }
 
     @Override

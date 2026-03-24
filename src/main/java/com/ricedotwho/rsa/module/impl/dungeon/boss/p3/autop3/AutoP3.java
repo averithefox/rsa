@@ -17,6 +17,7 @@ import com.ricedotwho.rsm.component.impl.camera.ClientRotationProvider;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
+import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.MutableInput;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
@@ -29,11 +30,9 @@ import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
+import com.ricedotwho.rsm.ui.clickgui.settings.group.DefaultGroupSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.group.GroupSetting;
-import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
-import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
-import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
-import com.ricedotwho.rsm.ui.clickgui.settings.impl.SaveSetting;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.*;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.Utils;
 import lombok.Getter;
@@ -67,7 +66,27 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     private final BooleanSetting depth = new BooleanSetting("Depth", false);
     private final BooleanSetting strafe = new BooleanSetting("45", true);
     @Getter private final BooleanSetting freecamBlink = new BooleanSetting("Freecam Blink", false);
-    private final GroupSetting<MovementRecorder> movement = new GroupSetting<>("Movement", new MovementRecorder(this));
+    private final GroupSetting<MovementRecorder> movementCat = new GroupSetting<>("Movement", new MovementRecorder(this));
+
+    private final DefaultGroupSetting colours = new DefaultGroupSetting("Colours", this);
+    @Getter private static final ColourSetting align = new ColourSetting("Align", Colour.GREEN.copy());
+    @Getter private static final ColourSetting blink = new ColourSetting("Blink", Colour.PINK.copy());
+    @Getter private static final ColourSetting bonzo = new ColourSetting("Bonzo", Colour.MAGENTA.copy());
+    @Getter private static final ColourSetting boom = new ColourSetting("Boom", Colour.RED.darker());
+    @Getter private static final ColourSetting chat = new ColourSetting("Chat", Colour.YELLOW.copy());
+    @Getter private static final ColourSetting command = new ColourSetting("Command", Colour.DARK_GRAY.copy());
+    @Getter private static final ColourSetting edge = new ColourSetting("Edge", Colour.BLACK.copy());
+    @Getter private static final ColourSetting fastAlign = new ColourSetting("Fast Align", Colour.GREEN.darker());
+    @Getter private static final ColourSetting fastBonzo = new ColourSetting("Fast Bonzo", Colour.MAGENTA.darker());
+    @Getter private static final ColourSetting jump = new ColourSetting("Jump", Colour.ORANGE.copy());
+    @Getter private static final ColourSetting leap = new ColourSetting("Leap", Colour.BLUE.copy());
+    @Getter private static final ColourSetting look = new ColourSetting("Look", Colour.GREEN.brighter());
+    @Getter private static final ColourSetting movement = new ColourSetting("Movement", Colour.WHITE.copy());
+    @Getter private static final ColourSetting pet = new ColourSetting("Pet", Colour.YELLOW.darker());
+    @Getter private static final ColourSetting stop = new ColourSetting("Stop", Colour.RED.copy());
+    @Getter private static final ColourSetting stopWatch = new ColourSetting("Stop Watch", Colour.DARK_GRAY.copy());
+    @Getter private static final ColourSetting use = new ColourSetting("Use", Colour.GRAY.copy());
+    @Getter private static final ColourSetting walk = new ColourSetting("Walk", Colour.CYAN.copy());
 
     private final SaveSetting<List<Ring>> data = new SaveSetting<>("Rings", "dungeon/ap3", "rings.json", ArrayList::new,
             new TypeToken<List<Ring>>() {}.getType(),
@@ -93,7 +112,7 @@ public class AutoP3 extends Module implements ClientRotationProvider {
                 depth,
                 strafe,
                 forceSkyblock,
-                movement,
+                movementCat,
                 data
         );
         this.rings = new ArrayList<>();
