@@ -154,7 +154,7 @@ public class Auto4 extends Module {
     public void onChat(ChatEvent.Chat event) {
         if (!Location.getArea().is(Island.Dungeon) || mc.player == null || !on4thDev() || !leap.getValue()) return;
         String text = ChatFormatting.stripFormatting(event.getMessage().getString());
-        Matcher m = P3Qol.TERM.matcher(text);
+        Matcher m = Dungeon.TERM.matcher(text);
         if (m.find() && m.group(1).contains(mc.player.getName().getString()) && m.group(2).contains("device")) {
             if (SwapManager.swapItem("SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP")) {
                 String leap = getLeap();

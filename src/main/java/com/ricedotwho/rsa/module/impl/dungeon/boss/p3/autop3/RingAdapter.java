@@ -14,6 +14,7 @@ import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.type.Edg
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.type.JumpAction;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.type.LookAction;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.type.StopAction;
+import com.ricedotwho.rsm.data.Phase7;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.FileUtils;
 import org.apache.commons.lang3.EnumUtils;
@@ -84,6 +85,7 @@ public class RingAdapter implements JsonDeserializer<Ring>, JsonSerializer<Ring>
                 case TRIGGER -> new TriggerArg();
                 case DELAY -> new DelayArg(entry.getValue().getAsLong());
                 case TERM_CLOSE -> new TermCloseArg();
+                case SECTION -> new SectionArg(EnumUtils.getEnum(Phase7.class, entry.getValue().getAsString(), Phase7.UNKNOWN));
             };
             map.put(type, condition);
         }

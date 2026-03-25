@@ -13,6 +13,11 @@ public class SectionArg extends Argument<Boolean> {
     private final Phase7 section;
     private boolean override = false;
 
+    public SectionArg(Phase7 section) {
+        super(RingArgType.SECTION);
+        this.section = section;
+    }
+
     public SectionArg(int players) {
         super(RingArgType.SECTION);
         this.section = DungeonUtils.getSectionFromI(Mth.clamp(players, 0, 3));
