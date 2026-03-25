@@ -26,7 +26,6 @@ public abstract class Ring implements Accessor {
     @Getter
     private final AABB renderBox;
     private final AABB fillBox;
-    private final AABB inlineBox;
     @Getter
     private boolean triggered;
     @Getter
@@ -50,10 +49,7 @@ public abstract class Ring implements Accessor {
         this.triggered = false;
         this.subManager = null;
         this.argManager = null;
-
         this.fillBox = new AABB(min.x(), min.y(), min.z(), max.x(), min.y() + 0.05, max.z());
-        Vec3 diff = max.subtract(min).multiply(0.15, 0, 0.15);
-        this.inlineBox = new AABB(min.x() +  diff.x(), min.y(), min.z() + diff.z(), max.x() - diff.x(), min.y() + 0.05, max.z() - diff.z());
     }
 
     protected Ring(Pos min, Pos max, double renderOffset, ArgumentManager manager, SubActionManager subManager) {
@@ -62,10 +58,7 @@ public abstract class Ring implements Accessor {
         this.triggered = false;
         this.subManager = subManager;
         this.argManager = manager;
-
         this.fillBox = new AABB(min.x(), min.y(), min.z(), max.x(), min.y() + 0.05, max.z());
-        Pos diff = max.subtract(min).multiply(0.15, 0, 0.15);
-        this.inlineBox = new AABB(min.x() +  diff.x(), min.y(), min.z() + diff.z(), max.x() - diff.x(), min.y() + 0.05, max.z() - diff.z());
     }
 
     public boolean isInNode(Vec3 curr, Vec3 prev) {
@@ -116,9 +109,9 @@ public abstract class Ring implements Accessor {
     }
 
     public void render(boolean depth) {
-        //Renderer3D.addTask(new OutlineBox(this.getRenderBox(), getColour(), depth));
-        Renderer3D.addTask(new FilledBox(fillBox, getColour().alpha(50), depth));
-        Renderer3D.addTask(new OutlineBox(inlineBox, getColour(), depth));
+        Colour colour = getColour();
+        Renderer3D.addTask(new FilledBox(fillBox, colour.alpha(colour.getAlpha() * 0.2F), depth));
+        Renderer3D.addTask(new OutlineBox(fillBox, colour, depth));
     }
 
     // Run will always run before tick
