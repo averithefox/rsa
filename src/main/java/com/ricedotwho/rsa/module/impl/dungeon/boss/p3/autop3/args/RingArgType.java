@@ -14,7 +14,8 @@ public enum RingArgType {
     GROUND(GroundArg::create, GroundArg.class, List.of("ground", "g")),
     TRIGGER(TriggerArg::create, TriggerArg.class, List.of("trigger", "click", "c")),
     DELAY(DelayArg::create, DelayArg.class, List.of("delay", "d")),
-    TERM_CLOSE(TermCloseArg::create, TermCloseArg.class, List.of("termclose", "close", "tc"));
+    TERM_CLOSE(TermCloseArg::create, TermCloseArg.class, List.of("termclose", "close", "tc")),
+    SECTION(SectionArg::create, SectionArg.class, List.of("section", "s"));
 
     private final Function<String, Argument<?>> factory;
     @Getter

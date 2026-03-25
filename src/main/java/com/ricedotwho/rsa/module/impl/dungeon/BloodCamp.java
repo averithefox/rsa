@@ -275,7 +275,7 @@ public class BloodCamp extends Module {
     public void onRemoveEntity(PacketEvent.Receive event) {
         if (!(event.getPacket() instanceof ClientboundRemoveEntitiesPacket packet) || currentWatcher == null) return;
         if (packet.getEntityIds().contains(currentWatcher.getId())) currentWatcher = null;
-        boolean noClick = mode.is("Off") || firstSpawns || Map.getCurrentRoom() == null || Map.getCurrentRoom().getData().type() != RoomType.BLOOD;
+        boolean noClick = mode.is("Off") || Map.getCurrentRoom() == null || Map.getCurrentRoom().getData().type() != RoomType.BLOOD;
 
         for (int i : packet.getEntityIds()) {
             if (!(mc.level.getEntity(i) instanceof ArmorStand entity)) continue;
