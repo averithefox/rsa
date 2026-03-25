@@ -116,6 +116,9 @@ public class AutoP3 extends Module implements ClientRotationProvider {
                 data,
                 colours
         );
+
+        colours.add(align, blink, bonzo, boom, chat, command, edge, fastAlign, fastBonzo, jump, leap, look, movement, pet, stop, stopWatch, use, walk);
+
         this.rings = new ArrayList<>();
         this.activeRings = new ArrayList<>(5);
     }
