@@ -20,7 +20,7 @@ public class SectionArg extends Argument<Boolean> {
 
     public SectionArg(int players) {
         super(RingArgType.SECTION);
-        this.section = DungeonUtils.getSectionFromI(Mth.clamp(players, 0, 3));
+        this.section = DungeonUtils.getSectionFromI(Mth.clamp(players, 1, 4) - 1);
     }
 
     @Override
