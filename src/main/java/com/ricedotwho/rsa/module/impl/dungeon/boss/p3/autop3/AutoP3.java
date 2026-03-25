@@ -113,7 +113,8 @@ public class AutoP3 extends Module implements ClientRotationProvider {
                 strafe,
                 forceSkyblock,
                 movementCat,
-                data
+                data,
+                colours
         );
         this.rings = new ArrayList<>();
         this.activeRings = new ArrayList<>(5);
