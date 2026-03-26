@@ -19,10 +19,7 @@ import net.minecraft.world.entity.vehicle.Minecart;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.*;
 
 @UtilityClass
 public class InteractUtils implements Accessor {
@@ -95,6 +92,84 @@ public class InteractUtils implements Accessor {
         SwapManager.sendBlockC08(result.getLocation(), result.getDirection(), swing, true);
         return true;
     }
+
+    public boolean interactOnBlock0(BlockPos pos, Vec3 eyePos, Vec3 hit) {
+        if (mc.level == null) return false;
+        BlockState blockState = mc.level.getBlockState(pos);
+        AABB blockAABB = blockState.getShape(mc.level, pos).bounds();
+        BlockHitResult result = RotationUtils.collisionRayTrace(pos, blockAABB, eyePos, hit);
+        if (result == null) return false;
+        startUseItem(result);
+        return true;
+    }
+
+    public void startUseItem(HitResult hitResult) {
+        for(InteractionHand interactionHand : InteractionHand.values()) {
+            ItemStack itemStack = mc.player.getItemInHand(interactionHand);
+            if (!itemStack.isItemEnabled(mc.level.enabledFeatures())) {
+                return;
+            }
+
+            if (hitResult != null) {
+                switch (hitResult.getType()) {
+                    case ENTITY:
+                        EntityHitResult entityHitResult = (EntityHitResult) hitResult;
+                        Entity entity = entityHitResult.getEntity();
+                        if (!mc.level.getWorldBorder().isWithinBounds(entity.blockPosition())) {
+                            return;
+                        }
+
+                        InteractionResult interactionResult = mc.gameMode.interactAt(mc.player, entity, entityHitResult, interactionHand);
+                        if (!interactionResult.consumesAction()) {
+                            interactionResult = mc.gameMode.interact(mc.player, entity, interactionHand);
+                        }
+
+                        if (interactionResult instanceof InteractionResult.Success) {
+                            InteractionResult.Success success = (InteractionResult.Success)interactionResult;
+                            if (success.swingSource() == InteractionResult.SwingSource.CLIENT) {
+                                mc.player.swing(interactionHand);
+                            }
+
+                            return;
+                        }
+                        break;
+                    case BLOCK:
+                        BlockHitResult blockHitResult = (BlockHitResult) hitResult;
+                        int i = itemStack.getCount();
+                        InteractionResult interactionResult2 = mc.gameMode.useItemOn(mc.player, interactionHand, blockHitResult);
+                        if (interactionResult2 instanceof InteractionResult.Success) {
+                            InteractionResult.Success success2 = (InteractionResult.Success)interactionResult2;
+                            if (success2.swingSource() == InteractionResult.SwingSource.CLIENT) {
+                                mc.player.swing(interactionHand);
+                                if (!itemStack.isEmpty() && (itemStack.getCount() != i || mc.player.hasInfiniteMaterials())) {
+                                    mc.gameRenderer.itemInHandRenderer.itemUsed(interactionHand);
+                                }
+                            }
+
+                            return;
+                        }
+
+                        if (interactionResult2 instanceof InteractionResult.Fail) {
+                            return;
+                        }
+                }
+            }
+
+            if (!itemStack.isEmpty()) {
+                InteractionResult interactionResult3 = mc.gameMode.useItem(mc.player, interactionHand);
+                if (interactionResult3 instanceof InteractionResult.Success) {
+                    InteractionResult.Success success3 = (InteractionResult.Success)interactionResult3;
+                    if (success3.swingSource() == InteractionResult.SwingSource.CLIENT) {
+                        mc.player.swing(interactionHand);
+                    }
+
+                    mc.gameRenderer.itemInHandRenderer.itemUsed(interactionHand);
+                    return;
+                }
+            }
+        }
+    }
+
 
     /// Call this from {@link PacketOrderManager#register(PacketOrderManager.STATE, Runnable)} in {@link PacketOrderManager.STATE#ATTACK} or risk a ban!
     public boolean attackEntity(Entity entity) {

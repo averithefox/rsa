@@ -7,6 +7,7 @@ import com.ricedotwho.rsa.component.impl.pathfinding.score.DungeonRoomScore;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.Blink;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.BreakerAura;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.LavaBounce;
 import com.ricedotwho.rsa.module.impl.movement.VelocityBuffer;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p4.InstaMid;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p2.PadTimer;
@@ -151,7 +152,8 @@ public class RSA implements Addon {
                 Blink.class,
                 InstantClear.class,
                 BloodCamp.class,
-                FreezeState.class
+                FreezeState.class,
+                LavaBounce.class
         );
     }
 

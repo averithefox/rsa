@@ -48,7 +48,7 @@ import java.util.*;
 @ModuleInfo(aliases = "Breaker Aura", id = "BreakerAura", category = Category.DUNGEONS, hasKeybind = true)
 public class BreakerAura extends Module {
     private final BooleanSetting edit = new BooleanSetting("Edit Mode", false);
-    private final KeybindSetting addBlockBind = new KeybindSetting("Add Block Bind", new Keybind(GLFW.GLFW_KEY_SEMICOLON, true, this::addOrRemoveBlock));
+    private final KeybindSetting addBlockBind = new KeybindSetting("Add Block Bind", new Keybind(GLFW.GLFW_KEY_SEMICOLON, false, this::addOrRemoveBlock));
     private final BooleanSetting swap = new BooleanSetting("Auto Swap", true);
     private final BooleanSetting renderBlocks = new BooleanSetting("Render Blocks", true);
     private final ColourSetting colour = new ColourSetting("Colour", Colour.YELLOW.copy());
