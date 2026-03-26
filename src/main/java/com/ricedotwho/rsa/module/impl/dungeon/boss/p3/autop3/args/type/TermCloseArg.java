@@ -31,7 +31,7 @@ public class TermCloseArg extends Argument<Boolean> {
         return "term close";
     }
 
-    public static TermCloseArg create(String ignored) {
+    public static TermCloseArg create(Object ignored) {
         return new TermCloseArg();
     }
 

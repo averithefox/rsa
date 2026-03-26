@@ -39,10 +39,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.EnumUtils;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,8 +48,6 @@ import java.util.stream.Stream;
 
 @CommandInfo(name = "bbg", aliases = "p3", description = "Auto P3 command")
 public class BBGCommand extends Command {
-    private final Pattern argPattern = Pattern.compile("^(\\w+?)(?:(\\d*\\.?\\d*)|\"([^\"]*)\")$");
-    private final Pattern splitter = Pattern.compile("\\w+(?:\\d+(?:\\.\\d+)?|\"[^\"]*\")?");
 
     @Override
     public LiteralArgumentBuilder<ClientSuggestionProvider> build() {
@@ -77,22 +72,13 @@ public class BBGCommand extends Command {
                 )
                 .then(literal("add")
                         .then(argument("ring", BBGCommand.RingArgumentType.ringArgument())
-                            .executes(ctx -> addRing(ctx, ""))
-//                                .then(argument("w", FloatArgumentType.floatArg(0, 10))
-//                                        .then(argument("h", FloatArgumentType.floatArg(0, 10))
-//                                                .then(argument("l", FloatArgumentType.floatArg(0, 10))
-//                                                        .then(argument("arg", BBGCommand.CenterArgumentType.centerArgument())
-//                                                                .executes(this::center)
-//                                                        )
-//                                                )
-//                                        )
-//                                )
-                                .then(argument("args", StringArgumentType.greedyString())
-                                        .executes(ctx -> {
-                                            String args = StringArgumentType.getString(ctx, "args");
-                                            return addRing(ctx, args);
-                                        })
-                                )
+                            .executes(ctx -> addRing(ctx, new HashMap<>()))
+                                        .then(argument("args", new AP3ListArgumentType())
+                                                .executes(ctx -> {
+                                                    Map<AP3ArgType, Ap3Arg<?>> args = AP3ListArgumentType.get(ctx, "args");
+                                                    return addRing(ctx, args);
+                                                })
+                                        )
                         )
                 )
                 .then(literal("play")
@@ -150,7 +136,7 @@ public class BBGCommand extends Command {
                 );
     }
 
-    private int addRing(CommandContext<ClientSuggestionProvider> ctx, String args) {
+    private int addRing(CommandContext<ClientSuggestionProvider> ctx, Map<AP3ArgType, Ap3Arg<?>> args) {
         if (Minecraft.getInstance().player == null) return 0;
         RingType type = BBGCommand.RingArgumentType.getRing(ctx, "ring");
 
@@ -160,81 +146,48 @@ public class BBGCommand extends Command {
         return 1;
     }
 
-    private Ring createRing(RingType type, String full) {
+    private Ring createRing(RingType type, Map<AP3ArgType, Ap3Arg<?>> args) {
         Pos whl = new Pos(0.5, 1, 0.5);
-        boolean exact = false;
         ArgumentManager manager = new ArgumentManager();
         SubActionManager subActions = new SubActionManager();
         Map<String, Object> dataMap = new HashMap<>();
-        Matcher split = splitter.matcher(full);
-        while (split.find()) {
-            String arg = split.group();
-            Matcher matcher = argPattern.matcher(arg);
-            if (!matcher.find()) continue;
-            String key = matcher.group(1);
-            Double value = NumberUtils.isDouble(matcher.group(2)) ? Double.parseDouble(matcher.group(2)) : null;
-            String stringValue = matcher.group(2) == null ? matcher.group(3) : matcher.group(2);
 
-            switch (key.toLowerCase()) {
-                case "r", "radius" -> {
-                    if (value != null) {
-                        whl.set(value, value, value);
+        args.forEach((k, v) -> {
+            switch (k) {
+                case RADIUS -> whl.set((double) v.getValue(), (double) v.getValue(), (double) v.getValue());
+                case EXACT -> dataMap.put("exact", true);
+                case WIDTH -> whl.x((double) v.getValue());
+                case HEIGHT -> whl.y((double) v.getValue());
+                case LENGTH -> whl.z((double) v.getValue());
+                case YAW -> dataMap.put("yaw", v.getValue());
+                case PITCH -> dataMap.put("pitch", v.getValue());
+                case ROUTE -> dataMap.put("route", v.getValue());
+                case MESSAGE -> dataMap.put("message", v.getValue());
+                case COMMAND -> dataMap.put("command", v.getValue());
+                case BLINK -> dataMap.put("blink", v.getValue());
+                case UUID -> dataMap.put("uuid", v.getValue());
+
+                // conditional
+                case TERM, LEAP, GROUND, TRIGGER, DELAY, TERM_CLOSE, SECTION -> {
+                    RingArgType a = RingArgType.fromAliases(v.key.toLowerCase());
+                    if (a == null) {
+                        AutoP3.modMessage("Failed to parse arg type! %s, key: %s, value: %s", k, v.key(), v.getValue());
+                        return;
                     }
-                    continue;
+                    manager.addArg(a.create(v.getValue()));
                 }
-                case "exact" -> {
-                    exact = true;
-                    continue;
-                }
-                case "w", "width" -> {
-                    if (value != null) {
-                        whl.x(value);
+
+                // sub actions
+                case LOOK, JUMP, EDGE, STOP -> {
+                    SubActionType s = EnumUtils.getEnum(SubActionType.class, v.key.toUpperCase());
+                    if (s == null) {
+                        AutoP3.modMessage("Failed to parse sub action! %s, key: %s, value: %s", k, v.key(), v.getValue());
+                        return;
                     }
-                    continue;
-                }
-                case "h", "height" -> {
-                    if (value != null) {
-                        whl.y(value);
-                    }
-                    continue;
-                }
-                case "l", "length" -> {
-                    if (value != null) {
-                        whl.z(value);
-                    }
-                    continue;
-                }
-                case "y", "yaw" -> {
-                    if (value != null) dataMap.put("yaw", value);
-                }
-                case "p", "pitch" -> {
-                    if (value != null) dataMap.put("pitch", value);
-                }
-                case "route" -> {
-                    if (stringValue != null) dataMap.put("route", stringValue);
-                }
-                case "m", "message" -> {
-                    if (stringValue != null) dataMap.put("message", stringValue);
-                }
-                case "c", "command" -> {
-                    if (stringValue != null) dataMap.put("command", stringValue);
-                }
-                case "b", "blink" -> {
-                    if (stringValue != null && value != null) dataMap.put("blink", value.intValue());
-                }
-                case "uuid" -> {
-                    if (stringValue != null) dataMap.put("uuid", stringValue);
+                    subActions.addAction(s.create());
                 }
             }
-            RingArgType a = RingArgType.fromAliases(key.toLowerCase());
-            if (a != null) {
-                manager.addArg(a.create(stringValue));
-            } else {
-                SubActionType s = EnumUtils.getEnum(SubActionType.class, key.toUpperCase());
-                if (s == null) continue;
-                subActions.addAction(s.create());
-            }
-        }
+        });
 
         for (String s : type.getRequired()) {
             if (!dataMap.containsKey(s)) {
@@ -248,7 +201,7 @@ public class BBGCommand extends Command {
             return null;
         }
 
-        Pos playerPos = getPlayerPos(exact);
+        Pos playerPos = getPlayerPos(dataMap.containsKey("exact"));
         return type.supply(playerPos.subtract(whl.x(), 0, whl.z()), playerPos.add(whl), manager, subActions, dataMap);
     }
 
@@ -448,6 +401,220 @@ public class BBGCommand extends Command {
 
         public static CenterType getType(CommandContext<ClientSuggestionProvider> context, String name) {
             return context.getArgument(name, CenterType.class);
+        }
+    }
+
+    public static class AP3ArgumentType implements ArgumentType<Ap3Arg<?>> {
+        private static final DynamicCommandExceptionType INVALID =
+                new DynamicCommandExceptionType(o -> Component.literal("Invalid arg: " + o));
+
+        public Ap3Arg<?> parse(StringReader reader) throws CommandSyntaxException {
+            StringBuilder prefix = new StringBuilder();
+            while (reader.canRead() && Character.isLetter(reader.peek())) {
+                prefix.append(reader.read());
+            }
+
+            String key = prefix.toString();
+
+            AP3ArgType type = AP3ArgType.byPrefix(key);
+            if (type == null) throw INVALID.createWithContext(reader, key);
+
+            if (type.getValueClass() == Void.class) {
+                return new Ap3Arg<>(type, null, key, false);
+            }
+
+            if (type.getValueClass() == String.class) {
+                if (reader.canRead() && reader.peek() != '"') throw INVALID.createWithContext(reader, "Expected quoted string");
+                String quoted = reader.readQuotedString();
+                if (quoted.isEmpty()) throw INVALID.createWithContext(reader, "Expected quoted string");
+                return new Ap3Arg<>(type, quoted, key, true);
+            }
+
+            int numberStart = reader.getCursor();
+            while (reader.canRead() && ("0123456789.".indexOf(reader.peek()) != -1)) reader.skip();
+            String part = reader.getString().substring(numberStart, reader.getCursor());
+
+            if (type.getValueClass() == Integer.class) {
+                try {
+                    return new Ap3Arg<>(type, Integer.parseInt(part), key, true);
+                } catch (NumberFormatException e) {
+                    throw INVALID.createWithContext(reader, "Expected integer");
+                }
+            }
+            try {
+                return new Ap3Arg<>(type, Double.parseDouble(part), key, true);
+            } catch (NumberFormatException e) {
+                throw INVALID.createWithContext(reader, "Expected number");
+            }
+        }
+
+        @Override
+        public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
+            String remaining = builder.getRemaining();
+
+            for (AP3ArgType t : AP3ArgType.values()) {
+                for (String a : t.getAliases()) {
+                    if (a.startsWith(remaining)) {
+                        builder.suggest(a);
+                    }
+                }
+            }
+
+            return builder.buildFuture();
+        }
+
+        public static Ap3Arg<?> get(CommandContext<ClientSuggestionProvider> context, String name) {
+            return context.getArgument(name, Ap3Arg.class);
+        }
+    }
+
+    @Getter
+    public enum AP3ArgType {
+        RADIUS(Double.class, "radius", "r"),
+        EXACT(Void.class, "exact"),
+        WIDTH(Double.class, "width", "w"),
+        HEIGHT(Double.class, "height", "h"),
+        LENGTH(Double.class, "length", "l"),
+        YAW(Double.class, "yaw"),
+        PITCH(Double.class, "pitch"),
+        ROUTE(String.class, "route"),
+        MESSAGE(String.class, "message", "m"),
+        COMMAND(String.class, "command", "c"),
+        BLINK(Integer.class, "blink","b"),
+        UUID(String.class, "uuid"),
+
+        // conditional
+        TERM(Void.class, "term"),
+        LEAP(Integer.class, "leap"),
+        GROUND(Void.class, "ground"),
+        TRIGGER(Void.class, "trigger"),
+        DELAY(Integer.class, "delay"),
+        TERM_CLOSE(Void.class, "termclose", "close"),
+        SECTION(Integer.class, "section", "s"),
+
+        // sub actions
+        LOOK(Void.class, "look"),
+        JUMP(Void.class, "jump"),
+        EDGE(Void.class, "edge"),
+        STOP(Void.class, "stop");
+
+
+        private final String[] aliases;
+        private final Class<?> valueClass;
+
+        AP3ArgType(Class<?> valueClass, String ... aliases) {
+            this.aliases = aliases;
+            this.valueClass = valueClass;
+        }
+
+        public static AP3ArgType byPrefix(String input) {
+            AP3ArgType best = null;
+            int len = -1;
+            for (AP3ArgType t : values()) {
+                for (String a : t.aliases) {
+                    if (input.equals(a)) {
+                        return t;
+                    }
+                    if (input.startsWith(a) && a.length() > len) {
+                        best = t;
+                        len = a.length();
+                    }
+                }
+            }
+            return best;
+        }
+    }
+
+    public static class AP3ListArgumentType implements ArgumentType<Map<AP3ArgType, Ap3Arg<?>>> {
+
+        private final AP3ArgumentType single = new AP3ArgumentType();
+
+        @Override
+        public Map<AP3ArgType, Ap3Arg<?>> parse(StringReader reader) throws CommandSyntaxException {
+            Map<AP3ArgType, Ap3Arg<?>> result = new EnumMap<>(AP3ArgType.class);
+
+            while (reader.canRead()) {
+                int before = reader.getCursor();
+                Ap3Arg<?> arg = single.parse(reader);
+
+                if (result.putIfAbsent(arg.type(), arg) != null) {
+                    throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherParseException().createWithContext(reader, "Duplicate argument: " + arg.type().name());
+                }
+
+                if (reader.canRead() && reader.peek() == ' ') {
+                    reader.skip();
+                }
+
+                if (reader.getCursor() == before) {
+                    throw CommandSyntaxException.BUILT_IN_EXCEPTIONS.dispatcherUnknownArgument()
+                            .createWithContext(reader);
+                }
+            }
+
+            return result;
+        }
+
+        @Override
+        public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
+            String input = builder.getRemaining();
+            StringReader reader = new StringReader(input);
+            boolean end = input.endsWith(" ");
+
+            Set<AP3ArgType> used = EnumSet.noneOf(AP3ArgType.class);
+            boolean failed = false;
+
+            try {
+                while (reader.canRead()) {
+                    int before = reader.getCursor();
+                    Ap3Arg<?> arg = single.parse(reader);
+                    used.add(arg.type());
+
+                    if (reader.canRead() && reader.peek() == ' ') {
+                        reader.skip();
+                    } else {
+                        break;
+                    }
+
+                    if (reader.getCursor() == before) break;
+                }
+            } catch (CommandSyntaxException ignored) {
+                failed = true;
+            }
+
+            if (!used.isEmpty() && !failed && !end && reader.getCursor() == input.length()) {
+                return Suggestions.empty();
+            }
+
+            int offset;
+            if (failed) {
+                int lastSpace = input.lastIndexOf(' ');
+                offset = builder.getStart() + (lastSpace == -1 ? 0 : lastSpace + 1);
+            } else {
+                offset = builder.getStart() + reader.getCursor();
+            }
+            SuggestionsBuilder b = builder.createOffset(offset);
+            String remaining = b.getRemaining().toLowerCase();
+            for (AP3ArgType t : AP3ArgType.values()) {
+                if (used.contains(t)) continue;
+                for (String a : t.getAliases()) {
+                    if (a.startsWith(remaining)) {
+                        b.suggest(a);
+                    }
+                }
+            }
+
+            return b.buildFuture();
+        }
+
+        @SuppressWarnings("unchecked")
+        public static Map<AP3ArgType, Ap3Arg<?>> get(CommandContext<?> ctx, String name) {
+            return (Map<AP3ArgType, Ap3Arg<?>>) ctx.getArgument(name, Map.class);
+        }
+    }
+
+    public record Ap3Arg<T>(AP3ArgType type, T value, String key, boolean hasValue) {
+        public T getValue() {
+            return hasValue ? value : null;
         }
     }
 }

@@ -5,6 +5,7 @@ import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -17,19 +18,19 @@ public enum RingArgType {
     TERM_CLOSE(TermCloseArg::create, TermCloseArg.class, List.of("termclose", "close", "tc")),
     SECTION(SectionArg::create, SectionArg.class, List.of("section", "s"));
 
-    private final Function<String, Argument<?>> factory;
+    private final Function<Object, Argument<?>> factory;
     @Getter
     private final List<String> aliases;
     @Getter
-    private Class<? extends Argument<?>> clazz;
+    private final Class<? extends Argument<?>> clazz;
 
-    RingArgType(Function<String, Argument<?>> factory, Class<? extends Argument<?>> clazz , List<String> aliases) {
+    RingArgType(Function<Object, Argument<?>> factory, Class<? extends Argument<?>> clazz , List<String> aliases) {
         this.factory = factory;
         this.clazz = clazz;
         this.aliases = aliases;
     }
 
-    public Argument create(String arg) {
+    public Argument<?> create(Object arg) {
         return this.factory.apply(arg);
     }
 

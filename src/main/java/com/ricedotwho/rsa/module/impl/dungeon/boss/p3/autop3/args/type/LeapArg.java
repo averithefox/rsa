@@ -35,8 +35,8 @@ public class LeapArg extends Argument<Boolean> {
         override = false;
     }
 
-    public static LeapArg create(String arg) {
-        return new LeapArg(NumberUtils.isInteger(arg) ? Integer.parseInt(arg) : 1);
+    public static LeapArg create(Object arg) {
+        return new LeapArg((Integer) arg);
     }
 
     public void serialize(JsonObject json) {

@@ -31,7 +31,7 @@ public class TriggerArg extends Argument<Boolean> {
         return "trigger";
     }
 
-    public static TriggerArg create(String ignored) {
+    public static TriggerArg create(Object ignored) {
         return new TriggerArg();
     }
 }

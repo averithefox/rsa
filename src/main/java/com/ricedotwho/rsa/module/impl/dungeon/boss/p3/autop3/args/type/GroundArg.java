@@ -28,7 +28,7 @@ public class GroundArg extends Argument<Object> {
         return "ground";
     }
 
-    public static GroundArg create(String arg) {
+    public static GroundArg create(Object ignored) {
         return new GroundArg();
     }
 

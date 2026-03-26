@@ -33,7 +33,7 @@ public class TermArg extends Argument<TerminalEvent.Open> {
         return "term";
     }
 
-    public static TermArg create(String ignored) {
+    public static TermArg create(Object ignored) {
         return new TermArg();
     }
 

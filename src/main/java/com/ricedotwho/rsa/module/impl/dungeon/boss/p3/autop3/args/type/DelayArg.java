@@ -32,8 +32,8 @@ public class DelayArg extends Argument<Object> {
         ran = 0;
     }
 
-    public static DelayArg create(String obj) {
-        return new DelayArg(Long.parseLong(obj));
+    public static DelayArg create(Object obj) {
+        return new DelayArg((Long) obj);
     }
 
     @Override

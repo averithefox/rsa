@@ -18,9 +18,9 @@ public class SectionArg extends Argument<Boolean> {
         this.section = section;
     }
 
-    public SectionArg(int players) {
+    public SectionArg(int sec) {
         super(RingArgType.SECTION);
-        this.section = DungeonUtils.getSectionFromI(Mth.clamp(players, 1, 4) - 1);
+        this.section = DungeonUtils.getSectionFromI(Mth.clamp(sec, 1, 4) - 1);
     }
 
     @Override
@@ -42,8 +42,8 @@ public class SectionArg extends Argument<Boolean> {
         override = false;
     }
 
-    public static SectionArg create(String arg) {
-        return new SectionArg(NumberUtils.isInteger(arg) ? Integer.parseInt(arg) : 0);
+    public static SectionArg create(Object arg) {
+        return new SectionArg((int) arg);
     }
 
     public void serialize(JsonObject json) {
