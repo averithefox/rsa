@@ -4,6 +4,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsa.event.impl.PreTickEvent;
 import com.ricedotwho.rsa.module.impl.dungeon.DungeonBreaker;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingAdapter;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.Ring;
@@ -82,7 +83,7 @@ public class BreakerAura extends Module {
     }
 
     @SubscribeEvent
-    public void onTick(ClientTickEvent.Start event) {
+    public void onTick(PreTickEvent event) {
         if(!debug.getValue() || RSA.isNotInTestEnv()) {
             if (!Location.getArea().is(Island.Dungeon) || mc.player == null || !DungeonUtils.isPositionInF7Boss(mc.player.position()) || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || edit.getValue() || mc.level == null || charges <= 0)
                 return;

@@ -24,7 +24,7 @@ public class WalkRing extends Ring {
     }
 
     public WalkRing(Pos min, Pos max, ArgumentManager manage, SubActionManager actions, Map<String, Object> extra) {
-        this(min, max, (Float) extra.getOrDefault("yaw", Minecraft.getInstance().gameRenderer.getMainCamera().yaw()), manage, actions);
+        this(min, max, (float) extra.getOrDefault("yaw", Minecraft.getInstance().gameRenderer.getMainCamera().yaw()), manage, actions);
     }
 
     public WalkRing(Pos min, Pos max, float yaw, ArgumentManager manage, SubActionManager actions) {

@@ -16,7 +16,8 @@ public enum RingArgType {
     TRIGGER(TriggerArg::create, TriggerArg.class, List.of("trigger", "click", "c")),
     DELAY(DelayArg::create, DelayArg.class, List.of("delay", "d")),
     TERM_CLOSE(TermCloseArg::create, TermCloseArg.class, List.of("termclose", "close", "tc")),
-    SECTION(SectionArg::create, SectionArg.class, List.of("section", "s"));
+    SECTION(SectionArg::create, SectionArg.class, List.of("section", "s")),
+    VELOCITY(VelocityArg::create, VelocityArg.class, List.of("velobuffered", "velo"));
 
     private final Function<Object, Argument<?>> factory;
     @Getter

@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.movement;
 
+import com.ricedotwho.rsa.event.impl.VelocityBufferedEvent;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
@@ -10,6 +11,7 @@ import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.DragSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
+import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.LocalPlayer;
@@ -31,7 +33,8 @@ public class VelocityBuffer extends Module {
 
     private final KeybindSetting popKey = new KeybindSetting("Queue Pop Key", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, this::popQueue));
     private final DragSetting gui = new DragSetting("Velocity Buffer Hud", new Vector2d(100, 100), new Vector2d(144, 80));
-    private int bufferedCount = 0;
+    @Getter
+    private static int bufferedCount = 0;
 
 
     private static final Set<Class<? extends Packet<?>>> PACKET_SET = Set.of(
@@ -60,7 +63,7 @@ public class VelocityBuffer extends Module {
     public void onWorldLoad(WorldEvent.Load event) {
         synchronized (queue) {
             queue.clear();
-            this.bufferedCount = 0;
+            bufferedCount = 0;
             if (this.isEnabled()) this.setEnabled(false);
         }
     }
@@ -82,6 +85,7 @@ public class VelocityBuffer extends Module {
             if (isMotionPacket(packet, Minecraft.getInstance().player)) {
                 queue.add(packet);
                 bufferedCount++;
+                new VelocityBufferedEvent(packet).post();
                 Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING.value(), 0.5f, 0.5f));
                 return true;
             }
@@ -148,7 +152,7 @@ public class VelocityBuffer extends Module {
                 queue.forEach(this::receivePacket);
             this.queue.clear();
         }
-        this.bufferedCount = 0;
+        bufferedCount = 0;
     }
 
 }

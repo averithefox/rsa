@@ -63,6 +63,7 @@ public class RingAdapter implements JsonDeserializer<Ring>, JsonSerializer<Ring>
             case COMMAND -> new CommandRing(min, max, obj.get("command").getAsString(), args, sub);
             case PET -> new PetRing(min, max, obj.get("uuid").getAsString(), args, sub);
             case STOPWATCH -> new StopWatchRing(min, max, args, sub);
+            case BONZO2 -> new BonzoRing2(min, max, obj.get("yaw").getAsFloat(), obj.get("pitch").getAsFloat(), args, sub);
             case null -> throw new IllegalStateException("Unexpected value: " + obj.get("type"));
         };
     }
@@ -83,9 +84,10 @@ public class RingAdapter implements JsonDeserializer<Ring>, JsonSerializer<Ring>
                 case LEAP -> new LeapArg(entry.getValue().getAsInt());
                 case TERM -> new TermArg();
                 case TRIGGER -> new TriggerArg();
-                case DELAY -> new DelayArg(entry.getValue().getAsLong());
+                case DELAY -> new DelayArg(entry.getValue().getAsInt());
                 case TERM_CLOSE -> new TermCloseArg();
                 case SECTION -> new SectionArg(EnumUtils.getEnum(Phase7.class, entry.getValue().getAsString(), Phase7.UNKNOWN));
+                case VELOCITY -> new VelocityArg(entry.getValue().getAsInt());
             };
             map.put(type, condition);
         }

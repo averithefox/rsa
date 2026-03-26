@@ -33,7 +33,8 @@ public enum RingType {
     COMMAND("command", CommandRing::new, 0.013f, Set.of("command"), null),
     BLINK("blink", BlinkRing::new, 0.014f, Set.of(), null),
     PET("pet", PetRing::new, 0.015f, Set.of("uuid"), null),
-    STOPWATCH("stopwatch", StopWatchRing::new, 0.016f, Set.of(), null);
+    STOPWATCH("stopwatch", StopWatchRing::new, 0.016f, Set.of(), null),
+    BONZO2("bonzo2", BonzoRing2::new, 0.016f, Set.of(), null);
 
 
     @Getter

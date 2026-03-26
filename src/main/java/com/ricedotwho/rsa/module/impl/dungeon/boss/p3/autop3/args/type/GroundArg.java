@@ -3,7 +3,7 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.RingArgType;
 
-public class GroundArg extends Argument<Object> {
+public class GroundArg extends Argument<Void> {
     public GroundArg() {
         super(RingArgType.GROUND);
     }
@@ -14,7 +14,7 @@ public class GroundArg extends Argument<Object> {
     }
 
     @Override
-    public void consume(Object event) {
+    public void consume(Void event) {
 
     }
 

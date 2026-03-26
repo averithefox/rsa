@@ -27,8 +27,8 @@ public class LookRing extends Ring implements Accessor {
 
     public LookRing(Pos min, Pos max, ArgumentManager manage, SubActionManager actions, Map<String, Object> extra) {
         this(min, max,
-                (Float) extra.getOrDefault("yaw", mc.gameRenderer.getMainCamera().yaw()),
-                (Float) extra.getOrDefault("yaw", mc.gameRenderer.getMainCamera().getXRot()),
+                (float) extra.getOrDefault("yaw", mc.gameRenderer.getMainCamera().yaw()),
+                (float) extra.getOrDefault("yaw", mc.gameRenderer.getMainCamera().getXRot()),
                 manage, actions);
     }
 

@@ -154,11 +154,11 @@ public class BBGCommand extends Command {
 
         args.forEach((k, v) -> {
             switch (k) {
-                case RADIUS -> whl.set((double) v.getValue(), (double) v.getValue(), (double) v.getValue());
+                case RADIUS -> whl.set((float) v.getValue(), (float) v.getValue(), (float) v.getValue());
                 case EXACT -> dataMap.put("exact", true);
-                case WIDTH -> whl.x((double) v.getValue());
-                case HEIGHT -> whl.y((double) v.getValue());
-                case LENGTH -> whl.z((double) v.getValue());
+                case WIDTH -> whl.x((float) v.getValue());
+                case HEIGHT -> whl.y((float) v.getValue());
+                case LENGTH -> whl.z((float) v.getValue());
                 case YAW -> dataMap.put("yaw", v.getValue());
                 case PITCH -> dataMap.put("pitch", v.getValue());
                 case ROUTE -> dataMap.put("route", v.getValue());
@@ -168,7 +168,7 @@ public class BBGCommand extends Command {
                 case UUID -> dataMap.put("uuid", v.getValue());
 
                 // conditional
-                case TERM, LEAP, GROUND, TRIGGER, DELAY, TERM_CLOSE, SECTION -> {
+                case TERM, LEAP, GROUND, TRIGGER, DELAY, TERM_CLOSE, SECTION, VELOCITY -> {
                     RingArgType a = RingArgType.fromAliases(v.key.toLowerCase());
                     if (a == null) {
                         AutoP3.modMessage("Failed to parse arg type! %s, key: %s, value: %s", k, v.key(), v.getValue());
@@ -442,9 +442,9 @@ public class BBGCommand extends Command {
                 }
             }
             try {
-                return new Ap3Arg<>(type, Double.parseDouble(part), key, true);
+                return new Ap3Arg<>(type, Float.parseFloat(part), key, true);
             } catch (NumberFormatException e) {
-                throw INVALID.createWithContext(reader, "Expected number");
+                throw INVALID.createWithContext(reader, "Expected float");
             }
         }
 
@@ -480,7 +480,7 @@ public class BBGCommand extends Command {
         ROUTE(String.class, "route"),
         MESSAGE(String.class, "message", "m"),
         COMMAND(String.class, "command", "c"),
-        BLINK(Integer.class, "blink","b"),
+        BLINK(Integer.class, "blink", "b"),
         UUID(String.class, "uuid"),
 
         // conditional
@@ -491,6 +491,7 @@ public class BBGCommand extends Command {
         DELAY(Integer.class, "delay"),
         TERM_CLOSE(Void.class, "termclose", "close"),
         SECTION(Integer.class, "section", "s"),
+        VELOCITY(Integer.class, "velobuffered", "velo"),
 
         // sub actions
         LOOK(Void.class, "look"),

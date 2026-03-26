@@ -34,8 +34,8 @@ public class UseRing extends Ring implements Accessor {
     public UseRing(Pos min, Pos max, ArgumentManager manage, SubActionManager actions, Map<String, Object> extra) {
         this(min, max,
                 ItemUtils.getID(mc.player.getItemInHand(InteractionHand.MAIN_HAND)),
-                (Float) extra.getOrDefault("yaw", mc.gameRenderer.getMainCamera().yaw()),
-                (Float) extra.getOrDefault("yaw", mc.gameRenderer.getMainCamera().getXRot()),
+                (float) extra.getOrDefault("yaw", mc.gameRenderer.getMainCamera().yaw()),
+                (float) extra.getOrDefault("yaw", mc.gameRenderer.getMainCamera().getXRot()),
                 manage, actions);
     }
 

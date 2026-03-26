@@ -1,6 +1,7 @@
 package com.ricedotwho.rsa.component.impl.managers;
 
 import com.ricedotwho.rsa.event.impl.PreTickEvent;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.Ring;
 import net.minecraft.network.protocol.Packet;
 
 import java.util.ArrayList;
@@ -9,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
 public class PacketOrderManager {
-    private static final ConcurrentHashMap<STATE, List<Runnable>> packets = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<STATE, List<StateRunnable>> packets = new ConcurrentHashMap<>();
     private static final List<Predicate<Packet<?>>> receiveListeners = new ArrayList<>(4);
 
     private PacketOrderManager() {
@@ -28,11 +29,15 @@ public class PacketOrderManager {
     }
 
     public static void register(STATE state, Runnable runnable) {
+        register(state, new StateRunnable(true, runnable));
+    }
+
+    public static void register(STATE state, StateRunnable runnable) {
         synchronized (packets) {
             if (!packets.containsKey(state)) packets.put(state, new ArrayList<>());
         }
 
-        List<Runnable> list = packets.get(state);
+        List<StateRunnable> list = packets.get(state);
         synchronized (list) {
             list.add(runnable);
         }
@@ -54,11 +59,16 @@ public class PacketOrderManager {
     public static void execute(STATE state) {
         if (!packets.containsKey(state)) return;
 
-        List<Runnable> runnables = packets.get(state);
+        List<StateRunnable> runnables = packets.get(state);
         synchronized (runnables) {
             if (runnables.isEmpty()) return;
-            runnables.forEach(Runnable::run);
-            runnables.clear();
+            for (int i = 0 ; i < runnables.size(); i++) {
+                StateRunnable r = runnables.get(i);
+                boolean bl2 = i == 0 || r.canMultiRun();
+                if (!bl2) continue;
+                r.runnable().run();
+                runnables.remove(i--);
+            }
         }
     }
 
