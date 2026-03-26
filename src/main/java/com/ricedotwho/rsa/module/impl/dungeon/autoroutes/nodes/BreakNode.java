@@ -100,14 +100,17 @@ public class BreakNode extends Node implements Accessor {
     public void render(boolean depth) {
         Renderer3D.addTask(new Ring(this.getRealPos().asVec3(), depth, this.getRadius(), this.getColour()));
         if (this.rotated == null || this.rotated.isEmpty()) return;
-        Colour colour = AutoRoutes.getBreakColour().getValue().alpha(90);
+
+        Colour colour = AutoRoutes.getBreakColour().getValue();
+        Colour transparentColour = colour.alpha(colour.getAlpha() * 0.35F);
+
         for (Pos pos : rotated) {
             BlockPos bp = pos.asBlockPos();
             BlockState state = mc.level.getBlockState(bp);
             VoxelShape shape = state.getShape(mc.level, bp);
             if (shape.isEmpty()) continue;
             AABB aabb = shape.bounds().move(bp);
-            Renderer3D.addTask(new FilledBox(aabb, colour, true));
+            Renderer3D.addTask(new FilledBox(aabb, transparentColour, true));
         }
     }
 
