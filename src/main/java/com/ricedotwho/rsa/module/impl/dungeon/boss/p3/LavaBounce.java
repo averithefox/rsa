@@ -33,7 +33,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.HashMap;
@@ -128,6 +127,12 @@ public class LavaBounce extends Module {
         HitResult result = mc.player.pick(addBlockRange.getValue().doubleValue(), 1f, true);
         if (!(result instanceof BlockHitResult blockHitResult) || blockHitResult.getType() == HitResult.Type.MISS) {
             RSA.chat(ChatFormatting.RED + "Not looking at a block");
+            return;
+        }
+
+        BlockPos bp = blockHitResult.getBlockPos();
+        if (!mc.level.getBlockState(bp).is(Blocks.LAVA)) {
+            RSA.chat(ChatFormatting.RED + "Not lava!");
             return;
         }
         Pos pos = new Pos(blockHitResult.getBlockPos());
