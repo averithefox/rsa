@@ -78,8 +78,7 @@ public class LavaBounce extends Module {
 
     @SubscribeEvent
     public void onTick(PreTickEvent event) {
-        if (!Location.getArea().is(Island.Dungeon) || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || mc.level == null || mc.player == null || mc.player.isInLava())
-            return;
+        if (!Location.getArea().is(Island.Dungeon) || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || mc.level == null || mc.player == null || mc.player.isInLava() || mc.player.onGround()) return;
         BlockPos under = findLava();
         if (under == null) return;
 
