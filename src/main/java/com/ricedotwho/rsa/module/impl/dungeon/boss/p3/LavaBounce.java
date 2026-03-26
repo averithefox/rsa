@@ -5,7 +5,9 @@ import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.event.impl.PreTickEvent;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.BreakerAura;
 import com.ricedotwho.rsa.utils.InteractUtils;
+import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
@@ -64,6 +66,14 @@ public class LavaBounce extends Module {
                 colour,
                 data
         );
+    }
+
+    public static void load(String file) {
+        LavaBounce inst = RSM.getModule(LavaBounce.class);
+        if (inst != null) {
+            inst.data.setFileName(file);
+            inst.data.load();
+        }
     }
 
     @SubscribeEvent

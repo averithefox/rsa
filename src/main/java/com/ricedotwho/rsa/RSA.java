@@ -181,7 +181,8 @@ public class RSA implements Addon {
                 RotateCommand.class,
                 StopwatchCommand.class,
                 LimboCommand.class,
-                DungeonBreakerCommand.class
+                DungeonBreakerCommand.class,
+                LavabounceCommand.class
         );
     }
 

@@ -11,6 +11,8 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.ricedotwho.rsa.RSA;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.BreakerAura;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.LavaBounce;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.*;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.RingArgType;
@@ -109,6 +111,18 @@ public class BBGCommand extends Command {
                                     String config = StringArgumentType.getString(ctx, "config");
                                     AutoP3.load(config);
                                     AutoP3.modMessage("Loaded %s", config);
+                                    return 1;
+                                })
+                        )
+                )
+                .then(literal("loadall")
+                        .then(argument("config", StringArgumentType.greedyString())
+                                .executes(ctx -> {
+                                    String config = StringArgumentType.getString(ctx, "config");
+                                    AutoP3.load(config);
+                                    BreakerAura.load(config);
+                                    LavaBounce.load(config);
+                                    AutoP3.modMessage("Loaded All \"%s\"", config);
                                     return 1;
                                 })
                         )
