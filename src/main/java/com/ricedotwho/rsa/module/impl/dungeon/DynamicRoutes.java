@@ -52,7 +52,6 @@ public class DynamicRoutes extends Module {
     @Getter
     private final List<Node> nodes = new ArrayList<>();
 
-    private static final BooleanSetting centerOnly = new BooleanSetting("Center Only", false);
     private final BooleanSetting oneUse = new BooleanSetting("Delete After Use", true);
     private final BooleanSetting editMode = new BooleanSetting("Edit Mode", false);
 
@@ -91,7 +90,6 @@ public class DynamicRoutes extends Module {
     public DynamicRoutes() {
         this.registerProperty(
                 editMode,
-                centerOnly,
                 oneUse,
                 render,
                 pathfinder,

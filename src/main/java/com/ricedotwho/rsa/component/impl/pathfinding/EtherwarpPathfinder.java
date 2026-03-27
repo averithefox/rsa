@@ -72,7 +72,7 @@ public class EtherwarpPathfinder {
         }
 
         this.run();
-        //ChatUtils.chat("Completed, waiting for others!");
+        ChatUtils.chat("Completed, waiting for others!");
 
         threads.forEach(Thread::interrupt);
         threads.forEach(thread -> {

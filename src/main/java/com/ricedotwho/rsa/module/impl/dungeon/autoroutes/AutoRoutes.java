@@ -258,7 +258,7 @@ public class AutoRoutes extends Module implements Accessor {
     }
 
     private boolean hasGuiOpen() {
-        return Minecraft.getInstance().player != null && Minecraft.getInstance().screen instanceof AbstractContainerScreen<?>;
+        return Minecraft.getInstance().player != null && Minecraft.getInstance().screen instanceof AbstractContainerScreen<?> && false;
     }
 
     public boolean clearNodes(UniqueRoom uniqueRoom) {

@@ -52,7 +52,7 @@ public class GoalDungeonRoom implements Goal {
         Room current = ScanUtils.getRoomFromPos(x, z);
         if (current == null || current.getUniqueRoom() == null) return false;
         if (current.getUniqueRoom() != this.endRoom) return false;
-        return current.getRoofHeight() > y && Mth.abs(current.getX() - x) <= 14f && Mth.abs(current.getZ() - z) <= 14f; // So it doesn't fucking teleport out of bounds // 28 x 28 instead of 32 x 32
+        return current.getRoofHeight() - 1 > y && Mth.abs(current.getX() - x) <= 14f && Mth.abs(current.getZ() - z) <= 14f; // So it doesn't fucking teleport out of bounds // 28 x 28 instead of 32 x 32
     }
 
     @Override
@@ -61,6 +61,7 @@ public class GoalDungeonRoom implements Goal {
         if (room == null || room.getUniqueRoom() == null || room.getUniqueRoom().getMainRoom() == null) return MAX;
         RoomCandidate candidate = rooms.get(room.getData().name());
         if (candidate == null) return MAX;
+        if (y >= candidate.getDoorRoom().getRoofHeight() - 1) return MAX;
         boolean bl = candidate.getNextDoorRoom() != null;
         if (bl) {
             int endX = (candidate.getDoorRoom().getX() + candidate.getNextDoorRoom().getX()) >> 1;

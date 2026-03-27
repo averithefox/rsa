@@ -63,6 +63,8 @@ public class GoalDungeonXYZ implements Goal {
         if (room == null || room.getUniqueRoom() == null || room.getUniqueRoom().getMainRoom() == null) return MAX;
         RoomCandidate candidate = rooms.get(room.getData().name());
         if (candidate == null) return MAX;
+        if (y >= candidate.getDoorRoom().getRoofHeight() - 1) return MAX;
+
         int endX;
         int endY;
         int endZ;

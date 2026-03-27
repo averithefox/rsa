@@ -168,7 +168,7 @@ public class MapScreen extends Screen {
         return switch (roomState) {
             case GREEN -> 0xFF00FF00;
             case FAILED -> 0xFFFF0000;
-            case CLEARED, DISCOVERED -> 0xFFFFFFFF;
+            case CLEARED -> 0xFFFFFFFF;
             default -> 0xFFA0A0A0;
         };
     }
@@ -223,7 +223,7 @@ public class MapScreen extends Screen {
                 GoalDungeonRoom goal = GoalDungeonRoom.create(room);
                 if (goal == null) return true;
                 dynamicRoutes.executePath(Minecraft.getInstance().player.position(), goal);
-                if (SwapManager.swapItem("ASPECT_OF_THE_VOID")) {
+                if (shouldCenter() && SwapManager.swapItem("ASPECT_OF_THE_VOID")) {
                     SwapManager.sendAirC08(Minecraft.getInstance().player.getYRot(), 90f, true, false);
                 }
                 break;
@@ -233,7 +233,7 @@ public class MapScreen extends Screen {
                 //BlockPos startPos = BlockPos.containing(Minecraft.getInstance().player.position().subtract(0, EtherUtils.EPSILON, 0d));
                 GoalDungeonRoom goal = GoalDungeonRoom.create(room);
                 dynamicRoutes.executePath(Minecraft.getInstance().player.position(), goal);
-                if (SwapManager.swapItem("ASPECT_OF_THE_VOID")) {
+                if (shouldCenter() && SwapManager.swapItem("ASPECT_OF_THE_VOID")) {
                     SwapManager.sendAirC08(Minecraft.getInstance().player.getYRot(), 90f, true, false);
                 }
                 break;
@@ -246,6 +246,10 @@ public class MapScreen extends Screen {
             }
         }
         return true;
+    }
+
+    private static boolean shouldCenter() {
+        return Minecraft.getInstance().player == null || Minecraft.getInstance().player.position().subtract(Minecraft.getInstance().player.blockPosition().getBottomCenter()).horizontalDistanceSqr() > EtherUtils.EPSILON;
     }
 
     @Override
