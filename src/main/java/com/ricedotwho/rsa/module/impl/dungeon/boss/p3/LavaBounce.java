@@ -53,6 +53,7 @@ public class LavaBounce extends Module {
     private final KeybindSetting addBlockBind = new KeybindSetting("Add Block Bind", new Keybind(GLFW.GLFW_KEY_SEMICOLON, false, this::addOrRemoveBlock));
     private final BooleanSetting renderBlocks = new BooleanSetting("Render Blocks", true, useConfig::getValue);
     private final ColourSetting colour = new ColourSetting("Colour", Colour.RED.alpha(90), useConfig::getValue);
+    private final BooleanSetting debug = new BooleanSetting("Force LavaBounce Load", false);
     private final SaveSetting<Set<Pos>> data = new SaveSetting<>("Blocks", "dungeon/lavabounce", "lavabounce.json", HashSet::new, new TypeToken<Set<Pos>>(){}.getType(), FileUtils.getPgson(), true, null, useConfig::getValue);
 
     public LavaBounce() {
@@ -60,6 +61,7 @@ public class LavaBounce extends Module {
                 cooldown,
                 addBlockRange,
                 useConfig,
+                debug,
                 addBlockBind,
                 renderBlocks,
                 colour,
@@ -77,7 +79,10 @@ public class LavaBounce extends Module {
 
     @SubscribeEvent
     public void onTick(RawTickEvent event) {
-        if (event.isCancel() || !Location.getArea().is(Island.Dungeon) || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || mc.level == null || mc.player == null || mc.player.isInLava() || mc.player.onGround()) return;
+        if(!debug.getValue() || RSA.isNotInTestEnv()) {
+            if (event.isCancel() || !Location.getArea().is(Island.Dungeon) || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || mc.level == null || mc.player == null || mc.player.isInLava() || mc.player.onGround())
+                return;
+        }
         BlockPos under = findLava();
         if (under == null) return;
 
@@ -122,7 +127,10 @@ public class LavaBounce extends Module {
 
     @SubscribeEvent
     public void onRender3D(Render3DEvent.Extract event) {
-        if (!Location.getArea().is(Island.Dungeon) || !renderBlocks.getValue() || !useConfig.getValue() || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || mc.level == null || mc.player == null) return;
+        if(!debug.getValue() || RSA.isNotInTestEnv()) {
+            if (!Location.getArea().is(Island.Dungeon) || !renderBlocks.getValue() || !useConfig.getValue() || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || mc.level == null || mc.player == null)
+                return;
+        }
         for (Pos pos : data.getValue()) {
             BlockPos bp = pos.asBlockPos();
             AABB aabb = Shapes.block().bounds().move(bp);
@@ -131,7 +139,9 @@ public class LavaBounce extends Module {
     }
 
     public void addOrRemoveBlock() {
-        if (!Location.getArea().is(Island.Dungeon) || !Dungeon.isInBoss() || mc.player == null) return;
+        if(!debug.getValue() || RSA.isNotInTestEnv()) {
+            if (!Location.getArea().is(Island.Dungeon) || !Dungeon.isInBoss() || mc.player == null) return;
+        }
         HitResult result = mc.player.pick(addBlockRange.getValue().doubleValue(), 1f, true);
         if (!(result instanceof BlockHitResult blockHitResult) || blockHitResult.getType() == HitResult.Type.MISS) {
             RSA.chat(ChatFormatting.RED + "Not looking at a block");
