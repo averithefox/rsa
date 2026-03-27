@@ -94,6 +94,7 @@ public class AutoRoutes extends Module implements Accessor {
 
     private int tickTime = 0;
     private boolean forceNextNotSneak = false;
+    private Node realNode;
     private Node inNode;
     @Getter
     private boolean isRouting = false;
@@ -138,12 +139,14 @@ public class AutoRoutes extends Module implements Accessor {
         );
         render.add(startDepth, nodeDepth, startColour, etherwarpColour, breakColour, boomColour, batColour, aotvColour);
         this.inNode = null;
+        this.realNode = null;
         createBackup();
     }
 
     @SubscribeEvent
     public void onWorldLoad(WorldEvent.Load event) {
         this.inNode = null;
+        this.realNode = null;
         this.activeNodes.clear();
         this.crouchDataShiftRegister = 0;
         this.lastBlockC08 = 0;
@@ -154,6 +157,7 @@ public class AutoRoutes extends Module implements Accessor {
         if (event.unique == null || event.room == null || event.oldRoom == null) return;
         Room room = event.getRoom();
         this.inNode = null;
+        this.realNode = null;
         if (activeNodes.containsKey(room.getData())) return;
         cacheRoomNodes(room);
     }
@@ -188,6 +192,7 @@ public class AutoRoutes extends Module implements Accessor {
             return;
         }
         Pos playerPos = new Pos(Minecraft.getInstance().player.position());
+        Pos realPos = new Pos(playerPos);
 
 
         nodes.forEach(n -> n.updateNodeState(playerPos, tickTime));
@@ -195,7 +200,7 @@ public class AutoRoutes extends Module implements Accessor {
         this.lastType = null;
 
         while (true) {
-            if (!handleQueue(playerPos, nodes)) break;
+            if (!handleQueue(playerPos, realPos, nodes)) break;
         }
     }
 
@@ -245,6 +250,7 @@ public class AutoRoutes extends Module implements Accessor {
     private void reload() {
         this.activeNodes.clear();
         this.inNode = null;
+        this.realNode = null;
         if (!Location.getArea().is(Island.Dungeon)) return;
         Room room = Map.getCurrentRoom();
         if (room == null || room.getUniqueRoom() == null) return;
@@ -339,10 +345,10 @@ public class AutoRoutes extends Module implements Accessor {
         List<Node> nodes = this.activeNodes.get(Map.getCurrentRoom().getData());
         if (nodes != null)
             nodes.forEach(Node::reset);
-        if (this.inNode instanceof BatNode) this.inNode.setTriggered(true);
-        if (this.inNode == null || !this.inNode.hasAwaits()) return;
-        this.inNode.getAwaitManager().consume(AwaitClick.class, true);
-        this.inNode.getAwaitManager().consume(AwaitSecrets.class, 100); // Skip secret
+        if (this.realNode instanceof BatNode) this.realNode.setTriggered(true);
+        if (this.realNode == null || !this.realNode.hasAwaits()) return;
+        this.realNode.getAwaitManager().consume(AwaitClick.class, true);
+        this.realNode.getAwaitManager().consume(AwaitSecrets.class, 100); // Skip secret
     }
 
     @SubscribeEvent
@@ -355,12 +361,12 @@ public class AutoRoutes extends Module implements Accessor {
         }
 
 
-        if (this.inNode == null || Map.getCurrentRoom() == null) return;
-        if (!this.inNode.hasAwaits() || !this.inNode.getAwaitManager().hasAwait(AwaitType.SECRETS)) return;
+        if (this.realNode == null || Map.getCurrentRoom() == null) return;
+        if (!this.realNode.hasAwaits() || !this.realNode.getAwaitManager().hasAwait(AwaitType.SECRETS)) return;
         if (!(event.getPacket() instanceof ServerboundUseItemOnPacket useItemOnPacket)) return;
         Block block = Minecraft.getInstance().level.getBlockState(useItemOnPacket.getHitResult().getBlockPos()).getBlock();
         if (block != Blocks.CHEST && block != Blocks.TRAPPED_CHEST && block != Blocks.PLAYER_HEAD && block != Blocks.LEVER) return;
-        this.inNode.getAwaitManager().consume(AwaitSecrets.class, 1);
+        this.realNode.getAwaitManager().consume(AwaitSecrets.class, 1);
         this.lastBlockC08 = 2; // Hypixel voids C08s sometimes after secret auraing
     }
 
@@ -368,10 +374,10 @@ public class AutoRoutes extends Module implements Accessor {
     public void onReceivePacket(PacketEvent.Receive event) {
         if (!Location.getArea().is(Island.Dungeon)
                 || Map.getCurrentRoom() == null
-                || this.inNode == null
+                || this.realNode == null
                 || mc.level == null
-                || !this.inNode.hasAwaits()
-                || !this.inNode.getAwaitManager().hasAwait(AwaitType.SECRETS)
+                || !this.realNode.hasAwaits()
+                || !this.realNode.getAwaitManager().hasAwait(AwaitType.SECRETS)
         ) return;
 
         if (event.getPacket() instanceof ClientboundTakeItemEntityPacket packet) {
@@ -380,14 +386,14 @@ public class AutoRoutes extends Module implements Accessor {
             if (!(entity instanceof ItemEntity itemEntity)) return;
             String name = ChatFormatting.stripFormatting(itemEntity.getItem().getHoverName().getString());
             if (!SECRET_NAMES.contains(name)) return;
-            this.inNode.getAwaitManager().consume(AwaitSecrets.class, 1);
+            this.realNode.getAwaitManager().consume(AwaitSecrets.class, 1);
         } else if (event.getPacket() instanceof ClientboundRemoveEntitiesPacket packet) {
             packet.getEntityIds().forEach(id -> {
                 Entity entity = mc.level.getEntity(id);
                 if (entity instanceof ItemEntity itemEntity
                         && entity.distanceToSqr(mc.player) < 64
                         && SECRET_NAMES.contains(ChatFormatting.stripFormatting(itemEntity.getItem().getHoverName().getString()))) {
-                    this.inNode.getAwaitManager().consume(AwaitSecrets.class, 1);
+                    this.realNode.getAwaitManager().consume(AwaitSecrets.class, 1);
                 }
             });
         }
@@ -400,8 +406,17 @@ public class AutoRoutes extends Module implements Accessor {
         if (node.hasAwaits()) node.getAwaitManager().onEnterNode();
     }
 
-    public boolean handleQueue(Pos playerPos, List<Node> nodes) {
+    public boolean handleQueue(Pos playerPos, Pos realPos, List<Node> nodes) {
         List<Node> activeNodes = new ArrayList<>();
+
+        // real node
+        this.realNode = null;
+        for (Node node : nodes) {
+            if (!node.isInNode(realPos)) continue;
+            this.isRouting = true;
+            if (node.isTriggered() || node.hasRanThisTick(tickTime)) continue;
+            if (this.realNode == null || this.realNode.getPriority() < node.getPriority()) this.realNode = node;
+        }
 
         for (Node node : nodes) {
             if (!node.isInNode(playerPos)) continue;

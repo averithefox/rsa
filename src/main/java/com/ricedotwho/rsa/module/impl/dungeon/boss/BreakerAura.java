@@ -80,7 +80,7 @@ public class BreakerAura extends Module {
     @SubscribeEvent
     public void onTick(RawTickEvent event) {
         if(!debug.getValue() || RSA.isNotInTestEnv()) {
-            if (event.isCancel() || !Location.getArea().is(Island.Dungeon) || mc.player == null || !DungeonUtils.isPositionInF7Boss(mc.player.position()) || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || edit.getValue() || mc.level == null || charges <= 0)
+            if (event.isCancel() || !Location.getArea().is(Island.Dungeon) || mc.level == null || mc.player == null || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || edit.getValue() || charges <= 0)
                 return;
         }
 
@@ -112,7 +112,7 @@ public class BreakerAura extends Module {
     @SubscribeEvent
     public void onRender3D(Render3DEvent.Extract event) {
         if(!debug.getValue() || RSA.isNotInTestEnv()) {
-            if (!Location.getArea().is(Island.Dungeon) || !renderBlocks.getValue()  || mc.player == null || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || mc.level == null)
+            if (!Location.getArea().is(Island.Dungeon) || !renderBlocks.getValue() || mc.level == null || mc.player == null || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty())
                 return;
         }
 
