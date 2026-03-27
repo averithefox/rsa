@@ -4,8 +4,7 @@ import com.google.common.reflect.TypeToken;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
-import com.ricedotwho.rsa.event.impl.PreTickEvent;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.BreakerAura;
+import com.ricedotwho.rsa.event.impl.RawTickEvent;
 import com.ricedotwho.rsa.utils.InteractUtils;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
@@ -77,8 +76,8 @@ public class LavaBounce extends Module {
     }
 
     @SubscribeEvent
-    public void onTick(PreTickEvent event) {
-        if (!Location.getArea().is(Island.Dungeon) || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || mc.level == null || mc.player == null || mc.player.isInLava() || mc.player.onGround()) return;
+    public void onTick(RawTickEvent event) {
+        if (event.isCancel() || !Location.getArea().is(Island.Dungeon) || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || mc.level == null || mc.player == null || mc.player.isInLava() || mc.player.onGround()) return;
         BlockPos under = findLava();
         if (under == null) return;
 

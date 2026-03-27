@@ -45,8 +45,9 @@ public abstract class MixinMinecraft {
 
     @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
     private void onTickStart(CallbackInfo ci) {
-        new RawTickEvent().post();
-        if (TickFreeze.isFrozen()) {
+        boolean c = TickFreeze.isFrozen();
+        new RawTickEvent(c).post();
+        if (c) {
             ci.cancel();
             return;
         }

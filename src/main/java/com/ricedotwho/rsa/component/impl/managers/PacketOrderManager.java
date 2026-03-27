@@ -1,7 +1,5 @@
 package com.ricedotwho.rsa.component.impl.managers;
 
-import com.ricedotwho.rsa.event.impl.PreTickEvent;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.Ring;
 import net.minecraft.network.protocol.Packet;
 
 import java.util.ArrayList;
@@ -25,7 +23,6 @@ public class PacketOrderManager {
 
     public static void onPreTickStart() {
         execute(STATE.START);
-        new PreTickEvent().post();
     }
 
     public static void register(STATE state, Runnable runnable) {

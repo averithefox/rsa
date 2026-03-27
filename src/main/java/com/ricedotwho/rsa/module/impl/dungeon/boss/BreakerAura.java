@@ -1,13 +1,10 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss;
 
 import com.google.common.reflect.TypeToken;
-import com.google.gson.GsonBuilder;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
-import com.ricedotwho.rsa.event.impl.PreTickEvent;
+import com.ricedotwho.rsa.event.impl.RawTickEvent;
 import com.ricedotwho.rsa.module.impl.dungeon.DungeonBreaker;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingAdapter;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.Ring;
 import com.ricedotwho.rsa.utils.InteractUtils;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
@@ -20,8 +17,6 @@ import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
-import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
-import com.ricedotwho.rsm.event.impl.render.Render2DEvent;
 import com.ricedotwho.rsm.event.impl.render.Render3DEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
@@ -83,9 +78,9 @@ public class BreakerAura extends Module {
     }
 
     @SubscribeEvent
-    public void onTick(PreTickEvent event) {
+    public void onTick(RawTickEvent event) {
         if(!debug.getValue() || RSA.isNotInTestEnv()) {
-            if (!Location.getArea().is(Island.Dungeon) || mc.player == null || !DungeonUtils.isPositionInF7Boss(mc.player.position()) || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || edit.getValue() || mc.level == null || charges <= 0)
+            if (event.isCancel() || !Location.getArea().is(Island.Dungeon) || mc.player == null || !DungeonUtils.isPositionInF7Boss(mc.player.position()) || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || edit.getValue() || mc.level == null || charges <= 0)
                 return;
         }
 
@@ -117,7 +112,7 @@ public class BreakerAura extends Module {
     @SubscribeEvent
     public void onRender3D(Render3DEvent.Extract event) {
         if(!debug.getValue() || RSA.isNotInTestEnv()) {
-            if (!Location.getArea().is(Island.Dungeon) || !renderBlocks.getValue() || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || mc.level == null || mc.player == null)
+            if (!Location.getArea().is(Island.Dungeon) || !renderBlocks.getValue()  || mc.player == null || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || mc.level == null)
                 return;
         }
 
