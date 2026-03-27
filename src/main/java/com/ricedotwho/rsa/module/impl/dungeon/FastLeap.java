@@ -21,6 +21,7 @@ import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.Phase7;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
+import com.ricedotwho.rsm.event.impl.game.ChatEvent;
 import com.ricedotwho.rsm.event.impl.game.TerminalEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
@@ -53,6 +54,8 @@ import net.minecraft.world.item.Items;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Getter
 @ModuleInfo(aliases = "Fast Leap", id = "FastLeap", category = Category.DUNGEONS)
@@ -66,6 +69,7 @@ public class FastLeap extends Module {
     });
 
     private final NumberSetting cooldown = new NumberSetting("Cooldown", 0, 5000, 2000, 50);
+    private final BooleanSetting chatCommand = new BooleanSetting("!leap", false);
 
     private final BooleanSetting flMessage = new BooleanSetting("Chat Message", false);
     private final BooleanSetting flP3 = new BooleanSetting("P3 Only", true);
@@ -92,6 +96,8 @@ public class FastLeap extends Module {
     private final ModeSetting flP5Red = new ModeSetting("P5 Red", "Archer", Arrays.asList("Archer", "Mage", "Berserk", "Healer", "Tank", "Custom"));
     private final StringSetting flP5RedCustom = new StringSetting("Red Custom", "", true, false, () -> flP5Red.is("Custom"));
 
+    private static final Pattern leapPattern = Pattern.compile("Party > (?:\\[(.*?)] )?(.+?): !leap");
+
     private static String toLeap = null;
     private static boolean openingGui = false;
     private static long lastUsed = 0;
@@ -105,6 +111,7 @@ public class FastLeap extends Module {
         this.registerProperty(
                 key,
                 cooldown,
+                chatCommand,
                 flMessage,
                 flP3,
                 flS1, flS1Custom,
@@ -126,6 +133,16 @@ public class FastLeap extends Module {
         windowOpen = false;
         container = null;
         queuedLeap = false;
+    }
+
+    @SubscribeEvent
+    public void onChat(ChatEvent.Chat event) {
+        if (!Location.getArea().is(Island.Dungeon) || !(Dungeon.isStarted() || Dungeon.isInBoss()) || !chatCommand.getValue()) return;
+        String value = ChatFormatting.stripFormatting(event.getMessage().getString());
+        Matcher matcher = leapPattern.matcher(value);
+        if (matcher.find() && SwapManager.swapItem("SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP")) {
+            doLeap(matcher.group(2));
+        }
     }
 
     @SubscribeEvent

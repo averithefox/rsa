@@ -28,7 +28,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 
-@ModuleInfo(aliases = "Term Aura", id = "TermAura", category = Category.DUNGEONS)
+@ModuleInfo(aliases = "Term Aura", id = "TermAura", category = Category.DUNGEONS, hasKeybind = true)
 public class TermAura extends Module {
     private static final double AURA_RANGE = 4d; // Vanilla is 3.0F
     private static final double AURA_RANGE_SQ = AURA_RANGE * AURA_RANGE;
