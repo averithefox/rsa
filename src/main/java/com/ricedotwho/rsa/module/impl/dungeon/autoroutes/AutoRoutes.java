@@ -4,6 +4,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.pathfinding.*;
+import com.ricedotwho.rsa.event.impl.RawTickEvent;
 import com.ricedotwho.rsa.module.impl.dungeon.DynamicRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
@@ -70,6 +71,9 @@ public class AutoRoutes extends Module implements Accessor {
     @Getter private static final BooleanSetting use1_8Height = new BooleanSetting("Use 1.8 height for placing node", true);
     private final BooleanSetting editMode = new BooleanSetting("Edit Mode", false);
     private final KeybindSetting triggerBind = new KeybindSetting("Trigger Bind", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, this::onTrigger));
+    private final KeybindSetting triggerBindGui = new KeybindSetting("Trigger Bind Gui", new Keybind(GLFW.GLFW_KEY_UNKNOWN, true, false, false, () -> {
+        if (mc.screen != null) this.onTrigger();
+    }));
     private final KeybindSetting addBlockBind = new KeybindSetting("Add Block Bind", new Keybind(GLFW.GLFW_KEY_SEMICOLON, false, this::addBlockToInNode));
     private final KeybindSetting routeStartBind = new KeybindSetting("Route to start Bind", new Keybind(GLFW.GLFW_KEY_ENTER, false, this::routeToStart));
 
@@ -132,6 +136,7 @@ public class AutoRoutes extends Module implements Accessor {
                 zeroTickBreak,
                 use1_8Height,
                 triggerBind,
+                triggerBindGui,
                 addBlockBind,
                 routeStartBind,
                 data,
@@ -176,7 +181,7 @@ public class AutoRoutes extends Module implements Accessor {
     }
 
     @SubscribeEvent
-    public void onClientTickStart(ClientTickEvent.Start event) {
+    public void onClientTickStart(RawTickEvent event) {
         lastBlockC08--;
         this.isRouting = false;
         if (!Location.getArea().is(Island.Dungeon)) return;

@@ -94,8 +94,13 @@ public class LavaBounce extends Module {
         BlockState state = mc.level.getBlockState(under);
         if (state.getShape(mc.level, under).isEmpty()) return;
         Vec3 eyePos = mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0);
+
         Vec3 top = new Vec3(under.getX() + 0.5, under.getY() + 0.999, under.getZ() + 0.5);
-        if (eyePos.distanceToSqr(top) > 20.25) return;
+        double motionY = mc.player.getDeltaMovement().y;
+        double nextMotionY = Math.max((motionY - 0.08) * 0.98, -3.9) * 2;
+        double nextPos = nextMotionY + mc.player.position().y();
+
+        if (nextPos > top.y() || eyePos.distanceToSqr(top) > 20.25) return;
 
         if (SwapManager.swapItem("SOUL_SAND", "CHEST", "ENDER_CHEST")) {
             long now = System.currentTimeMillis();

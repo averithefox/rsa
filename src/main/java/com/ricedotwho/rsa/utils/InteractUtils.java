@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.utils;
 
+import com.ricedotwho.rsa.IMixin.IMultiPlayerGameMode;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
@@ -101,6 +102,20 @@ public class InteractUtils implements Accessor {
         if (result == null) return false;
         startUseItem(result);
         return true;
+    }
+
+    public void interactOnBlockSync(HitResult result, boolean sync) {
+        if (sync) {
+            IMultiPlayerGameMode manager = ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode);
+            int i = Minecraft.getInstance().player.getInventory().getSelectedSlot();
+            manager.syncSlot();
+            if (!SwapManager.checkServerSlot(i)) {
+                RSA.chat("Failed to swap to slot : " + i);
+                return;
+            }
+        }
+
+        startUseItem(result);
     }
 
     public void startUseItem(HitResult hitResult) {
