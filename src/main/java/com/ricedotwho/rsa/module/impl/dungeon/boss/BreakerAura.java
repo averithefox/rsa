@@ -50,23 +50,28 @@ public class BreakerAura extends Module {
     private final ColourSetting colour = new ColourSetting("Colour", Colour.YELLOW.copy());
     private final BooleanSetting zeroTick = new BooleanSetting("Zero Tick", false);
     private final NumberSetting timeout = new NumberSetting("Timeout", 0, 1000, 500, 10);
-    private final BooleanSetting debug = new BooleanSetting("Force Breaker Load", false);
     private final SaveSetting<Set<Pos>> data = new SaveSetting<>("Aura Blocks", "dungeon/breaker", "breaker_aura.json", HashSet::new, new TypeToken<Set<Pos>>(){}.getType(), FileUtils.getPgson(), true, null, null);
+    private final BooleanSetting debug = new BooleanSetting("Force Breaker Load", false);
 
     private int charges = 20;
+    private static int delay = 0;
 
     public BreakerAura() {
         this.registerProperty(
                 edit,
-                debug,
                 addBlockBind,
                 swap,
                 renderBlocks,
                 colour,
                 zeroTick,
                 timeout,
-                data
+                data,
+                debug
         );
+    }
+
+    public static void delay() {
+        delay++;
     }
 
     public static void load(String file) {
@@ -79,9 +84,11 @@ public class BreakerAura extends Module {
 
     @SubscribeEvent
     public void onTick(RawTickEvent event) {
-        if(!debug.getValue() || RSA.isNotInTestEnv()) {
-            if (event.isCancel() || !Location.getArea().is(Island.Dungeon) || mc.level == null || mc.player == null || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || edit.getValue() || charges <= 0)
-                return;
+        if (!debug.getValue() || RSA.isNotInTestEnv())
+            if (event.isCancel() || !Location.getArea().is(Island.Dungeon) || mc.level == null || mc.player == null || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || edit.getValue() || charges <= 0) return;
+        if (delay > 0) {
+            delay--;
+            return;
         }
 
         if (zeroTick.getValue()) {
@@ -111,10 +118,8 @@ public class BreakerAura extends Module {
 
     @SubscribeEvent
     public void onRender3D(Render3DEvent.Extract event) {
-        if(!debug.getValue() || RSA.isNotInTestEnv()) {
-            if (!Location.getArea().is(Island.Dungeon) || !renderBlocks.getValue() || mc.level == null || mc.player == null || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty())
-                return;
-        }
+        if (!debug.getValue() || RSA.isNotInTestEnv())
+            if (!Location.getArea().is(Island.Dungeon) || !renderBlocks.getValue() || mc.level == null || mc.player == null || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty()) return;
 
         for (Pos pos : data.getValue()) {
             BlockPos bp = pos.asBlockPos();
@@ -129,15 +134,12 @@ public class BreakerAura extends Module {
     @SubscribeEvent
     public void onReset(WorldEvent.Load event) {
         charges = 20;
+        delay = 0;
     }
 
     @SubscribeEvent
     public void onItemUpdate(PacketEvent.PostReceive event) {
-        if (!(event.getPacket() instanceof ClientboundContainerSetSlotPacket packet) || !"DUNGEONBREAKER".equals(ItemUtils.getID(packet.getItem()))) return;
-        if(!debug.getValue() || RSA.isNotInTestEnv()){
-            if (!Location.getArea().is(Island.Dungeon))
-                return;
-        }
+        if (!(event.getPacket() instanceof ClientboundContainerSetSlotPacket packet) || !"DUNGEONBREAKER".equals(ItemUtils.getID(packet.getItem())) || !Location.getArea().is(Island.Dungeon)) return;
         charges = ItemUtils.getDbCharges(packet.getItem()).getFirst();
     }
 
@@ -162,9 +164,7 @@ public class BreakerAura extends Module {
     }
 
     public void addOrRemoveBlock() {
-        if(!debug.getValue() || RSA.isNotInTestEnv()) {
-            if (!Location.getArea().is(Island.Dungeon) || !Dungeon.isInBoss() || mc.player == null) return;
-        }
+        if (!Location.getArea().is(Island.Dungeon) || !Dungeon.isInBoss() || mc.player == null) return;
         if (!(Minecraft.getInstance().hitResult instanceof BlockHitResult blockHitResult) || blockHitResult.getType() == HitResult.Type.MISS) {
             RSA.chat(ChatFormatting.RED + "Not looking at a block");
             return;

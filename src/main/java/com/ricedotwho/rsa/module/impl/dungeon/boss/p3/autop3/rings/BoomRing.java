@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.BreakerAura;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
@@ -58,6 +59,7 @@ public class BoomRing extends Ring {
     @Override
     public boolean run() {
         if (!SwapManager.reserveSwap("INFINITE_SUPERBOOM_TNT", "SUPERBOOM_TNT")) return false;
+        BreakerAura.delay();
 
 //        Vec3 eyePos = mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0);
 //        Vec3 targetVec = target.asVec3();

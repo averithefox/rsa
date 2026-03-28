@@ -70,6 +70,9 @@ public class AutoRoutes extends Module implements Accessor {
     @Getter private static final BooleanSetting use1_8Height = new BooleanSetting("Use 1.8 height for placing node", true);
     private final BooleanSetting editMode = new BooleanSetting("Edit Mode", false);
     private final KeybindSetting triggerBind = new KeybindSetting("Trigger Bind", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, this::onTrigger));
+    private final KeybindSetting triggerBindGui = new KeybindSetting("Trigger Bind Gui", new Keybind(GLFW.GLFW_KEY_UNKNOWN, true, false, false, () -> {
+        if (mc.screen != null) this.onTrigger();
+    }));
     private final KeybindSetting addBlockBind = new KeybindSetting("Add Block Bind", new Keybind(GLFW.GLFW_KEY_SEMICOLON, false, this::addBlockToInNode));
     private final KeybindSetting routeStartBind = new KeybindSetting("Route to start Bind", new Keybind(GLFW.GLFW_KEY_ENTER, false, this::routeToStart));
 
@@ -132,6 +135,7 @@ public class AutoRoutes extends Module implements Accessor {
                 zeroTickBreak,
                 use1_8Height,
                 triggerBind,
+                triggerBindGui,
                 addBlockBind,
                 routeStartBind,
                 data,

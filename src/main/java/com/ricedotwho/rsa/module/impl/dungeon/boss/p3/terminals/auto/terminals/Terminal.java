@@ -44,7 +44,7 @@ public abstract class Terminal {
             return;
         }
 
-        if (packet.getSlot() > this.type.getSlotCount()) {
+        if (packet.getSlot() == this.type.getSlotCount() - 1) {
             if (this.solveState == SolveState.NOT_LOADED)
                 this.solveState = SolveState.LOADED;
             return;
