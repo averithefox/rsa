@@ -64,7 +64,7 @@ public class BaldingBlink extends Module {
     public void onWorldLoad(WorldEvent.Load event) {
         synchronized (queue) {
             this.packetCount = 0;
-            queue.clear();
+            this.queue.clear();
             if (this.isEnabled())
                 this.setEnabled(false);
         }
@@ -123,16 +123,26 @@ public class BaldingBlink extends Module {
         }
     }
 
+
     private boolean onPreSendPacket(Packet<?> packet) {
-        if (packet instanceof ServerboundPongPacket && (!this.isEnabled() || flushing)) {
-            ChatUtils.chat(((ServerboundPongPacket) packet).getId());
+//        if (packet instanceof ServerboundPongPacket && (!this.isEnabled() || flushing)) {
+//            System.out.println(((ServerboundPongPacket) packet).getId());
+//            int id  = ((ServerboundPongPacket) packet).getId();
+//            if (id + 1 != last) {
+//                ChatUtils.chat("mismatch!");
+//            }
+//            last = id;
+//            return false;
+//        }
+        if (Minecraft.getInstance().player == null || !this.isEnabled() || flushing) return false;
+
+        if (packet instanceof ServerboundAcceptTeleportationPacket && awaited != null) {
+            this.flush();
+            return false;
         }
 
-        if (Minecraft.getInstance().player == null || !this.isEnabled() || flushing) return false;
         if (packet instanceof ServerboundMovePlayerPacket movePlayerPacket && awaited != null) {
             if (movePlayerPacket.hasPosition() && movePlayerPacket.getX(0d) == awaited.x && movePlayerPacket.getY(0d) == awaited.y && movePlayerPacket.getZ(0d) == awaited.z) {
-
-                this.flush();
                 actuallySendImmediately(movePlayerPacket);
                 this.setEnabled(false);
                 awaited = null;
@@ -170,8 +180,6 @@ public class BaldingBlink extends Module {
 
 
         if (packet instanceof ServerboundMovePlayerPacket movePacket) {
-//            sentMove = true;
-//            return false;
             if (movePacket.hasPosition()) {
                 sentMove = true;
                 return false;

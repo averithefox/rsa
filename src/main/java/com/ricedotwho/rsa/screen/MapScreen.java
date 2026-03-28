@@ -58,11 +58,10 @@ public class MapScreen extends Screen {
     private void renderUnique(GuiGraphics ctx, UniqueRoom uniqueRoom, int mapX, int mapY) {
         if (uniqueRoom.getTiles().isEmpty()) return;
         List<Room> rooms = uniqueRoom.getTiles().stream().filter(t -> !t.isSeparator()).toList();
+        if (rooms.isEmpty()) return;
 
         int scaledConnectorSize = (int) (3F / 10.0F * getMapSize());
         int scaledRoomSize = (int) (13.16666667F / 10.0F * getMapSize());
-
-        if (rooms.isEmpty()) return;
 
         RoomData data = rooms.getFirst().getData();
         if (data == null) return;
