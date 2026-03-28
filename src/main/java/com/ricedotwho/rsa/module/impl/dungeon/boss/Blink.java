@@ -40,7 +40,6 @@ public class Blink extends Module {
     @Setter
     private BlinkRing currentRing;
 
-
     private final LinkedList<Packet<?>> queue = new LinkedList<>();
     @Getter
     private boolean flushing = false;
@@ -62,9 +61,6 @@ public class Blink extends Module {
 
     @SubscribeEvent
     public void onSendPacket(PacketEvent.Send event) {
-        if (event.getPacket() instanceof ServerboundPongPacket) {
-            System.out.println(((ServerboundPongPacket) event.getPacket()).getId());
-        }
         if (!(event.getPacket() instanceof ServerboundMovePlayerPacket movePlayerPacket)) return;
         if (!movePlayerPacket.hasPosition()) return;
         lastMove = new Vec3(movePlayerPacket.getX(0d), movePlayerPacket.getY(0d), movePlayerPacket.getZ(0d));

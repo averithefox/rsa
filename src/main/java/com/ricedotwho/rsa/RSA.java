@@ -5,6 +5,7 @@ import com.ricedotwho.rsa.component.impl.Edge;
 import com.ricedotwho.rsa.component.impl.Jump;
 import com.ricedotwho.rsa.component.impl.pathfinding.score.DungeonRoomScore;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoRoutes;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.BaldingBlink;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.Blink;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.BreakerAura;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.LavaBounce;
@@ -172,7 +173,8 @@ public class RSA implements Addon {
                 InstantClear.class,
                 BloodCamp.class,
                 FreezeState.class,
-                LavaBounce.class
+                LavaBounce.class,
+                BaldingBlink.class
         );
     }
 
