@@ -3,6 +3,8 @@ package com.ricedotwho.rsa.module.impl.dungeon;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsa.event.impl.RawTickEvent;
+import com.ricedotwho.rsa.utils.InteractUtils;
 import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
@@ -159,7 +161,6 @@ public class SecretAura extends Module {
         event.setCancelled(true);
     }
 
-
     @SubscribeEvent
     public void onTickStart(ClientTickEvent.Start event) {
         if (Minecraft.getInstance().player == null || Minecraft.getInstance().level == null || type.is("None")) return;
@@ -251,7 +252,8 @@ public class SecretAura extends Module {
         if (result == null) return;
 
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
-            SwapManager.sendBlockC08(result.getLocation(), result.getDirection(), block != Blocks.PLAYER_HEAD, true);
+            //SwapManager.sendBlockC08(result.getLocation(), result.getDirection(), block != Blocks.PLAYER_HEAD, true);
+            InteractUtils.interactOnBlockSync(result, true);
         });
     }
 

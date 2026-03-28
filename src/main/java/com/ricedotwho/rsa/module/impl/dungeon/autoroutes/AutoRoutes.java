@@ -4,6 +4,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.pathfinding.*;
+import com.ricedotwho.rsa.event.impl.RawTickEvent;
 import com.ricedotwho.rsa.module.impl.dungeon.DynamicRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;
@@ -180,7 +181,7 @@ public class AutoRoutes extends Module implements Accessor {
     }
 
     @SubscribeEvent
-    public void onClientTickStart(ClientTickEvent.Start event) {
+    public void onClientTickStart(RawTickEvent event) {
         lastBlockC08--;
         this.isRouting = false;
         if (!Location.getArea().is(Island.Dungeon)) return;
