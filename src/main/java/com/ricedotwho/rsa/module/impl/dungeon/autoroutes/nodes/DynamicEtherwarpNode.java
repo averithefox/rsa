@@ -57,8 +57,6 @@ public class DynamicEtherwarpNode extends Node {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return cancel();
 
-        KeyMapping.releaseAll();
-
         if (!SwapManager.reserveSwap(Items.DIAMOND_SHOVEL)) return cancel();
 
         if (!Minecraft.getInstance().player.getLastSentInput().shift()) {

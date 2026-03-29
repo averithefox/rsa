@@ -23,6 +23,7 @@ import com.ricedotwho.rsm.utils.ItemUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket;
 import net.minecraft.world.entity.player.Input;
@@ -45,6 +46,8 @@ public class MovementRecorder extends SubModule<AutoP3> {
 
     private static State state = State.IDLE;
     private static final List<PlayerInput> recorded = new ArrayList<>();
+    @Setter
+    @Getter
     private static int playIndex = 0;
 
     public MovementRecorder(AutoP3 module) {
@@ -169,6 +172,14 @@ public class MovementRecorder extends SubModule<AutoP3> {
             return;
         }
         state = State.PLAYING;
+    }
+
+
+    public static List<PlayerInput> getInputs(String name) {
+        data.setFileName(name);
+        data.updateFile();
+        data.load();
+        return data.getValue();
     }
 
     private enum State {

@@ -63,7 +63,6 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     @Getter private static final NumberSetting edgeDist = new NumberSetting("Edge Dist", 0, 0.1, 0.001, 0.001);
     private final BooleanSetting depth = new BooleanSetting("Depth", false);
     private final BooleanSetting strafe = new BooleanSetting("45", true);
-    @Getter private final BooleanSetting freecamBlink = new BooleanSetting("Freecam Blink", false);
     private final GroupSetting<MovementRecorder> movementCat = new GroupSetting<>("Movement", new MovementRecorder(this));
 
     private final DefaultGroupSetting colours = new DefaultGroupSetting("Colours", this);
@@ -106,7 +105,6 @@ public class AutoP3 extends Module implements ClientRotationProvider {
                 yap,
                 triggerBind,
                 edgeDist,
-                freecamBlink,
                 depth,
                 strafe,
                 forceSkyblock,
@@ -276,9 +274,6 @@ public class AutoP3 extends Module implements ClientRotationProvider {
         consumeArg(TermCloseArg.class, true);
         consumeArg(TermArg.class, null);
         consumeArg(LeapArg.class, true);
-        if (!activeRings.isEmpty()) {
-            activeRings.stream().filter(r -> r instanceof BlinkRing).forEach(r -> ((BlinkRing) r).flush());
-        }
     }
 
     private <T> void consumeArg(Class<? extends Argument<T>> clazz, T value) {

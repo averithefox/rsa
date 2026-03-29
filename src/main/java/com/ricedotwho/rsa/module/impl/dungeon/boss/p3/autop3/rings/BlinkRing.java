@@ -1,14 +1,12 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 
 import com.google.gson.JsonObject;
-import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.Blink;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.BaldingBlink;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.recorder.MovementRecorder;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
-import com.ricedotwho.rsa.module.impl.render.Freecam;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.MutableInput;
@@ -18,14 +16,12 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.List;
 import java.util.Map;
 
 public class BlinkRing extends Ring {
     private final String route;
     private final int size;
-    private int ticks = -1;
-    private Vec3 endPos;
-    private Vec3 endVelo;
 
 
     public BlinkRing(Pos min, Pos max, ArgumentManager manage, SubActionManager actions, Map<String, Object> extra) {
@@ -36,8 +32,6 @@ public class BlinkRing extends Ring {
         super(min, max, RingType.BLINK.getRenderSizeOffset(), manage, actions);
         this.size = Mth.clamp(1, length, 17);
         this.route = route;
-        this.endPos = null;
-        this.endVelo = null;
     }
 
     @Override
@@ -48,19 +42,19 @@ public class BlinkRing extends Ring {
     @Override
     public boolean run() {
         if (Minecraft.getInstance().player == null) return false;
-        Blink blink = RSM.getModule(Blink.class);
-        if (!blink.isEnabled()) {
-            blink.onKeyToggle();
-            blink.setCurrentRing(this);
+        BaldingBlink blink = RSM.getModule(BaldingBlink.class);
+
+        int packets = (!blink.isEnabled()) ? 0 : blink.getChargedCount();
+        List<MovementRecorder.PlayerInput> inputs = MovementRecorder.getInputs(this.route);
+
+        if (inputs.size() <= packets) {
+            blink.blinkMovement(inputs);
+            return false;
         }
 
-        if (RSM.getModule(AutoP3.class).getFreecamBlink().getValue()) {
-            Freecam freecam = RSM.getModule(Freecam.class);
-            if (!freecam.isEnabled()) freecam.setEnabled(true);
-        }
-
-        ticks = 0;
+        blink.blinkMovement(inputs.subList(0, packets));
         MovementRecorder.playRecording(this.route);
+        MovementRecorder.setPlayIndex(packets);
         return false;
     }
 
@@ -71,55 +65,14 @@ public class BlinkRing extends Ring {
 
     @Override
     public int getPriority() {
-        return 40;
+        return 55;
     }
 
-    private void cancel() {
-        Blink blink = RSM.getModule(Blink.class);
-        if (blink.isEnabled()) {
-            blink.clearMovements();
-            blink.onKeyToggle();
-        }
-    }
 
-    public void flush() {
-        Blink blink = RSM.getModule(Blink.class);
-        if (blink.isEnabled())
-            blink.onKeyToggle();
-        if (Minecraft.getInstance().player != null) {
-            Minecraft.getInstance().player.setPos(endPos);
-            Minecraft.getInstance().player.setDeltaMovement(endVelo);
-
-            if (RSM.getModule(AutoP3.class).getFreecamBlink().getValue()) {
-                Freecam freecam = RSM.getModule(Freecam.class);
-                if (freecam.isEnabled()) freecam.setEnabled(false);
-            }
-            MovementRecorder.resumeRecording();
-        }
-        ticks = -1;
-    }
-
-    public boolean isDonePlaying() {
-        return ticks > size;
-    }
 
     @Override
     public boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3) {
-        if (Minecraft.getInstance().player == null || ticks < 0) return true;
-        ticks++;
-
-        if (ticks <= size + 1) {
-            endPos = Minecraft.getInstance().player.position();
-            endVelo = Minecraft.getInstance().player.getDeltaMovement();
-        }
-
-        if (ticks == size + 1) {
-            Minecraft.getInstance().player.setPos(endPos);
-            Minecraft.getInstance().player.setDeltaMovement(0d, 0d, 0d);
-            MovementRecorder.pauseRecording();
-        }
-
-        return false;
+        return true;
     }
 
     @Override

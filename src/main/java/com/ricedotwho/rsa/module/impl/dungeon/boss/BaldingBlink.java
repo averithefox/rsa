@@ -70,10 +70,6 @@ public class BaldingBlink extends Module {
         }
     }
 
-    public void flushIfInRing() {
-        if (this.currentRing == null || !this.isEnabled() || this.isFlushing()) return;
-        this.currentRing.flush();
-    }
 
     public static boolean onSendPacket(Packet<?> packet) {
         if (INSTANCE == null) INSTANCE = RSM.getModule(BaldingBlink.class);
@@ -91,25 +87,24 @@ public class BaldingBlink extends Module {
 
         LocalPlayer player = Minecraft.getInstance().player;
 
-        LocalPlayer copy = player;
-        ClientInput oldInputs = copy.input;
-        copy.input = new FakeKeyboardInput(Minecraft.getInstance().options);
+        ClientInput oldInputs = player.input;
+        player.input = new FakeKeyboardInput(Minecraft.getInstance().options);
 
         boolean bl = flushing;
         flushing = true;
         for (int i = 0; i < tickCount; i++) {
             MovementRecorder.PlayerInput input = movements.get(i);
-            copy.input.keyPresses = input.input();
+            player.input.keyPresses = input.input();
 
-            copy.setYRot(input.yaw);
-            copy.setXRot(input.pitch);
-            copy.tick();
+            player.setYRot(input.yaw);
+            player.setXRot(input.pitch);
+            player.tick();
             Minecraft.getInstance().getConnection().send(new ServerboundClientTickEndPacket());
             packetCount--;
         }
         flushing = bl;
 
-        copy.input = oldInputs;
+        player.input = oldInputs;
     }
 
 
@@ -137,15 +132,19 @@ public class BaldingBlink extends Module {
         if (Minecraft.getInstance().player == null || !this.isEnabled() || flushing) return false;
 
         if (packet instanceof ServerboundAcceptTeleportationPacket && awaited != null) {
-            this.flush();
+            //this.flush();
             return false;
         }
 
         if (packet instanceof ServerboundMovePlayerPacket movePlayerPacket && awaited != null) {
             if (movePlayerPacket.hasPosition() && movePlayerPacket.getX(0d) == awaited.x && movePlayerPacket.getY(0d) == awaited.y && movePlayerPacket.getZ(0d) == awaited.z) {
                 actuallySendImmediately(movePlayerPacket);
-                this.setEnabled(false);
+
+                // Do blink here
+//                this.onKeyToggle();
+                ChatUtils.chat("Stopped blink!");
                 awaited = null;
+                this.packetCount = 0;
                 return true;
             }
         }
@@ -177,8 +176,6 @@ public class BaldingBlink extends Module {
             return false;
         }
 
-
-
         if (packet instanceof ServerboundMovePlayerPacket movePacket) {
             if (movePacket.hasPosition()) {
                 sentMove = true;
@@ -195,7 +192,6 @@ public class BaldingBlink extends Module {
     }
 
     public int getChargedCount() {
-        // PacketCount is 1 lower than C03 count
         return this.packetCount;
     }
 
@@ -238,12 +234,12 @@ public class BaldingBlink extends Module {
     public void onDisable() {
         super.onDisable();
         ChatUtils.chat("Packets : " + packetCount);
-        List<MovementRecorder.PlayerInput> inputs = new ArrayList<>();
-        for (int i = 0; i < 30; i++) {
-            inputs.add(new MovementRecorder.PlayerInput(0f, 0f, true, false, false, false, false, false, true));
-        }
-
-        this.blinkMovement(inputs);
+//        List<MovementRecorder.PlayerInput> inputs = new ArrayList<>();
+//        for (int i = 0; i < 30; i++) {
+//            inputs.add(new MovementRecorder.PlayerInput(0f, 0f, true, false, false, false, false, false, true));
+//        }
+//
+//        this.blinkMovement(inputs);
         //this.queue.stream().forEach(p -> System.out.println(p.getClass()));
         this.flush();
         currentRing = null;
@@ -263,6 +259,7 @@ public class BaldingBlink extends Module {
             });
 
             this.queue.clear();
+            this.packetCount = 0;
             flushing = false;
         }
     }

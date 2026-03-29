@@ -55,8 +55,6 @@ public class UseNode extends Node {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return cancel();
 
-        KeyMapping.releaseAll();
-
         AutoRoutes autoRoutes = RSM.getModule(AutoRoutes.class);
         autoRoutes.setForceSneak(!sneak);
         if (!SwapManager.reserveSwap(this.itemID)) return cancel();

@@ -3,7 +3,6 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p5;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.FastLeap;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.Blink;
 import com.ricedotwho.rsa.utils.InteractUtils;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.location.Floor;
@@ -212,32 +211,33 @@ public class Relics extends Module {
         Vec3 eyePos = playerPos.add(0.0d, mc.player.getEyeHeight(), 0.0d);
         Vec3 location = MathUtils.clamp(entity.getBoundingBox(), eyePos).subtract(entity.getX(), entity.getY(), entity.getZ());
 
-        Blink blink = RSM.getModule(Blink.class);
-        synchronized (blink) {
-            boolean bl = blink.isEnabled();
-            for (InteractionHand interactionHand : InteractionHand.values()) {
-                ItemStack itemStack = mc.player.getItemInHand(interactionHand);
-                if (!itemStack.isItemEnabled(mc.level.enabledFeatures())) {
-                    return false;
-                }
-
-                if (bl) blink.enableFlush();
-                InteractionResult interactionResult = mc.gameMode.interactAt(mc.player, entity, new EntityHitResult(entity, location), interactionHand);
-                if (!interactionResult.consumesAction()) {
-                    interactionResult = mc.gameMode.interact(mc.player, entity, interactionHand);
-                }
-
-                if (interactionResult instanceof InteractionResult.Success success) {
-                    if (success.swingSource() == InteractionResult.SwingSource.CLIENT) {
-                        mc.player.swing(interactionHand);
-                    }
-                    if (bl) blink.disableFlush();
-                    return true;
-                }
-                if (bl) blink.disableFlush();
-            }
-            return true;
-        }
+//        Blink blink = RSM.getModule(Blink.class);
+//        synchronized (blink) {
+//            boolean bl = blink.isEnabled();
+//            for (InteractionHand interactionHand : InteractionHand.values()) {
+//                ItemStack itemStack = mc.player.getItemInHand(interactionHand);
+//                if (!itemStack.isItemEnabled(mc.level.enabledFeatures())) {
+//                    return false;
+//                }
+//
+//                if (bl) blink.enableFlush();
+//                InteractionResult interactionResult = mc.gameMode.interactAt(mc.player, entity, new EntityHitResult(entity, location), interactionHand);
+//                if (!interactionResult.consumesAction()) {
+//                    interactionResult = mc.gameMode.interact(mc.player, entity, interactionHand);
+//                }
+//
+//                if (interactionResult instanceof InteractionResult.Success success) {
+//                    if (success.swingSource() == InteractionResult.SwingSource.CLIENT) {
+//                        mc.player.swing(interactionHand);
+//                    }
+//                    if (bl) blink.disableFlush();
+//                    return true;
+//                }
+//                if (bl) blink.disableFlush();
+//            }
+//            return true;
+//        }
+        return false;
     }
 
     @SubscribeEvent
@@ -248,9 +248,7 @@ public class Relics extends Module {
         long now = System.currentTimeMillis();
         if (now - lastClick <  delay.getValue().longValue()) return;
 
-
-        Blink blink = RSM.getModule(Blink.class);
-        Vec3 playerPos = blink.isEnabled() ? blink.getServerPosition() : mc.player.position();
+        Vec3 playerPos = mc.player.position();
         if (!DungeonUtils.isPositionInF7Boss(playerPos)) return;
 
         double max = auraRange.getValue().doubleValue() * auraRange.getValue().doubleValue();
@@ -280,7 +278,7 @@ public class Relics extends Module {
                 if (dist > max) continue;
 
                 if (sigmaInteractEntity(stand, playerPos)) {
-                    blink.flushIfInRing();
+                    //blink.flushIfInRing();
                     lastClick = now;
                     return;
                 }

@@ -43,7 +43,6 @@ public class BatNode extends Node {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null || Minecraft.getInstance().level == null || Map.getCurrentRoom() == null || Map.getCurrentRoom().getUniqueRoom() == null) return cancel();
 
-        KeyMapping.releaseAll();
         if (!SwapManager.reserveSwap(BatNode::isWitherBlade) && !SwapManager.reserveSwap(Items.ALLIUM)) return cancel();
         if (!hasBatNear(playerPos, Minecraft.getInstance().level)) return cancel();
 
