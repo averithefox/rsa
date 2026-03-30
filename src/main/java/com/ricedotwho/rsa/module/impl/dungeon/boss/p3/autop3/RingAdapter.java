@@ -83,6 +83,7 @@ public class RingAdapter implements JsonDeserializer<Ring>, JsonSerializer<Ring>
                 case GROUND -> new GroundArg();
                 case LEAP -> new LeapArg(entry.getValue().getAsInt());
                 case TERM -> new TermArg();
+                case RELIC -> new RelicArg();
                 case TRIGGER -> new TriggerArg();
                 case DELAY -> new DelayArg(entry.getValue().getAsInt());
                 case TERM_CLOSE -> new TermCloseArg();

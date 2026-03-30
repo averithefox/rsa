@@ -11,7 +11,7 @@ import java.util.function.Function;
 
 public enum RingArgType {
     TERM(TermArg::create, TermArg.class, List.of("term")),
-    RELIC(TermArg::create, RelicArg.class, List.of("relic")),
+    RELIC(RelicArg::create, RelicArg.class, List.of("relic")),
     LEAP(LeapArg::create, LeapArg.class, List.of("leap")),
     GROUND(GroundArg::create, GroundArg.class, List.of("ground", "g")),
     TRIGGER(TriggerArg::create, TriggerArg.class, List.of("trigger", "click", "c")),

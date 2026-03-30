@@ -29,7 +29,7 @@ public class BlinkRing extends Ring {
 
     public BlinkRing(Pos min, Pos max, String route, ArgumentManager manage, SubActionManager actions, int length) {
         super(min, max, RingType.BLINK.getRenderSizeOffset(), manage, actions);
-        this.size = Mth.clamp(1, length, 17);
+        this.size = Mth.clamp(1, length, 16);
         this.route = route;
     }
 
