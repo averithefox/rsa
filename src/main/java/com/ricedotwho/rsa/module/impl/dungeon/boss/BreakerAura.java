@@ -86,10 +86,10 @@ public class BreakerAura extends Module {
     public void onTick(RawTickEvent event) {
         if (!debug.getValue() || RSA.isNotInTestEnv())
             if (event.isCancel() || !Location.getArea().is(Island.Dungeon) || mc.level == null || mc.player == null || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || edit.getValue() || charges <= 0) return;
-        if (delay > 0) {
-            delay--;
-            return;
-        }
+//        if (delay > 0) {
+//            delay--;
+//            return;
+//        }
 
         if (zeroTick.getValue()) {
             List<Pos> f = data.getValue().stream().filter(p -> {
@@ -98,7 +98,7 @@ public class BreakerAura extends Module {
                 VoxelShape shape = state.getShape(mc.level, bp);
                 return !shape.isEmpty() && DungeonBreaker.canInstantMine(state) && InteractUtils.faceDistance(p.asVec3(), mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0)) <= InteractUtils.BLOCK_RANGE;
             }).toList();
-            if (f.isEmpty() || (swap.getValue() && !SwapManager.reserveSwap("DUNGEONBREAKER")) || !"DUNGEONBREAKER".equals(ItemUtils.getID(mc.player.getInventory().getSelectedItem()))) return;
+            if (f.isEmpty() || (swap.getValue() && !SwapManager.swapItem("DUNGEONBREAKER"))) return;
 
             for (Pos pos : f) {
                 InteractUtils.breakBlock(pos, true, SwapManager.isDesynced());
@@ -108,7 +108,7 @@ public class BreakerAura extends Module {
         } else {
             Optional<Pos> closest = getClosest(data.getValue());
             closest.ifPresent(pos -> {
-                if ((swap.getValue() && SwapManager.reserveSwap("DUNGEONBREAKER")) || "DUNGEONBREAKER".equals(ItemUtils.getID(mc.player.getInventory().getSelectedItem()))) {
+                if ((swap.getValue() && SwapManager.swapItem("DUNGEONBREAKER"))) {
                     InteractUtils.breakBlock(pos, true, SwapManager.isDesynced());
                     charges--;
                 }
