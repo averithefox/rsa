@@ -14,7 +14,8 @@
     "MixinMinecraft",
     "MixinMultiPlayerGameMode",
     "MixinPlayer",
-    "MixinRSM"
+    "MixinRSM",
+    "ServerboundInteractPacketAccessor"
   ],
   "client": [
     "MixinClientPacketListener",

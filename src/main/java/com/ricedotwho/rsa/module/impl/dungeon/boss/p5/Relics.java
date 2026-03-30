@@ -192,54 +192,6 @@ public class Relics extends Module {
         event.getInput().apply(new Input(true, false, false, false, false, false, true));
     }
 
-    private void sigmaInteractBlock(BlockPos pos, Vec3 playerPos) {
-        if (mc.player == null || mc.level == null) return;
-
-        Vec3 eyePos = playerPos.add(0.0d, mc.player.getEyeHeight(), 0.0d);
-        BlockState blockState = mc.level.getBlockState(pos);
-        AABB blockAABB = blockState.getShape(mc.level, pos).bounds();
-
-        Vec3 center = new Vec3((blockAABB.minX + blockAABB.maxX) * 0.5 + pos.getX(), (blockAABB.minY + blockAABB.maxY) * 0.5 + pos.getY(), (blockAABB.minZ + blockAABB.maxZ) * 0.5 + pos.getZ());
-        BlockHitResult result = RotationUtils.collisionRayTrace(pos, blockAABB, eyePos, center);
-        if (result == null) return;
-
-        SwapManager.sendBlinkBlockC08(result, true, true);
-    }
-
-    private boolean sigmaInteractEntity(Entity entity, Vec3 playerPos) {
-        if (mc.player == null || mc.level == null || mc.gameMode == null) return false;
-        Vec3 eyePos = playerPos.add(0.0d, mc.player.getEyeHeight(), 0.0d);
-        Vec3 location = MathUtils.clamp(entity.getBoundingBox(), eyePos).subtract(entity.getX(), entity.getY(), entity.getZ());
-
-//        Blink blink = RSM.getModule(Blink.class);
-//        synchronized (blink) {
-//            boolean bl = blink.isEnabled();
-//            for (InteractionHand interactionHand : InteractionHand.values()) {
-//                ItemStack itemStack = mc.player.getItemInHand(interactionHand);
-//                if (!itemStack.isItemEnabled(mc.level.enabledFeatures())) {
-//                    return false;
-//                }
-//
-//                if (bl) blink.enableFlush();
-//                InteractionResult interactionResult = mc.gameMode.interactAt(mc.player, entity, new EntityHitResult(entity, location), interactionHand);
-//                if (!interactionResult.consumesAction()) {
-//                    interactionResult = mc.gameMode.interact(mc.player, entity, interactionHand);
-//                }
-//
-//                if (interactionResult instanceof InteractionResult.Success success) {
-//                    if (success.swingSource() == InteractionResult.SwingSource.CLIENT) {
-//                        mc.player.swing(interactionHand);
-//                    }
-//                    if (bl) blink.disableFlush();
-//                    return true;
-//                }
-//                if (bl) blink.disableFlush();
-//            }
-//            return true;
-//        }
-        return false;
-    }
-
     @SubscribeEvent
     public void onTick(ClientTickEvent.Start event) {
         // Stupid in boss check but ok
@@ -258,7 +210,7 @@ public class Relics extends Module {
             if (type != Type.NONE && playerPos.distanceToSqr(type.place) < max) {
                 SwapManager.swapSlot(8);
 
-                sigmaInteractBlock(BlockPos.containing(type.place), playerPos);
+                InteractUtils.interactOnBlock(BlockPos.containing(type.place), true);
                 lastClick = now;
                 walk = false;
                 return;
@@ -277,8 +229,7 @@ public class Relics extends Module {
                 double dist = playerPos.distanceToSqr(stand.position());
                 if (dist > max) continue;
 
-                if (sigmaInteractEntity(stand, playerPos)) {
-                    //blink.flushIfInRing();
+                if (InteractUtils.interactOnEntity(stand)) {
                     lastClick = now;
                     return;
                 }

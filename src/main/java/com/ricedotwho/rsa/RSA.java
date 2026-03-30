@@ -5,7 +5,7 @@ import com.ricedotwho.rsa.component.impl.Edge;
 import com.ricedotwho.rsa.component.impl.Jump;
 import com.ricedotwho.rsa.component.impl.pathfinding.score.DungeonRoomScore;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoRoutes;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.BaldingBlink;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.Blink;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.BreakerAura;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.LavaBounce;
 import com.ricedotwho.rsa.module.impl.movement.VelocityBuffer;
@@ -39,14 +39,12 @@ import com.ricedotwho.rsm.component.api.ModComponent;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.utils.ChatUtils;
-import com.sun.jna.platform.WindowUtils;
 import lombok.Getter;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import org.apache.logging.log4j.LogManager;
@@ -172,7 +170,7 @@ public class RSA implements Addon {
                 BloodCamp.class,
                 FreezeState.class,
                 LavaBounce.class,
-                BaldingBlink.class
+                Blink.class
         );
     }
 

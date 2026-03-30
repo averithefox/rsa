@@ -1,7 +1,7 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 
 import com.google.gson.JsonObject;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.BaldingBlink;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.Blink;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
@@ -14,7 +14,6 @@ import com.ricedotwho.rsm.data.Pos;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Input;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 import java.util.Map;
@@ -42,7 +41,7 @@ public class BlinkRing extends Ring {
     @Override
     public boolean run() {
         if (Minecraft.getInstance().player == null) return false;
-        BaldingBlink blink = RSM.getModule(BaldingBlink.class);
+        Blink blink = RSM.getModule(Blink.class);
 
         int packets = (!blink.isEnabled()) ? 0 : blink.getChargedCount();
         List<MovementRecorder.PlayerInput> inputs = MovementRecorder.getInputs(this.route);
