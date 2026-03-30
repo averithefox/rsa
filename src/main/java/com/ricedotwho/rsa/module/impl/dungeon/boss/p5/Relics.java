@@ -196,12 +196,11 @@ public class Relics extends Module {
     public void onTick(ClientTickEvent.Start event) {
         // Stupid in boss check but ok
         if (!aura.getValue() || mc.player == null || mc.level == null) return;
-        if ((!Location.getArea().is(Island.Dungeon) || !DungeonUtils.isPhase(Phase7.P5) || (Location.getFloor() != Floor.M7))) return;
+        if ((!Location.getArea().is(Island.Dungeon) || !DungeonUtils.isPhase(Phase7.P5) || (Location.getFloor() != Floor.M7)) || !Dungeon.isInBoss()) return;
         long now = System.currentTimeMillis();
         if (now - lastClick <  delay.getValue().longValue()) return;
 
         Vec3 playerPos = mc.player.position();
-        if (!DungeonUtils.isPositionInF7Boss(playerPos)) return;
 
         double max = auraRange.getValue().doubleValue() * auraRange.getValue().doubleValue();
 
@@ -210,7 +209,7 @@ public class Relics extends Module {
             if (type != Type.NONE && playerPos.distanceToSqr(type.place) < max) {
                 SwapManager.swapSlot(8);
 
-                InteractUtils.interactOnBlock(BlockPos.containing(type.place), true);
+                InteractUtils.interactOnBlock0(BlockPos.containing(type.place));
                 lastClick = now;
                 walk = false;
                 return;
