@@ -1,44 +1,50 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss;
 
 import com.ricedotwho.rsa.IMixin.IConnection;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.BlinkRing;
+import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.FakeKeyboardInput;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.recorder.MovementRecorder;
 import com.ricedotwho.rsm.RSM;
+import com.ricedotwho.rsm.component.impl.camera.ClientRotationHandler;
+import com.ricedotwho.rsm.component.impl.camera.ClientRotationProvider;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
+import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.event.impl.render.Render2DEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
+import com.ricedotwho.rsm.mixins.accessor.LocalPlayerAccessor;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
+import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.DragSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
-import lombok.Setter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.ClientInput;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ServerboundPongPacket;
-import net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket;
-import net.minecraft.network.protocol.game.ServerboundClientTickEndPacket;
-import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
-import net.minecraft.network.protocol.game.ServerboundPlayerInputPacket;
-import net.minecraft.world.entity.player.Input;
+import net.minecraft.network.protocol.game.*;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector2d;
 
 import java.util.LinkedList;
-import java.util.stream.IntStream;
+import java.util.List;
 
 
 @ModuleInfo(aliases = "Blink", id = "Blink", category = Category.MOVEMENT, hasKeybind = true)
-public class Blink extends Module {
+public class Blink extends Module implements ClientRotationProvider {
     private static Blink INSTANCE;
-    private Vec3 lastMove;
 
-    private final DragSetting gui = new DragSetting("Blink Hud", new Vector2d(100, 100), new Vector2d(144, 80));
-    private final NumberSetting maxBlinkPacket = new NumberSetting("Max Blink Ticks", 1, 30, 17, 1);
-    @Setter
-    private BlinkRing currentRing;
+    private final DragSetting gui = new DragSetting("Balding Blink Hud", new Vector2d(100, 100), new Vector2d(144, 80));
+    private final NumberSetting maxBlinkPacket = new NumberSetting("Max Blink Packets", 1, 30, 16, 1);
+    private final BooleanSetting flushGUIPongs = new BooleanSetting("Flush GUI Pongs", true);
+
+    private boolean sentMove = false;
+    private boolean receivedMotion = false;
+    private Vec3 awaited;
+
 
     private final LinkedList<Packet<?>> queue = new LinkedList<>();
     @Getter
@@ -49,47 +55,29 @@ public class Blink extends Module {
     public Blink() {
         this.registerProperty(
                 maxBlinkPacket,
+                flushGUIPongs,
                 gui
         );
     }
 
     @SubscribeEvent
     public void onRenderGui(Render2DEvent event) {
-        if (queue.isEmpty()) return;
-        gui.renderScaled(event.getGfx(), () -> event.getGfx().drawCenteredString(Minecraft.getInstance().font, "Blinking", (int) gui.getPosition().x, (int) gui.getPosition().y, 0xFFFFFFFF), 10, 10);
+        gui.renderScaled(event.getGfx(), () -> {
+            event.getGfx().drawCenteredString(Minecraft.getInstance().font, ("Packets : " + packetCount), (int) gui.getPosition().x, (int) gui.getPosition().y, 0xFFFFFFFF);
+            event.getGfx().drawCenteredString(Minecraft.getInstance().font, ("Pongs : " + queue.size()), (int) gui.getPosition().x, (int) gui.getPosition().y + Minecraft.getInstance().font.lineHeight, 0xFFFFFFFF);
+        }, 5, 5);
     }
-
-    @SubscribeEvent
-    public void onSendPacket(PacketEvent.Send event) {
-        if (!(event.getPacket() instanceof ServerboundMovePlayerPacket movePlayerPacket)) return;
-        if (!movePlayerPacket.hasPosition()) return;
-        lastMove = new Vec3(movePlayerPacket.getX(0d), movePlayerPacket.getY(0d), movePlayerPacket.getZ(0d));
-    }
-
-    private boolean inputEquals(Input input1, Input input2) {
-        return input1.shift() == input2.shift()
-                && input1.forward() == input2.forward()
-                && input1.backward() == input2.backward()
-                && input1.left() == input2.left()
-                && input1.right() == input2.right()
-                && input1.jump() == input2.jump()
-                && input1.sprint() == input2.sprint();
-    }
-
 
     @SubscribeEvent
     public void onWorldLoad(WorldEvent.Load event) {
         synchronized (queue) {
-            queue.clear();
+            this.packetCount = 0;
+            this.queue.clear();
             if (this.isEnabled())
                 this.setEnabled(false);
         }
     }
 
-    public void flushIfInRing() {
-        if (this.currentRing == null || !this.isEnabled() || this.isFlushing()) return;
-        this.currentRing.flush();
-    }
 
     public static boolean onSendPacket(Packet<?> packet) {
         if (INSTANCE == null) INSTANCE = RSM.getModule(Blink.class);
@@ -97,124 +85,146 @@ public class Blink extends Module {
         return INSTANCE != null && INSTANCE.onPreSendPacket(packet);
     }
 
-    // Holy schizo
-    private boolean onPreSendPacket(Packet<?> packet) {
-        if (Minecraft.getInstance().player == null || !this.isEnabled()) return false;
-        synchronized (queue) {
-            if (flushing) return false;
-//            if (packet instanceof ServerboundUseItemOnPacket || packet instanceof ServerboundUseItemPacket || packet instanceof ServerboundInteractPacket) {
-//                return false;
-//            }
-            boolean bl = true;
-            if (currentRing != null && (packetCount >= maxBlinkPacket.getValue().intValue() || currentRing.isDonePlaying())) {
-                if (packet instanceof ServerboundMovePlayerPacket || packet instanceof ServerboundPlayerInputPacket) return true;
-                if (packet instanceof ServerboundAcceptTeleportationPacket) {
-                    if (this.isEnabled()) this.onKeyToggle();
-                    return false;
-                }
-                if (packet instanceof ServerboundPongPacket) {
-                    queue.add(packet);
-                    int firstPong = -1;
-                    int index = 0;
-                    for (Packet<?> p : queue) {
-                        if (p instanceof ServerboundPongPacket) {
-                            firstPong = index;
-                            break;
-                        }
-                        index++;
-                    }
+    public void blinkMovement(List<MovementRecorder.PlayerInput> movements) {
+        if (Minecraft.getInstance().level == null || Minecraft.getInstance().player == null || Minecraft.getInstance().getConnection() == null || packetCount < 1 || movements.isEmpty()) return;
+        int tickCount = Math.min(movements.size(), packetCount);
+        if (movements.size() > packetCount) {
+            movements = movements.subList(0, packetCount);
+        }
 
-                    if (firstPong == -1) {
-                        if (this.isEnabled()) this.onKeyToggle();
-                        return false;
-                    }
 
-                    Packet<?> ping = queue.remove(firstPong);
-                    actuallySendImmediately(ping);
-                    return true;
-                }
-                // This should probably check for other packets...
-                // Cancel blink if we get a velocity or teleport
-                // Let autoterms through aand shit
-            }
+        LocalPlayer player = Minecraft.getInstance().player;
 
-            if (packet instanceof ServerboundClientTickEndPacket) {
-                packetCount++;
-                if (currentRing != null) {
-                    if (packetCount >= maxBlinkPacket.getValue().intValue()) {
-                        bl = false;
-                        packetCount--;
-                    }
-                } else {
-                    if (packetCount >= maxBlinkPacket.getValue().intValue()) {
-                        this.onKeyToggle();
-                        return false;
-                    }
-                }
-            }
-            if (bl) {
-                queue.add(packet);
-                return true;
-            }
-            return false;
+        ClientInput oldInputs = player.input;
+        player.input = new FakeKeyboardInput(Minecraft.getInstance().options);
+
+        boolean bl = flushing;
+        flushing = true;
+        for (int i = 0; i < tickCount; i++) {
+            MovementRecorder.PlayerInput input = movements.get(i);
+            player.input.keyPresses = input.input();
+
+            player.setYRot(input.yaw);
+            player.setXRot(input.pitch);
+            player.tick();
+            Minecraft.getInstance().getConnection().send(new ServerboundClientTickEndPacket());
+            packetCount--;
+        }
+        flushing = bl;
+
+        player.input = oldInputs;
+    }
+
+    @SubscribeEvent
+    public void onTickStart(ClientTickEvent.Start event) {
+        this.receivedMotion = false;
+    }
+
+    @SubscribeEvent
+    public void onSendPacket(PacketEvent.Send event) {
+        if (getPongCount() < 8 || !flushGUIPongs.getValue()) return;
+        Packet<?> packet = event.getPacket();
+        if (packet instanceof ServerboundContainerClickPacket || packet instanceof ServerboundInteractPacket || packet instanceof ServerboundChatCommandSignedPacket || packet instanceof ServerboundChatCommandPacket || packet instanceof ServerboundUseItemOnPacket || packet instanceof ServerboundUseItemPacket) {
+            this.flushPongs();
         }
     }
 
-    public Vec3 getServerPosition() {
-        return lastMove;
+
+    @SubscribeEvent
+    public void onReceivePacket(PacketEvent.Receive event) {
+        if (Minecraft.getInstance().player == null) return;
+
+        if (event.getPacket() instanceof ClientboundPlayerPositionPacket positionPacket) {
+            awaited = positionPacket.change().position();
+        }
+
+        if (event.getPacket() instanceof ClientboundSetEntityMotionPacket motionPacket) {
+            if (motionPacket.getId() != Minecraft.getInstance().player.getId()) return;
+            synchronized (queue) {
+                this.receivedMotion = true;
+                this.flushPongs();
+            }
+        }
+    }
+
+
+    private boolean onPreSendPacket(Packet<?> packet) {
+//        if (packet instanceof ServerboundPongPacket && (!this.isEnabled() || flushing)) {
+//            System.out.println(((ServerboundPongPacket) packet).getId());
+//            int id  = ((ServerboundPongPacket) packet).getId();
+//            if (id + 1 != last) {
+//                ChatUtils.chat("mismatch!");
+//            }
+//            last = id;
+//            return false;
+//        }
+        if (Minecraft.getInstance().player == null || !this.isEnabled() || flushing) return false;
+
+        if (packet instanceof ServerboundAcceptTeleportationPacket && awaited != null) {
+            this.flushPongs();
+            this.receivedMotion = true;
+            return false;
+        }
+
+        if (packet instanceof ServerboundMovePlayerPacket movePlayerPacket && awaited != null) {
+            if (movePlayerPacket.hasPosition() && movePlayerPacket.getX(0d) == awaited.x && movePlayerPacket.getY(0d) == awaited.y && movePlayerPacket.getZ(0d) == awaited.z) {
+                actuallySendImmediately(movePlayerPacket);
+                awaited = null;
+                return true;
+            }
+        }
+
+        if (packet instanceof ServerboundPongPacket) {
+            if (receivedMotion) {
+                if (!queue.isEmpty()) ChatUtils.chat("Pong queue error!");
+                return false;
+            }
+
+            queue.add(packet);
+
+            if (queue.size() > packetCount - 2) {
+                Packet<?> ping = queue.removeFirst();
+                actuallySendImmediately(ping);
+            }
+            return true;
+        }
+
+        if (packetCount >= maxBlinkPacket.getValue().intValue()) return false;
+
+        LocalPlayerAccessor accessor = (LocalPlayerAccessor) Minecraft.getInstance().player;
+
+        if (packet instanceof ServerboundClientTickEndPacket) {
+            if (!sentMove) {
+                int reminder = accessor.getPositionReminder();
+                if (reminder > 0) {
+                    accessor.setPositionReminder(reminder - 1);
+                }
+                packetCount++;
+                return true;
+            }
+            sentMove = false;
+            return false;
+        }
+
+        if (packet instanceof ServerboundMovePlayerPacket movePacket) {
+            sentMove = true;
+            return false;
+        }
+
+        if (packet instanceof ServerboundPlayerInputPacket) {
+            sentMove = true;
+            return false;
+        }
+        return false;
     }
 
     public int getChargedCount() {
-        // PacketCount is 1 lower than C03 count
         return this.packetCount;
     }
 
-    public void clearMovements() {
-        queue.removeIf(p -> (p instanceof ServerboundPlayerInputPacket || p instanceof ServerboundMovePlayerPacket));
+    public int getPongCount() {
+        return this.queue.size();
     }
-
-//    public boolean replaceMovements(List<BlinkTick> ticks) {
-//        if (Minecraft.getInstance().player == null) return false;
-//        synchronized (queue) {
-//            if (queue.isEmpty() || !this.isEnabled() || flushing) return false;
-//            if (ticks.size() - 1 > getChargedCount() || ticks.isEmpty()) return false;
-//            queue.removeIf(p -> (p instanceof ServerboundPlayerInputPacket || p instanceof ServerboundMovePlayerPacket));
-//
-//            int j = 0;
-//
-//            for (int i = 0; i < queue.size(); i++) {
-//                int next = i + 1;
-//                if (next >= queue.size()) continue;
-//                Packet<?> nextPacket = queue.get(next);
-//                if (!(nextPacket instanceof ServerboundClientTickEndPacket)) continue;
-//
-//                if (j >= ticks.size()) {
-//                    j++;
-//
-//                    continue;
-//                }
-//                BlinkTick blinkTick = ticks.get(j++);
-//                if (blinkTick.getInput() != null) {
-//                    ServerboundPlayerInputPacket inputPacket = new ServerboundPlayerInputPacket(blinkTick.getInput());
-//                    queue.add(i++, inputPacket);
-//                }
-//
-//                queue.add(i++, blinkTick.getMovePacket());
-//            }
-//
-//            if (j >= ticks.size()) return true;
-//
-//            BlinkTick blinkTick = ticks.get(j);
-//
-//            if (blinkTick.getInput() != null) {
-//                ServerboundPlayerInputPacket inputPacket = new ServerboundPlayerInputPacket(blinkTick.getInput());
-//                queue.add(inputPacket);
-//            }
-//
-//            queue.add(blinkTick.getMovePacket());
-//            return true;
-//        }
-//    }
 
     public void actuallySendImmediately(Packet<?> packet) {
         if (Minecraft.getInstance().getConnection() == null) return;
@@ -224,14 +234,6 @@ public class Blink extends Module {
             ((IConnection) Minecraft.getInstance().getConnection().getConnection()).sendPacketImmediately(packet);
             this.flushing = false;
         }
-    }
-
-    public void enableFlush() {
-        this.flushing = true;
-    }
-
-    public void disableFlush() {
-        this.flushing = false;
     }
 
     public void actuallySend(Packet<?> packet) {
@@ -247,47 +249,18 @@ public class Blink extends Module {
     @Override
     public void onEnable() {
         super.onEnable();
-        this.flush();
-        currentRing = null;
-        if (Minecraft.getInstance().player != null)
-            lastMove = Minecraft.getInstance().player.position();
-        this.packetCount = 0;
+        ClientRotationHandler.registerProvider(this);
     }
 
     @Override
     public void onDisable() {
         super.onDisable();
-        ChatUtils.chat("Packets : " + this.queue.stream().filter(p -> p instanceof ServerboundMovePlayerPacket).count());
-        //this.queue.stream().forEach(p -> System.out.println(p.getClass()));
-        this.flush();
-        currentRing = null;
-        lastMove = null;
+        this.flushPongs();
         this.packetCount = 0;
     }
 
-    private void flushTick() {
-        if (Minecraft.getInstance().getConnection() == null) return;
-        synchronized (queue) {
-            flushing = true;
-            if (queue.isEmpty()) {
-                flushing = false;
-                this.setEnabled(false);
-                return;
-            }
 
-            while (!queue.isEmpty()) {
-                Packet<?> packet = queue.poll();
-                ((IConnection) Minecraft.getInstance().getConnection().getConnection()).sendPacketImmediately(packet);
-                if (packet instanceof ServerboundClientTickEndPacket) {
-                    flushing = false;
-                    return;
-                }
-            }
-            flushing = false;
-        }
-    }
-
-    private void flush() {
+    public void flushPongs() {
         if (Minecraft.getInstance().getConnection() == null) return;
         synchronized (queue) {
             flushing = true;
@@ -298,9 +271,36 @@ public class Blink extends Module {
             queue.forEach(packet -> {
                 ((IConnection) Minecraft.getInstance().getConnection().getConnection()).sendPacketImmediately(packet);
             });
+
             this.queue.clear();
             flushing = false;
         }
     }
 
+    @Override
+    public boolean isClientRotationActive() {
+        return this.isEnabled();
+    }
+
+    @Override
+    public void onDesyncDisable() {
+        if (packetCount < maxBlinkPacket.getValue().intValue())
+            ClientRotationHandler.syncServerRotationToClient();
+    }
+
+    @Override
+    public void onDesyncPause() {
+        ClientRotationHandler.syncServerRotationToClient();
+    }
+
+
+    @Override
+    public boolean isDesyncPaused() {
+        return Minecraft.getInstance().player == null || Minecraft.getInstance().player.input.getMoveVector().lengthSquared() != 0f || packetCount >= maxBlinkPacket.getValue().intValue();
+    }
+
+    @Override
+    public boolean allowClientKeyInputs() {
+        return true;
+    }
 }

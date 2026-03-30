@@ -5,6 +5,7 @@ import com.google.common.primitives.Shorts;
 import com.google.common.primitives.SignedBytes;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.event.impl.RawTickEvent;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.Blink;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.*;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.Colors;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.Melody;

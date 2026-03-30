@@ -56,7 +56,6 @@ public class BoomNode extends Node {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null || Minecraft.getInstance().level == null) return cancel();
 
-        KeyMapping.releaseAll();
         if (!SwapManager.reserveSwap("INFINITE_SUPERBOOM_TNT", "SUPERBOOM_TNT")) return cancel();
 
         Vec3 eyePos = Minecraft.getInstance().player.position().add(0.0d, EtherUtils.SNEAK_EYE_HEIGHT, 0.0d);

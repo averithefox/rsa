@@ -48,8 +48,6 @@ public class AotvNode extends Node implements Accessor {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return cancel();
 
-        KeyMapping.releaseAll();
-
         AutoRoutes autoRoutes = RSM.getModule(AutoRoutes.class);
         autoRoutes.setForceSneak(true);
         if (!SwapManager.reserveSwap(Items.DIAMOND_SHOVEL)) return cancel();

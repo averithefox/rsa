@@ -2,7 +2,6 @@ package com.ricedotwho.rsa.mixins;
 
 import com.ricedotwho.rsa.IMixin.IConnection;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.BaldingBlink;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.Blink;
 import com.ricedotwho.rsa.module.impl.movement.VelocityBuffer;
 import io.netty.channel.ChannelFutureListener;
@@ -34,9 +33,8 @@ public abstract class MixinLowPriorityConnection implements IConnection {
     // This gets called earlier, before other hooks hopefully and isin't triggered by receivePacket
     @Inject(method = "sendPacket", at = @At(value = "HEAD"), cancellable = true)
     private void onSendPacket(Packet<?> packet, @Nullable ChannelFutureListener channelFutureListener, boolean bl, CallbackInfo ci) {
-        boolean bl1 = Blink.onSendPacket(packet);
-        boolean bl2 = BaldingBlink.onSendPacket(packet);
-        if (bl1 || bl2) {
+        boolean bl2 = Blink.onSendPacket(packet);
+        if (bl2) {
             ci.cancel();
         }
     }
