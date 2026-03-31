@@ -2,12 +2,12 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
-import com.ricedotwho.rsa.event.impl.VelocityBufferedEvent;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.TermAura;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.*;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.LeapArg;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.TermArg;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.TermCloseArg;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.TriggerArg;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.recorder.MovementRecorder;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.BlinkRing;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.Ring;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationHandler;
@@ -20,7 +20,6 @@ import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.MutableInput;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
-import com.ricedotwho.rsm.event.impl.client.PacketEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.event.impl.game.TerminalEvent;
 import com.ricedotwho.rsm.event.impl.render.Render3DEvent;
@@ -38,13 +37,13 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.IntStream;
 
 @Getter

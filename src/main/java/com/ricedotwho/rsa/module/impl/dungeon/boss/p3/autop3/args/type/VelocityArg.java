@@ -1,11 +1,9 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type;
 
 import com.google.gson.JsonObject;
-import com.ricedotwho.rsa.event.impl.VelocityBufferedEvent;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.RingArgType;
 import com.ricedotwho.rsa.module.impl.movement.VelocityBuffer;
-import com.ricedotwho.rsm.event.impl.game.TerminalEvent;
 
 public class VelocityArg extends Argument<Void> {
     private final int required;

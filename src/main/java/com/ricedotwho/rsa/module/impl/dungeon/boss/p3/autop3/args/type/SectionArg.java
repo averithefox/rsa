@@ -6,7 +6,6 @@ import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.RingArgType;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.data.Phase7;
 import com.ricedotwho.rsm.utils.DungeonUtils;
-import com.ricedotwho.rsm.utils.NumberUtils;
 import net.minecraft.util.Mth;
 
 public class SectionArg extends Argument<Boolean> {

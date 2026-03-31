@@ -3,9 +3,7 @@ package com.ricedotwho.rsa.component.impl.pathfinding;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.pathfinder.PathFinder;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 

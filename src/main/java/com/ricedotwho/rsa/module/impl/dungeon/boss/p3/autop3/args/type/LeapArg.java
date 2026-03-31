@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.RingArgType;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
-import com.ricedotwho.rsm.utils.NumberUtils;
 import net.minecraft.util.Mth;
 
 public class LeapArg extends Argument<Boolean> {

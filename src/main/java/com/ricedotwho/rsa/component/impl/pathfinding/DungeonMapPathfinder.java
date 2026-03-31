@@ -4,7 +4,6 @@ import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.component.impl.map.handler.DungeonInfo;
 import com.ricedotwho.rsm.component.impl.map.map.*;
 import com.ricedotwho.rsm.data.Pair;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
 import net.minecraft.util.Mth;
 

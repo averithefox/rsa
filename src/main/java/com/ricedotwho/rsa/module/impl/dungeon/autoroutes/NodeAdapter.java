@@ -2,7 +2,6 @@ package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.*;
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitClick;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitEWRaytrace;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.awaits.AwaitSecrets;

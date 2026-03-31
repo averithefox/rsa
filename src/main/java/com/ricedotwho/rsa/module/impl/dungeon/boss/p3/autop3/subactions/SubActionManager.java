@@ -1,8 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions;
 
 import com.google.gson.JsonObject;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.RingArgType;
 
 import java.util.Collection;
 import java.util.HashMap;

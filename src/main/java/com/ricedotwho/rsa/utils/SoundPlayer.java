@@ -1,10 +1,10 @@
 package com.ricedotwho.rsa.utils;
 
 import com.ricedotwho.rsa.RSA;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import javazoom.jl.player.Player;
-import javax.sound.sampled.*;
-import java.io.*;
+
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.nio.file.Path;
 
 public class SoundPlayer {

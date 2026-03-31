@@ -1,7 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
 
 import com.google.gson.JsonObject;
-import com.google.gson.annotations.Expose;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import com.ricedotwho.rsm.component.impl.map.utils.RoomUtils;
 import com.ricedotwho.rsm.data.Colour;

@@ -2,7 +2,6 @@ package com.ricedotwho.rsa.mixins;
 
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.utils.DiscordWebhook;
-import com.ricedotwho.rsa.utils.fakeban.DisconnectReason;
 import com.ricedotwho.rsa.utils.fakeban.FakeBan;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl;
@@ -13,10 +12,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Mixin(ClientCommonPacketListenerImpl.class)
 public class MixinDisconnect {

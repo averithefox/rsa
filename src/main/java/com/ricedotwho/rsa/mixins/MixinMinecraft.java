@@ -1,8 +1,8 @@
 package com.ricedotwho.rsa.mixins;
 
+import com.ricedotwho.rsa.component.impl.TickFreeze;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
-import com.ricedotwho.rsa.component.impl.TickFreeze;
 import com.ricedotwho.rsa.event.impl.RawTickEvent;
 import com.ricedotwho.rsa.module.impl.player.CancelInteract;
 import com.ricedotwho.rsa.screen.sidl.SessionLoginScreen;

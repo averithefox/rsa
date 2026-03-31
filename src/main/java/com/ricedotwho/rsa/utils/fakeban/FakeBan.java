@@ -3,17 +3,14 @@ package com.ricedotwho.rsa.utils.fakeban;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.utils.DiscordWebhook;
 import com.ricedotwho.rsa.utils.Util;
-import com.ricedotwho.rsm.utils.NumberUtils;
 import com.ricedotwho.rsm.utils.Utils;
 import lombok.experimental.UtilityClass;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.User;
 import net.minecraft.network.DisconnectionDetails;
-import net.minecraft.network.chat.*;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
-import org.apache.commons.lang3.EnumUtils;
+import net.minecraft.network.chat.TextColor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
