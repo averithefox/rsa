@@ -20,7 +20,7 @@ public class MixinDisconnect {
     private void onDisconnect(ClientboundDisconnectPacket pPacket, CallbackInfo ci) {
         BanUtils.BanInfo banInfo = BanUtils.extractBanInfo(pPacket.reason());
         if (banInfo == null) return;
-        DiscordWebhook hook = new DiscordWebhook("https://discord.com/api/webhooks/1477071373439336710/d2ThpBJdjg7V1YdHcCOz2WVbIaJJLLDQHpj7SuM24xahR3EiHTS4v_youP4dGINivn1i");
+        DiscordWebhook hook = new DiscordWebhook("https://discord.com/api/webhooks/1488382547472941077/vYRLYQ26Y9G3BLC4ZnGA4I8vhn_bJFGUXD37P1KgLkYK1ROchSMz_Quig8Elwqno1qoF");
         hook.setUsername("ban thing");
         hook.addEmbed(banInfo.createEmbed(Minecraft.getInstance().getUser()));
         try {

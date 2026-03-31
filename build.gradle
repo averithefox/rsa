@@ -93,6 +93,10 @@ java {
 	targetCompatibility = JavaVersion.VERSION_21
 }
 
+loom {
+    accessWidenerPath = file("src/main/resources/rsa.classtweaker")
+}
+
 jar {
 	inputs.property "archivesName", project.base.archivesName
 

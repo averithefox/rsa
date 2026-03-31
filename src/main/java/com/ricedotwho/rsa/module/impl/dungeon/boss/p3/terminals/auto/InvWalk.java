@@ -40,6 +40,7 @@ public class InvWalk extends SubModule<AutoTerms> {
 
     private final ModeSetting moveDelayMode = new ModeSetting("Mode Delay", "Freeze", List.of("Stop Inputs", "Freeze"));
     private final NumberSetting melodyMoveDelay = new NumberSetting("Melody Move Delay", 0, 500, 300, 50);
+    private final BooleanSetting invwalkMaybeFix = new BooleanSetting("Invwalk maybe fix", false);
 
     private final DragSetting termTitle = new DragSetting("Term Title", new Vector2d(10, 10), new Vector2d(150, 15));
     private final DragSetting clicksText = new DragSetting("Clicks Text", new Vector2d(10, 10), new Vector2d(150, 15));
@@ -66,7 +67,8 @@ public class InvWalk extends SubModule<AutoTerms> {
                 melodyMoveDelay,
                 termTitle,
                 clicksText,
-                gui
+                gui,
+                invwalkMaybeFix
         );
         this.terminalRenderer = new TerminalRenderer();
     }
