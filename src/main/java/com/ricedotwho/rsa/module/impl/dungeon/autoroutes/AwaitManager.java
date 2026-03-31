@@ -2,12 +2,10 @@ package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
 
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
-import lombok.Getter;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 
 public class AwaitManager {
     @Expose

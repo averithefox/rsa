@@ -1,21 +1,9 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
-import com.ricedotwho.rsm.data.Keybind;
-import com.ricedotwho.rsm.event.api.SubscribeEvent;
-import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
-import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
-import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
-import com.ricedotwho.rsm.ui.clickgui.settings.impl.KeybindSetting;
-import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
-import net.minecraft.client.Minecraft;
-import net.minecraft.world.entity.player.Input;
-import net.minecraft.world.phys.Vec3;
-import org.lwjgl.glfw.GLFW;
 
 @Getter
 @ModuleInfo(aliases = "Test", id = "Test", category = Category.OTHER)

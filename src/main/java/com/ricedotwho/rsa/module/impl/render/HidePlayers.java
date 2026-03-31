@@ -3,8 +3,6 @@ package com.ricedotwho.rsa.module.impl.render;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
-import com.ricedotwho.rsm.event.impl.game.ConnectionEvent;
-import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.ModeSetting;

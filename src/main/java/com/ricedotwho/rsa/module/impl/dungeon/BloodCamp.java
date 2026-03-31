@@ -32,7 +32,6 @@ import com.ricedotwho.rsm.utils.render.render3d.type.Line;
 import com.ricedotwho.rsm.utils.render.render3d.type.OutlineBox;
 import com.ricedotwho.rsm.utils.render.render3d.type.Text;
 import lombok.Getter;
-import net.fabricmc.loader.impl.lib.sat4j.core.Vec;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;

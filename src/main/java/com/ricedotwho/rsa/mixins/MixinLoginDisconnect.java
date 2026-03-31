@@ -2,13 +2,11 @@ package com.ricedotwho.rsa.mixins;
 
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.utils.DiscordWebhook;
-import com.ricedotwho.rsa.utils.fakeban.FakeBan;
+import com.ricedotwho.rsa.utils.BanUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientHandshakePacketListenerImpl;
 import net.minecraft.network.protocol.login.ClientboundLoginDisconnectPacket;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -20,7 +18,7 @@ public class MixinLoginDisconnect {
 
     @Inject(method = "handleDisconnect", at = @At("HEAD"))
     private void onLoginDisconnect(ClientboundLoginDisconnectPacket pPacket, CallbackInfo ci) {
-        FakeBan.BanInfo banInfo = FakeBan.extractBanInfo(pPacket.reason());
+        BanUtils.BanInfo banInfo = BanUtils.extractBanInfo(pPacket.reason());
         if (banInfo == null) return;
         DiscordWebhook hook = new DiscordWebhook("https://discord.com/api/webhooks/1477071373439336710/d2ThpBJdjg7V1YdHcCOz2WVbIaJJLLDQHpj7SuM24xahR3EiHTS4v_youP4dGINivn1i");
         hook.setUsername("ban thing");
@@ -31,4 +29,5 @@ public class MixinLoginDisconnect {
             RSA.getLogger().error("Failed to post ban info to webhook!", e);
         }
     }
+
 }

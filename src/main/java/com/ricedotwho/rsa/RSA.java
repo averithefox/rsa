@@ -4,34 +4,31 @@ import com.ricedotwho.rsa.command.impl.*;
 import com.ricedotwho.rsa.component.impl.Edge;
 import com.ricedotwho.rsa.component.impl.Jump;
 import com.ricedotwho.rsa.component.impl.pathfinding.score.DungeonRoomScore;
+import com.ricedotwho.rsa.module.impl.dungeon.*;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AutoRoutes;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.Blink;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.BreakerAura;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.LavaBounce;
-import com.ricedotwho.rsa.module.impl.movement.VelocityBuffer;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p4.InstaMid;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p2.PadTimer;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.LavaBounce;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.TermAura;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
-import com.ricedotwho.rsa.module.impl.dungeon.FastLeap;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.TermAura;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.solver.TerminalSolver;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p4.InstaMid;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p5.Relics;
 import com.ricedotwho.rsa.module.impl.dungeon.croesus.AutoCroesus;
 import com.ricedotwho.rsa.module.impl.dungeon.device.AlignAura;
 import com.ricedotwho.rsa.module.impl.dungeon.device.Auto4;
 import com.ricedotwho.rsa.module.impl.dungeon.device.AutoSS;
 import com.ricedotwho.rsa.module.impl.dungeon.puzzle.Puzzles;
+import com.ricedotwho.rsa.module.impl.movement.VelocityBuffer;
 import com.ricedotwho.rsa.module.impl.other.*;
-import com.ricedotwho.rsa.module.impl.dungeon.*;
-import com.ricedotwho.rsa.module.impl.player.autopet.AutoPet;
 import com.ricedotwho.rsa.module.impl.player.BonzoHelper;
 import com.ricedotwho.rsa.module.impl.player.CancelInteract;
+import com.ricedotwho.rsa.module.impl.player.autopet.AutoPet;
 import com.ricedotwho.rsa.module.impl.render.*;
 import com.ricedotwho.rsa.packet.sb.BloodClipHelperStartPacket;
 import com.ricedotwho.rsa.packet.sb.BloodClipHelperStopPacket;
-import com.ricedotwho.rsa.utils.Win10Detector;
-import com.ricedotwho.rsa.utils.fakeban.FakeBan;
 import com.ricedotwho.rsa.utils.render3d.type.Ring;
 import com.ricedotwho.rsm.addon.Addon;
 import com.ricedotwho.rsm.command.Command;
@@ -40,11 +37,9 @@ import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import org.apache.logging.log4j.LogManager;
@@ -85,31 +80,6 @@ public class RSA implements Addon {
         EffectsAndRender.init();
 
         Renderer3D.registerLine(Ring.class);
-
-        //server check
-        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
-            ClientPacketListener conn = client.getConnection();
-            if (conn == null) {
-                notInTestEnv = true;
-                return;
-            }
-            String address = conn.getConnection().getRemoteAddress().toString();
-            boolean isTestServer = address.contains("hypixelp3sim.zapto.org");
-            boolean isSingleplayer = client.hasSingleplayerServer();
-            notInTestEnv = !isTestServer && !isSingleplayer;
-
-            if (Win10Detector.isWindows10() && address.contains("hypixel.net") && !fakeBanned) {
-                int pickedNumber = (int)(Math.random() * 100);
-                int chanceNumber = 69;
-                logger.info("picked number: " + pickedNumber);
-                if (pickedNumber == chanceNumber) {
-                    FakeBan.ban("Being on windows 10", "89d 23h 59m 55s", "https://tinyurl.com/hypixelBans", "RSA on top");
-                    logger.info("is windows 10");
-                    fakeBanned = true;
-                    conn.getConnection().disconnect(Component.empty());
-                }
-            } else { logger.info("not windows 10"); Windows10 = false; }
-        });
 
         SOUNDS_FOLDER = FabricLoader.getInstance()
                 .getConfigDir()

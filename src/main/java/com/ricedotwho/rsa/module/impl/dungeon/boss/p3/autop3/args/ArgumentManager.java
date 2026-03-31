@@ -1,10 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args;
 
 import com.google.gson.JsonObject;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitCondition;
-import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.AwaitType;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubAction;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionType;
 
 import java.util.Collection;
 import java.util.HashMap;

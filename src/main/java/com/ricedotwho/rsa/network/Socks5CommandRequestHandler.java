@@ -3,7 +3,10 @@ package com.ricedotwho.rsa.network;
 import com.mojang.logging.LogUtils;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.socksx.v5.*;
+import io.netty.handler.codec.socksx.v5.Socks5ClientEncoder;
+import io.netty.handler.codec.socksx.v5.Socks5CommandResponse;
+import io.netty.handler.codec.socksx.v5.Socks5CommandResponseDecoder;
+import io.netty.handler.codec.socksx.v5.Socks5CommandStatus;
 import org.slf4j.Logger;
 
 import java.net.InetSocketAddress;

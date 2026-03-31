@@ -1,7 +1,6 @@
 package com.ricedotwho.rsa.module.impl.other;
 
 import com.ricedotwho.rsa.RSA;
-import com.ricedotwho.rsa.component.impl.TickFreeze;
 import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;

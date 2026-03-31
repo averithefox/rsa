@@ -4,7 +4,6 @@ import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.FastLeap;
 import com.ricedotwho.rsa.utils.InteractUtils;
-import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
@@ -27,34 +26,24 @@ import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.ModeSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.StringSetting;
-import com.ricedotwho.rsm.utils.*;
-import it.unimi.dsi.fastutil.booleans.BooleanSet;
+import com.ricedotwho.rsm.utils.DungeonUtils;
+import com.ricedotwho.rsm.utils.RotationUtils;
+import com.ricedotwho.rsm.utils.Utils;
 import lombok.Getter;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Vec3i;
 import net.minecraft.network.protocol.game.ServerboundInteractPacket;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Input;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.EnumUtils;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Getter
@@ -196,12 +185,11 @@ public class Relics extends Module {
     public void onTick(ClientTickEvent.Start event) {
         // Stupid in boss check but ok
         if (!aura.getValue() || mc.player == null || mc.level == null) return;
-        if ((!Location.getArea().is(Island.Dungeon) || !DungeonUtils.isPhase(Phase7.P5) || (Location.getFloor() != Floor.M7))) return;
+        if ((!Location.getArea().is(Island.Dungeon) || !DungeonUtils.isPhase(Phase7.P5) || (Location.getFloor() != Floor.M7)) || !Dungeon.isInBoss()) return;
         long now = System.currentTimeMillis();
         if (now - lastClick <  delay.getValue().longValue()) return;
 
         Vec3 playerPos = mc.player.position();
-        if (!DungeonUtils.isPositionInF7Boss(playerPos)) return;
 
         double max = auraRange.getValue().doubleValue() * auraRange.getValue().doubleValue();
 
@@ -210,7 +198,7 @@ public class Relics extends Module {
             if (type != Type.NONE && playerPos.distanceToSqr(type.place) < max) {
                 SwapManager.swapSlot(8);
 
-                InteractUtils.interactOnBlock(BlockPos.containing(type.place), true);
+                InteractUtils.interactOnBlock0(BlockPos.containing(type.place));
                 lastClick = now;
                 walk = false;
                 return;

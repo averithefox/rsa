@@ -6,6 +6,7 @@ import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.Accessor;
+import com.ricedotwho.rsm.utils.EtherUtils;
 import com.ricedotwho.rsm.utils.MathUtils;
 import com.ricedotwho.rsm.utils.RotationUtils;
 import lombok.experimental.UtilityClass;
@@ -13,14 +14,15 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.vehicle.Minecart;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 @UtilityClass
 public class InteractUtils implements Accessor {
@@ -91,6 +93,23 @@ public class InteractUtils implements Accessor {
         if (result == null) return false;
 
         SwapManager.sendBlockC08(result.getLocation(), result.getDirection(), swing, true);
+        return true;
+    }
+
+    public boolean interactOnBlock0(BlockPos pos) {
+        if (mc.player == null) return false;
+        Vec3 eyes = mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0);
+        return interactOnBlock0(pos, eyes);
+    }
+
+    public boolean interactOnBlock0(BlockPos pos, Vec3 eyePos) {
+        if (mc.level == null) return false;
+        BlockState blockState = mc.level.getBlockState(pos);
+        AABB blockAABB = blockState.getShape(mc.level, pos).bounds();
+        Vec3 hit = new Vec3((blockAABB.minX + blockAABB.maxX) * 0.5 + pos.getX(), (blockAABB.minY + blockAABB.maxY) * 0.5 + pos.getY(), (blockAABB.minZ + blockAABB.maxZ) * 0.5 + pos.getZ());
+        BlockHitResult result = RotationUtils.collisionRayTrace(pos, blockAABB, eyePos, hit);
+        if (result == null) return false;
+        startUseItem(result);
         return true;
     }
 
@@ -258,33 +277,33 @@ public class InteractUtils implements Accessor {
         return minDist;
     }
 
-    public Vec3 getFaceVec(Direction direction, Vec3 pos) {
-        double offsetX = 0;
-        double offsetY = 0;
-        double offsetZ = 0;
+    public Vec3 getFaceVec(Direction direction, BlockPos pos) {
+        BlockState state = mc.level.getBlockState(pos);
+        VoxelShape shape = state.getShape(mc.level, pos);
+
+        if (shape.isEmpty()) return null;
+
+
+        AABB box = shape.bounds();
+
+        double x = (box.minX + box.maxX) * 0.5;
+        double y = (box.minY + box.maxY) * 0.5;
+        double z = (box.minZ + box.maxZ) * 0.5;
 
         switch (direction) {
-            case DOWN:
-                offsetY = -0.5;
-                break;
-            case UP:
-                offsetY = 0.5;
-                break;
-            case NORTH:
-                offsetZ = -0.5;
-                break;
-            case SOUTH:
-                offsetZ = 0.5;
-                break;
-            case WEST:
-                offsetX = -0.5;
-                break;
-            case EAST:
-                offsetX = 0.5;
-                break;
+            case DOWN -> y = box.minY + EtherUtils.EPSILON;
+            case UP -> y = box.maxY - EtherUtils.EPSILON;
+            case NORTH -> z = box.minZ + EtherUtils.EPSILON;
+            case SOUTH -> z = box.maxZ - EtherUtils.EPSILON;
+            case WEST -> x = box.minX + EtherUtils.EPSILON;
+            case EAST -> x = box.maxX - EtherUtils.EPSILON;
         }
 
-        return pos.add(0.5 + offsetX, 0.5 + offsetY, 0.5 + offsetZ);
+        return new Vec3(
+                pos.getX() + x,
+                pos.getY() + y,
+                pos.getZ() + z
+        );
     }
 
     public Direction closestFace(Vec3 pos, Vec3 player) {
@@ -326,5 +345,56 @@ public class InteractUtils implements Accessor {
             }
         }
         return closest;
+    }
+
+    public Vec3 getClosestPoint(BlockPos pos, Vec3 eyePos) {
+        BlockState state = mc.level.getBlockState(pos);
+        VoxelShape shape = state.getShape(mc.level, pos);
+        if (shape.isEmpty()) return null;
+
+        Vec3 best = null;
+        double bestDist = Double.MAX_VALUE;
+
+        for (AABB box : shape.toAabbs()) {
+            double x = Mth.clamp(eyePos.x, pos.getX() + box.minX, pos.getX() + box.maxX);
+            double y = Mth.clamp(eyePos.y, pos.getY() + box.minY, pos.getY() + box.maxY);
+            double z = Mth.clamp(eyePos.z, pos.getZ() + box.minZ, pos.getZ() + box.maxZ);
+
+            Vec3 point = new Vec3(x, y, z);
+
+            double dist = eyePos.distanceToSqr(point);
+            if (dist < bestDist) {
+                bestDist = dist;
+                best = point;
+            }
+        }
+
+        if (best == null) return null;
+
+        return pushInside(pos, state, best);
+    }
+
+    private Vec3 pushInside(BlockPos pos, BlockState state, Vec3 point) {
+        AABB box = state.getShape(mc.level, pos).bounds();
+
+        double minX = pos.getX() + box.minX;
+        double minY = pos.getY() + box.minY;
+        double minZ = pos.getZ() + box.minZ;
+        double maxX = pos.getX() + box.maxX;
+        double maxY = pos.getY() + box.maxY;
+        double maxZ = pos.getZ() + box.maxZ;
+
+        double x = point.x;
+        double y = point.y;
+        double z = point.z;
+
+        if (Math.abs(x - minX) < EtherUtils.EPSILON) x += EtherUtils.EPSILON;
+        if (Math.abs(x - maxX) < EtherUtils.EPSILON) x -= EtherUtils.EPSILON;
+        if (Math.abs(y - minY) < EtherUtils.EPSILON) y += EtherUtils.EPSILON;
+        if (Math.abs(y - maxY) < EtherUtils.EPSILON) y -= EtherUtils.EPSILON;
+        if (Math.abs(z - minZ) < EtherUtils.EPSILON) z += EtherUtils.EPSILON;
+        if (Math.abs(z - maxZ) < EtherUtils.EPSILON) z -= EtherUtils.EPSILON;
+
+        return new Vec3(x, y, z);
     }
 }

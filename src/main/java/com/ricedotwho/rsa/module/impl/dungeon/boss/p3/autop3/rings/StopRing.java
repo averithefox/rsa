@@ -1,8 +1,9 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.*;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.MovementPredictor;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubAction;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.MutableInput;
@@ -13,9 +14,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class StopRing extends Ring {
 

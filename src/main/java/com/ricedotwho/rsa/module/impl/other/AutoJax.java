@@ -1,8 +1,6 @@
 package com.ricedotwho.rsa.module.impl.other;
 
 import com.ricedotwho.rsa.RSA;
-import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
-import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.game.ChatEvent;
 import com.ricedotwho.rsm.event.impl.game.ServerTickEvent;
@@ -10,7 +8,6 @@ import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
-import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;

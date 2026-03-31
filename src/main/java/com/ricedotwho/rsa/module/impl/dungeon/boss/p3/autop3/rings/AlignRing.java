@@ -1,9 +1,9 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings;
 
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.*;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.MovementPredictor;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.RingType;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.ArgumentManager;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubAction;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.subactions.SubActionManager;
 import com.ricedotwho.rsm.data.Colour;
 import com.ricedotwho.rsm.data.MutableInput;
@@ -15,7 +15,9 @@ import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import oshi.util.tuples.Pair;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Queue;
 
 public class AlignRing extends Ring {
     private Queue<Pair<Float, Boolean>> yaws;

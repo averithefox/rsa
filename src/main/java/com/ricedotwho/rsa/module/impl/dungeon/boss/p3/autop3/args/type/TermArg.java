@@ -2,8 +2,6 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type;
 
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.RingArgType;
-import com.ricedotwho.rsm.component.impl.Terminals;
-import com.ricedotwho.rsm.component.impl.task.TaskComponent;
 import com.ricedotwho.rsm.event.impl.game.TerminalEvent;
 
 public class TermArg extends Argument<TerminalEvent.Open> {

@@ -18,7 +18,6 @@
 package com.ricedotwho.rsa.component.impl.pathfinding.openset;
 
 import com.ricedotwho.rsa.component.impl.pathfinding.PathNode;
-import com.ricedotwho.rsa.component.impl.pathfinding.PathfindingCalculationContext;
 
 import java.util.Arrays;
 
