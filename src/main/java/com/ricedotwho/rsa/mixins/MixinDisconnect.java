@@ -2,7 +2,7 @@ package com.ricedotwho.rsa.mixins;
 
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.utils.DiscordWebhook;
-import com.ricedotwho.rsa.utils.fakeban.FakeBan;
+import com.ricedotwho.rsa.utils.BanUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl;
 import net.minecraft.network.protocol.common.ClientboundDisconnectPacket;
@@ -18,7 +18,7 @@ public class MixinDisconnect {
 
     @Inject(method = "handleDisconnect", at = @At("HEAD"))
     private void onDisconnect(ClientboundDisconnectPacket pPacket, CallbackInfo ci) {
-        FakeBan.BanInfo banInfo = FakeBan.extractBanInfo(pPacket.reason());
+        BanUtils.BanInfo banInfo = BanUtils.extractBanInfo(pPacket.reason());
         if (banInfo == null) return;
         DiscordWebhook hook = new DiscordWebhook("https://discord.com/api/webhooks/1477071373439336710/d2ThpBJdjg7V1YdHcCOz2WVbIaJJLLDQHpj7SuM24xahR3EiHTS4v_youP4dGINivn1i");
         hook.setUsername("ban thing");
