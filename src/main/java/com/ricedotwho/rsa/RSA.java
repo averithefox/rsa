@@ -32,10 +32,15 @@ import com.ricedotwho.rsa.packet.sb.BloodClipHelperStopPacket;
 import com.ricedotwho.rsa.utils.render3d.type.Ring;
 import com.ricedotwho.rsm.addon.Addon;
 import com.ricedotwho.rsm.command.Command;
+import com.ricedotwho.rsm.command.api.CommandInfo;
 import com.ricedotwho.rsm.component.api.ModComponent;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
+import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.module.Module;
+import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.utils.ChatUtils;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ScanResult;
 import lombok.Getter;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
@@ -63,11 +68,6 @@ public class RSA implements Addon {
             .append(Component.literal("S").withColor(0xC57BEA))
             .append(Component.literal("A").withColor(0xD793F4))
             .append(Component.literal("] ").withStyle(ChatFormatting.DARK_GRAY));
-
-    @Getter
-    private static boolean Windows10;
-
-    private static boolean fakeBanned;
 
     @Override
     public void onInitialize() {
@@ -99,78 +99,44 @@ public class RSA implements Addon {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<Class<? extends Module>> getModules() {
-        return List.of(
-                DungeonBreaker.class,
-                AutoRoutes.class,
-                DynamicRoutes.class,
-                AutoJax.class,
-                PadTimer.class,
-                BloodBlink.class,
-                AutoSS.class,
-                SecretAura.class,
-                EffectsAndRender.class,
-                PresetWaypoints.class,
-                AutoGfs.class,
-                AutoTerms.class,
-                InstaMid.class,
-                SecretHitboxes.class,
-                CancelInteract.class,
-                DevUtils.class,
-                CancelInteract.class,
-                TermAura.class,
-                Esp.class,
-                AlignAura.class,
-                FastLeap.class,
-                AntiCheat.class,
-                Puzzles.class,
-                HidePlayers.class,
-                Auto4.class,
-                BonzoHelper.class,
-                AutoCroesus.class,
-                AutoP3.class,
-                Freecam.class,
-                AutoUlt.class,
-                TerminalSolver.class,
-                Relics.class,
-                VelocityBuffer.class,
-                BreakerAura.class,
-                AutoPet.class,
-                InstantClear.class,
-                BloodCamp.class,
-                FreezeState.class,
-                LavaBounce.class,
-                Blink.class
-        );
+        try (ScanResult result = new ClassGraph()
+                .acceptPackages("com.ricedotwho.rsa")
+                .enableAnnotationInfo()
+                .scan()) {
+            return (List<Class<? extends Module>>) (List<?>) result
+                    .getClassesWithAnnotation(ModuleInfo.class)
+                    .loadClasses(Module.class);
+        }
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<Class<? extends ModComponent>> getComponents() {
-        return List.of(
-                Edge.class,
-                Jump.class,
-                DungeonRoomScore.class
-        );
+        try (ScanResult result = new ClassGraph()
+                .acceptPackages("com.ricedotwho.rsa")
+                .enableAnnotationInfo()
+                .enableMethodInfo()
+                .scan()) {
+            return (List<Class<? extends ModComponent>>) (List<?>) result
+                    .getSubclasses(ModComponent.class)
+                    .filter(info -> info.hasMethodAnnotation(SubscribeEvent.class))
+                    .loadClasses(ModComponent.class);
+        }
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<Class<? extends Command>> getCommands() {
-        return List.of(
-                RouteCommand.class,
-                DynamicRouteCommand.class,
-                BloodBlinkCommand.class,
-                BBGCommand.class,
-                RSADevCommand.class,
-                AutoCroesusCommand.class,
-                SecretAuraCommand.class,
-                VelocityBufferCommand.class,
-                AutoPetCommand.class,
-                RotateCommand.class,
-                StopwatchCommand.class,
-                LimboCommand.class,
-                DungeonBreakerCommand.class,
-                LavabounceCommand.class
-        );
+        try (ScanResult result = new ClassGraph()
+                .acceptPackages("com.ricedotwho.rsa")
+                .enableAnnotationInfo()
+                .scan()) {
+            return (List<Class<? extends Command>>) (List<?>) result
+                    .getClassesWithAnnotation(CommandInfo.class)
+                    .loadClasses(Command.class);
+        }
     }
 
     public static void chat(Object message, Object ... objects) {
