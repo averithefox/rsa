@@ -8,6 +8,8 @@ import com.ricedotwho.rsa.event.impl.RawTickEvent;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.*;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.Terminals;
+import com.ricedotwho.rsm.component.impl.location.Island;
+import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.event.api.EventPriority;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
@@ -22,6 +24,7 @@ import com.ricedotwho.rsm.ui.clickgui.settings.group.GroupSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.MultiBoolSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
+import com.ricedotwho.rsm.utils.DungeonUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
@@ -30,6 +33,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.HashedStack;
+import net.minecraft.network.protocol.common.ClientboundPingPacket;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.entity.player.Player;
@@ -47,6 +51,8 @@ public class AutoTerms extends Module {
     private boolean firstClick = true;
     private Terminal terminal;
 
+    private int lastPingTicks = 100;
+
     private AbstractContainerMenu terminalContainer;
     private final ClickedSlotsTracker clickedSlotsTracker;
 
@@ -62,6 +68,8 @@ public class AutoTerms extends Module {
     private final BooleanSetting melodySkipFirst = new BooleanSetting("Don't Skip First", true);
     private final BooleanSetting announceMelody = new BooleanSetting("Announce Melody", true);
 
+    private final BooleanSetting noLimbo = new BooleanSetting("No Limbo", true);
+
     private final GroupSetting<InvWalk> invWalkGroup = new GroupSetting<>("Invwalk", new InvWalk(this));
 
 
@@ -75,6 +83,7 @@ public class AutoTerms extends Module {
                 melodySkip,
                 melodySkipFirst,
                 announceMelody,
+                noLimbo,
                 invWalkGroup
         );
     }
@@ -82,6 +91,7 @@ public class AutoTerms extends Module {
     @SubscribeEvent
     public void onLoadWorld(WorldEvent.Load event) {
         close();
+        lastPingTicks = 100;
     }
 
     @SubscribeEvent
@@ -198,6 +208,7 @@ public class AutoTerms extends Module {
 
     @SubscribeEvent
     public void onTick(ClientTickEvent.Start event) {
+        lastPingTicks--;
         if (!isInTerm()) {
             firstClick = true;
             this.clickedSlotsTracker.clear();
@@ -218,12 +229,22 @@ public class AutoTerms extends Module {
         }
     }
 
+    @SubscribeEvent
+    public void onPlayerTick(ClientTickEvent.Player event) {
+        if (Minecraft.getInstance().player == null || Location.getArea() != Island.Dungeon || !DungeonUtils.isPositionInF7Boss(Minecraft.getInstance().player.position()) || !isInTerm()) return;
+        if (lastPingTicks < 0) event.setCancelled(true);
+    }
+
     // If a gui is open request is sent at the same time as term aura sends a click packet while not in term,
     // if the original gui opens first, the term gui will open after the client has opened it
 
     /// This should run before {@link Terminals#onPacket(PacketEvent.Receive)}
     @SubscribeEvent(priority = EventPriority.HIGH) 
     public void onReceivePacket(PacketEvent.Receive event) {
+        if (event.getPacket() instanceof ClientboundPingPacket) {
+            lastPingTicks = 5;
+        }
+
         if (event.getPacket() instanceof ClientboundOpenScreenPacket packet) {
             if (packet.getContainerId() < 1 || packet.getContainerId() > 100) return;
             if (Minecraft.getInstance().player == null) return;
