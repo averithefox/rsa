@@ -3,6 +3,8 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss;
 import com.ricedotwho.rsa.IMixin.IConnection;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.FakeKeyboardInput;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.recorder.MovementRecorder;
+import com.ricedotwho.rsa.packet.FakeClientPacketListener;
+import com.ricedotwho.rsa.packet.FakeLocalPlayer;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationHandler;
 import com.ricedotwho.rsm.component.impl.camera.ClientRotationProvider;
@@ -21,12 +23,13 @@ import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Options;
 import net.minecraft.client.player.ClientInput;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ServerboundPongPacket;
 import net.minecraft.network.protocol.game.*;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.entity.player.Input;
 import org.joml.Vector2d;
 
 import java.util.LinkedList;
@@ -40,10 +43,10 @@ public class Blink extends Module implements ClientRotationProvider {
     private final DragSetting gui = new DragSetting("Balding Blink Hud", new Vector2d(100, 100), new Vector2d(144, 80));
     private final NumberSetting maxBlinkPacket = new NumberSetting("Max Blink Packets", 1, 30, 16, 1);
     private final BooleanSetting flushGUIPongs = new BooleanSetting("Flush GUI Pongs", true);
+    private final NumberSetting smallMovementDelta = new NumberSetting("Velocity Epsilon", 0, 7, 4, 1);
 
     private boolean sentMove = false;
-    private boolean receivedMotion = false;
-    private Vec3 awaited;
+    private boolean flushedPongs = false;
 
 
     private final LinkedList<Packet<?>> queue = new LinkedList<>();
@@ -56,12 +59,15 @@ public class Blink extends Module implements ClientRotationProvider {
         this.registerProperty(
                 maxBlinkPacket,
                 flushGUIPongs,
+                smallMovementDelta,
                 gui
         );
     }
 
     @SubscribeEvent
     public void onRenderGui(Render2DEvent event) {
+        if (Minecraft.getInstance().screen != null) return;
+
         gui.renderScaled(event.getGfx(), () -> {
             event.getGfx().drawCenteredString(Minecraft.getInstance().font, ("Packets : " + packetCount), (int) gui.getPosition().x, (int) gui.getPosition().y, 0xFFFFFFFF);
             event.getGfx().drawCenteredString(Minecraft.getInstance().font, ("Pongs : " + queue.size()), (int) gui.getPosition().x, (int) gui.getPosition().y + Minecraft.getInstance().font.lineHeight, 0xFFFFFFFF);
@@ -111,13 +117,14 @@ public class Blink extends Module implements ClientRotationProvider {
             packetCount--;
         }
         flushing = bl;
+        this.flushPongs();
 
         player.input = oldInputs;
     }
 
     @SubscribeEvent
     public void onTickStart(ClientTickEvent.Start event) {
-        this.receivedMotion = false;
+        this.flushedPongs = false;
     }
 
     @SubscribeEvent
@@ -134,16 +141,52 @@ public class Blink extends Module implements ClientRotationProvider {
     public void onReceivePacket(PacketEvent.Receive event) {
         if (Minecraft.getInstance().player == null) return;
 
-        if (event.getPacket() instanceof ClientboundPlayerPositionPacket positionPacket) {
-            awaited = positionPacket.change().position();
-        }
-
         if (event.getPacket() instanceof ClientboundSetEntityMotionPacket motionPacket) {
             if (motionPacket.getId() != Minecraft.getInstance().player.getId()) return;
             synchronized (queue) {
-                this.receivedMotion = true;
                 this.flushPongs();
+                this.flushedPongs = true;
             }
+        }
+    }
+
+    @SubscribeEvent
+    public void onLocalPlayerTick(ClientTickEvent.Player event) {
+        if (packetCount >= maxBlinkPacket.getValue().intValue() || smallMovementDelta.getValue().intValue() == 0 || !MovementRecorder.isIdle()) return;
+
+        LocalPlayer player = event.getPlayer();
+        if (Minecraft.getInstance().level == null || Minecraft.getInstance().player == null || player.getId() != Minecraft.getInstance().player.getId()) return;
+
+        FakeClientPacketListener packetListener = new FakeClientPacketListener(null);
+        LocalPlayer copy = new FakeLocalPlayer(Minecraft.getInstance(), Minecraft.getInstance().level, packetListener, player.getStats(), player.getRecipeBook(), player.input.keyPresses, false);
+
+        copy.setPos(player.position());
+        copy.setYRot(player.getYRot());
+        copy.setXRot(player.getXRot());
+        copy.setDeltaMovement(player.getDeltaMovement());
+        copy.xxa = player.xxa;
+        copy.yya = player.yya;
+        copy.zza = player.zza;
+        copy.input = player.input;
+        copy.fallDistance = player.fallDistance;
+        copy.noPhysics = player.noPhysics;
+        copy.setSprinting(player.isSprinting());
+        copy.setBoundingBox(player.getBoundingBox());
+        copy.setSpeed(player.getSpeed());
+        copy.setOnGround(player.onGround());
+        copy.setPose(player.getPose());
+        copy.setClientLoaded(true);
+
+        copy.tick();
+        double delta = smallMovementDelta.getValue().doubleValue() / 100d;
+        double distSq = copy.position().distanceToSqr(player.position());
+        //ChatUtils.chat("delta : " + delta * delta);
+        //ChatUtils.chat("distance : " + distSq);
+
+        if (distSq < delta * delta) {
+            event.setCancelled(true);
+            //ChatUtils.chat("Cancelled Movement Tick : " + packetCount + " : " + delta);
+            //this.packetCount++;
         }
     }
 
@@ -160,29 +203,18 @@ public class Blink extends Module implements ClientRotationProvider {
 //        }
         if (Minecraft.getInstance().player == null || !this.isEnabled() || flushing) return false;
 
-        if (packet instanceof ServerboundAcceptTeleportationPacket && awaited != null) {
+        if (packet instanceof ServerboundAcceptTeleportationPacket) {
             this.flushPongs();
-            this.receivedMotion = true;
+            this.flushedPongs = true;
             return false;
         }
 
-        if (packet instanceof ServerboundMovePlayerPacket movePlayerPacket && awaited != null) {
-            if (movePlayerPacket.hasPosition() && movePlayerPacket.getX(0d) == awaited.x && movePlayerPacket.getY(0d) == awaited.y && movePlayerPacket.getZ(0d) == awaited.z) {
-                actuallySendImmediately(movePlayerPacket);
-                awaited = null;
-                return true;
-            }
-        }
-
         if (packet instanceof ServerboundPongPacket) {
-            if (receivedMotion) {
-                if (!queue.isEmpty()) ChatUtils.chat("Pong queue error!");
-                return false;
-            }
+            if (flushedPongs) return false;
 
             queue.add(packet);
 
-            if (queue.size() > packetCount - 2) {
+            if (queue.size() > Math.min(14, packetCount - 2)) {
                 Packet<?> ping = queue.removeFirst();
                 actuallySendImmediately(ping);
             }
@@ -206,12 +238,7 @@ public class Blink extends Module implements ClientRotationProvider {
             return false;
         }
 
-        if (packet instanceof ServerboundMovePlayerPacket movePacket) {
-            sentMove = true;
-            return false;
-        }
-
-        if (packet instanceof ServerboundPlayerInputPacket) {
+        if (packet instanceof ServerboundMovePlayerPacket || packet instanceof ServerboundPlayerInputPacket) {
             sentMove = true;
             return false;
         }

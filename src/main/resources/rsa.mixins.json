@@ -18,6 +18,7 @@
     "ServerboundInteractPacketAccessor"
   ],
   "client": [
+    "ClientPacketListenerMixin",
     "MixinClientPacketListener",
     "MixinDeltaTracker",
     "MixinDisconnect",

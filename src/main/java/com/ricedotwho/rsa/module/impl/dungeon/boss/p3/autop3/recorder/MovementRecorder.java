@@ -80,6 +80,9 @@ public class MovementRecorder extends SubModule<AutoP3> {
         }
     }
 
+    public static boolean isIdle() {
+        return state == State.IDLE;
+    }
     private void prune() {
         List<PlayerInput> inputs = data.getValue();
         int changed = 0;
@@ -111,6 +114,12 @@ public class MovementRecorder extends SubModule<AutoP3> {
     @SubscribeEvent
     public void record(InputPollEvent event) {
         if (mc.player == null) return;
+        if (!event.isActualLocalPlayer() && state == State.PLAYING) {
+            event.getInput().forward(true);
+            event.getInput().left(true);
+            event.getInput().jump(true);
+            return;
+        }
         Input in = event.getClientInput();
         if (state == State.RECORDING) {
             PlayerInput next = new PlayerInput(mc.gameRenderer.getMainCamera().yaw(), mc.gameRenderer.getMainCamera().getXRot(), in);
