@@ -43,7 +43,7 @@ public class BlinkRing extends Ring {
         if (Minecraft.getInstance().player == null) return false;
         Blink blink = RSM.getModule(Blink.class);
 
-        int packets = (!blink.isEnabled()) ? 0 : blink.getChargedCount();
+        int packets = Math.min((!blink.isEnabled()) ? 0 : blink.getChargedCount(), this.size);
         List<MovementRecorder.PlayerInput> inputs = MovementRecorder.getInputs(this.route);
 
         if (inputs.size() <= packets) {
