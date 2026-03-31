@@ -25,13 +25,11 @@ import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.Options;
 import net.minecraft.client.player.ClientInput;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ServerboundPongPacket;
 import net.minecraft.network.protocol.game.*;
-import net.minecraft.world.entity.player.Input;
 import org.joml.Vector2d;
 
 import java.util.LinkedList;
@@ -50,7 +48,6 @@ public class Blink extends Module implements ClientRotationProvider {
 
     private boolean sentMove = false;
     private boolean flushedPongs = false;
-
 
     private final LinkedList<Packet<?>> queue = new LinkedList<>();
     @Getter
