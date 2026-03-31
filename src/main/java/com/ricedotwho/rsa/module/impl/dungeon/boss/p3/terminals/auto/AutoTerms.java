@@ -231,7 +231,7 @@ public class AutoTerms extends Module {
 
     @SubscribeEvent
     public void onPlayerTick(ClientTickEvent.Player event) {
-        if (Minecraft.getInstance().player == null || Location.getArea() != Island.Dungeon || !DungeonUtils.isPositionInF7Boss(Minecraft.getInstance().player.position()) || !isInTerm()) return;
+        if (Minecraft.getInstance().player == null || Location.getArea() != Island.Dungeon || !DungeonUtils.isPositionInF7Boss(Minecraft.getInstance().player.position()) || !isInTerm() || !invWalkGroup.getValue().isEnabled()) return;
         if (lastPingTicks < 0) event.setCancelled(true);
     }
 
