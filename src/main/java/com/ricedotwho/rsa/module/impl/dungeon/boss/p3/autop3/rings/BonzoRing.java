@@ -71,7 +71,7 @@ public class BonzoRing extends Ring {
         switch (state) {
             case (0) -> {
                 super.reset();
-                if (!SwapManager.swapItem("BONZO_STAFF")) return false;
+                if (!SwapManager.swapItem("STARRED_BONZO_STAFF", "BONZO_STAFF")) return false;
                 VelocityBuffer velocityBuffer = RSM.getModule(VelocityBuffer.class);
                 if (!velocityBuffer.isEnabled()) velocityBuffer.onKeyToggle();
 

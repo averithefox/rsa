@@ -11,6 +11,7 @@ import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.ItemUtils;
+import com.ricedotwho.rsm.utils.Utils;
 import lombok.Getter;
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket;
@@ -40,7 +41,7 @@ public class BonzoHelper extends Module {
 	@SubscribeEvent
 	public void onPacketSend(PacketEvent.Send event) {
         if (!(event.getPacket() instanceof ServerboundUseItemPacket packet) || mc.player == null || packet.getHand() != InteractionHand.MAIN_HAND) return;
-		if (!Objects.equals(ItemUtils.getID(mc.player.getMainHandItem()), "BONZO_STAFF")) return;
+		if (!Utils.equalsOneOf(ItemUtils.getID(mc.player.getMainHandItem()), "STARRED_BONZO_STAFF", "BONZO_STAFF")) return;
         if (velo.getValue() &&  mc.hitResult instanceof BlockHitResult && mc.player.getXRot() >= 70) {
             awaitingVelo = true;
             sentAt = System.currentTimeMillis();

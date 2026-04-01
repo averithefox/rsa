@@ -47,7 +47,7 @@ public class BonzoRing2 extends Ring {
     @Override
     public boolean run() {
         if (Minecraft.getInstance().player == null) return false;
-        if (!SwapManager.swapItem("BONZO_STAFF")) return false;
+        if (!SwapManager.swapItem("STARRED_BONZO_STAFF", "BONZO_STAFF")) return false;
         VelocityBuffer velocityBuffer = RSM.getModule(VelocityBuffer.class);
         if (!velocityBuffer.isEnabled()) velocityBuffer.onKeyToggle();
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, new StateRunnable(false, () -> SwapManager.sendAirC08(yaw, pitch, true)));

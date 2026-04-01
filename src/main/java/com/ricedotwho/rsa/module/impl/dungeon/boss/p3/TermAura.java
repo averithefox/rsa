@@ -1,5 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3;
 
+import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
 import com.ricedotwho.rsa.utils.InteractUtils;
@@ -10,12 +11,15 @@ import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.handler.Dungeon;
 import com.ricedotwho.rsm.data.Phase7;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
+import com.ricedotwho.rsm.event.impl.client.PacketEvent;
+import com.ricedotwho.rsm.event.impl.game.ChatEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.BooleanSetting;
 import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
+import com.ricedotwho.rsm.utils.ChatUtils;
 import com.ricedotwho.rsm.utils.DungeonUtils;
 import com.ricedotwho.rsm.utils.MathUtils;
 import net.minecraft.client.Minecraft;
@@ -50,6 +54,15 @@ public class TermAura extends Module {
     public void onTick(ClientTickEvent.Start event) {
         if (mc.screen != null) return;
         PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, this::rapeArmorstands);
+    }
+
+    @SubscribeEvent
+    public void onChat(ChatEvent.Chat event) {
+        if (!Location.getArea().is(Island.Dungeon) || Minecraft.getInstance().player == null || !DungeonUtils.isPositionInF7Boss(Minecraft.getInstance().player.position())) return;
+        if (!event.getMessage().getString().startsWith("This Terminal doesn't seem to be responsive at the moment.")) return;
+
+        this.lastClick = 0;
+        event.setCancelled(true);
     }
 
     private void rapeArmorstands() {

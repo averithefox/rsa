@@ -3,6 +3,8 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss;
 import com.ricedotwho.rsa.IMixin.IConnection;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.FakeKeyboardInput;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.recorder.MovementRecorder;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.TerminalType;
 import com.ricedotwho.rsa.packet.FakeClientPacketListener;
 import com.ricedotwho.rsa.packet.FakeLocalPlayer;
 import com.ricedotwho.rsm.RSM;
@@ -23,13 +25,11 @@ import com.ricedotwho.rsm.ui.clickgui.settings.impl.NumberSetting;
 import com.ricedotwho.rsm.utils.ChatUtils;
 import lombok.Getter;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.Options;
 import net.minecraft.client.player.ClientInput;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ServerboundPongPacket;
 import net.minecraft.network.protocol.game.*;
-import net.minecraft.world.entity.player.Input;
 import org.joml.Vector2d;
 
 import java.util.LinkedList;
@@ -43,11 +43,11 @@ public class Blink extends Module implements ClientRotationProvider {
     private final DragSetting gui = new DragSetting("Balding Blink Hud", new Vector2d(100, 100), new Vector2d(144, 80));
     private final NumberSetting maxBlinkPacket = new NumberSetting("Max Blink Packets", 1, 30, 16, 1);
     private final BooleanSetting flushGUIPongs = new BooleanSetting("Flush GUI Pongs", true);
+    private final BooleanSetting flushInMelody = new BooleanSetting("Flush In Melody", true);
     private final NumberSetting smallMovementDelta = new NumberSetting("Velocity Epsilon", 0, 7, 4, 1);
 
     private boolean sentMove = false;
     private boolean flushedPongs = false;
-
 
     private final LinkedList<Packet<?>> queue = new LinkedList<>();
     @Getter
@@ -60,6 +60,7 @@ public class Blink extends Module implements ClientRotationProvider {
                 maxBlinkPacket,
                 flushGUIPongs,
                 smallMovementDelta,
+                flushInMelody,
                 gui
         );
     }
@@ -167,7 +168,10 @@ public class Blink extends Module implements ClientRotationProvider {
         copy.xxa = player.xxa;
         copy.yya = player.yya;
         copy.zza = player.zza;
-        copy.input = player.input;
+
+        copy.input = new ClientInput();
+        copy.input.keyPresses = player.input.keyPresses;
+
         copy.fallDistance = player.fallDistance;
         copy.noPhysics = player.noPhysics;
         copy.setSprinting(player.isSprinting());
@@ -180,13 +184,9 @@ public class Blink extends Module implements ClientRotationProvider {
         copy.tick();
         double delta = smallMovementDelta.getValue().doubleValue() / 100d;
         double distSq = copy.position().distanceToSqr(player.position());
-        //ChatUtils.chat("delta : " + delta * delta);
-        //ChatUtils.chat("distance : " + distSq);
 
         if (distSq < delta * delta) {
             event.setCancelled(true);
-            //ChatUtils.chat("Cancelled Movement Tick : " + packetCount + " : " + delta);
-            //this.packetCount++;
         }
     }
 
@@ -217,6 +217,12 @@ public class Blink extends Module implements ClientRotationProvider {
             if (queue.size() > Math.min(14, packetCount - 2)) {
                 Packet<?> ping = queue.removeFirst();
                 actuallySendImmediately(ping);
+            }
+
+            if (getPongCount() >= 8 && flushInMelody.getValue()) {
+                AutoTerms autoTerms = RSM.getModule(AutoTerms.class);
+                if (autoTerms.isEnabled() && autoTerms.isInTerm() && autoTerms.getTerminal().getType() == TerminalType.MELODY)
+                    this.flushPongs();
             }
             return true;
         }
@@ -284,6 +290,27 @@ public class Blink extends Module implements ClientRotationProvider {
         super.onDisable();
         this.flushPongs();
         this.packetCount = 0;
+    }
+
+    public void flushPongs(int remainder) {
+        if (Minecraft.getInstance().getConnection() == null) return;
+        synchronized (queue) {
+            if (remainder >= queue.size() || queue.isEmpty()) return;
+            if (remainder <= 0) {
+                flushPongs();
+                return;
+            }
+
+            int sendCount = queue.size() - remainder;
+            flushing = true;
+
+            for (int i = 0; i < sendCount; i++) {
+                Packet<?> packet = queue.removeFirst();
+                ((IConnection) Minecraft.getInstance().getConnection().getConnection()).sendPacketImmediately(packet);
+            }
+
+            flushing = false;
+        }
     }
 
 
