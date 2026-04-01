@@ -42,9 +42,11 @@ import com.ricedotwho.rsm.utils.ChatUtils;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
 import lombok.Getter;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import org.apache.logging.log4j.LogManager;
@@ -91,6 +93,19 @@ public class RSA implements Addon {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        //server check
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+            ClientPacketListener conn = client.getConnection();
+            if (conn == null) {
+                notInTestEnv = true;
+                return;
+            }
+            String address = conn.getConnection().getRemoteAddress().toString();
+            boolean isTestServer = address.contains("hypixelp3sim.zapto.org");
+            boolean isSingleplayer = client.hasSingleplayerServer();
+            notInTestEnv = !isTestServer && !isSingleplayer;
+        });
     }
 
     @Override
