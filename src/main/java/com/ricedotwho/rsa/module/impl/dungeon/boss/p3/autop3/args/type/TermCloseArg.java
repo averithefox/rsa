@@ -7,7 +7,7 @@ public class TermCloseArg extends Argument<Boolean> {
     private boolean closed = false;
 
     public TermCloseArg() {
-        super(RingArgType.TERM);
+        super(RingArgType.TERM_CLOSE);
     }
 
     @Override
