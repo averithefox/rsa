@@ -12,14 +12,9 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(ClipContext.class)
 public class MixinClipContext {
-    @ModifyExpressionValue(method = "getBlockShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/shapes/VoxelShape;", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/ClipContext$Block;get(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;"))
-    private VoxelShape modifyBlockShape(
-            VoxelShape original,
-            BlockState blockState,
-            BlockGetter blockGetter,
-            BlockPos blockPos
-    ) {
-        VoxelShape shape = SecretHitboxes.getShape(blockState, blockPos);
-        return shape != null ? shape : original;
-    }
+  @ModifyExpressionValue(method = "getBlockShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/phys/shapes/VoxelShape;", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/ClipContext$Block;get(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;"))
+  private VoxelShape modifyBlockShape(VoxelShape original, BlockState blockState, BlockGetter blockGetter, BlockPos blockPos) {
+    VoxelShape shape = SecretHitboxes.getShape(blockState, blockPos);
+    return shape != null ? shape : original;
+  }
 }

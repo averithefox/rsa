@@ -14,45 +14,44 @@ import net.minecraft.world.entity.player.Input;
 import java.util.Map;
 
 public class JumpRing extends Ring {
+  public JumpRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions) {
+    super(min, max, RingType.JUMP.getRenderSizeOffset(), manager, actions);
+    this.getArgManager().addArg(new GroundArg());
+  }
 
-    public JumpRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions) {
-        super(min, max, RingType.JUMP.getRenderSizeOffset(), manager, actions);
-        this.getArgManager().addArg(new GroundArg());
-    }
+  public JumpRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions, Map<String, Object> ignored) {
+    super(min, max, RingType.JUMP.getRenderSizeOffset(), manager, actions);
+    this.getArgManager().addArg(new GroundArg());
+  }
 
-    public JumpRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions, Map<String, Object> ignored) {
-        super(min, max, RingType.JUMP.getRenderSizeOffset(), manager, actions);
-        this.getArgManager().addArg(new GroundArg());
-    }
+  @Override
+  public RingType getType() {
+    return RingType.JUMP;
+  }
 
-    @Override
-    public RingType getType() {
-        return RingType.JUMP;
-    }
+  @Override
+  public boolean run() {
+    Jump.jump();
+    return true;
+  }
 
-    @Override
-    public boolean run() {
-        Jump.jump();
-        return true;
-    }
+  @Override
+  public Colour getColour() {
+    return AutoP3.getJump().getValue();
+  }
 
-    @Override
-    public Colour getColour() {
-        return AutoP3.getJump().getValue();
-    }
+  @Override
+  public int getPriority() {
+    return 60;
+  }
 
-    @Override
-    public int getPriority() {
-        return 60;
-    }
+  @Override
+  public boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3) {
+    return true;
+  }
 
-    @Override
-    public boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3) {
-        return true;
-    }
-
-    @Override
-    public void feedback() {
-        AutoP3.modMessage("Jumping");
-    }
+  @Override
+  public void feedback() {
+    AutoP3.modMessage("Jumping");
+  }
 }

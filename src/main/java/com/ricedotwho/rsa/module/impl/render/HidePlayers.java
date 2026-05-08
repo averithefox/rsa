@@ -17,19 +17,20 @@ import java.util.Arrays;
 @Getter
 @ModuleInfo(aliases = "Hide", id = "HideEntity", category = Category.RENDER, isOverwrite = true)
 public class HidePlayers extends com.ricedotwho.rsm.module.impl.render.HidePlayers {
-    private final ModeSetting hitThroughMode = new ModeSetting("Hit Through", "Off", Arrays.asList("Off", "Dungeon & Kuudra", "Always"));
+  private final ModeSetting hitThroughMode = new ModeSetting("Hit Through", "Off", Arrays.asList("Off", "Dungeon & Kuudra", "Always"));
 
-    public HidePlayers() {
-        super();
-        this.registerProperty(
-                hitThroughMode
-        );
-    }
+  public HidePlayers() {
+    super();
+    this.registerProperty(
+      hitThroughMode
+    );
+  }
 
-    public static boolean shouldHitThrough(Entity e) {
-        HidePlayers hidePlayers = RSM.getModule(HidePlayers.class);
-        if (hidePlayers == null || !hidePlayers.isEnabled()) return false;
-        if (hidePlayers.getWither().getValue() && e instanceof WitherBoss wither && wither.getMaxHealth() == 300F) return true;
-        return e instanceof Player && (hidePlayers.getHitThroughMode().getIndex() == 1 && Utils.equalsOneOf(Location.getArea(), Island.Dungeon, Island.Kuudra) || hidePlayers.getHitThroughMode().getIndex() == 2);
-    }
+  public static boolean shouldHitThrough(Entity e) {
+    HidePlayers hidePlayers = RSM.getModule(HidePlayers.class);
+    if (hidePlayers == null || !hidePlayers.isEnabled()) return false;
+    if (hidePlayers.getWither().getValue() && e instanceof WitherBoss wither && wither.getMaxHealth() == 300F)
+      return true;
+    return e instanceof Player && (hidePlayers.getHitThroughMode().getIndex() == 1 && Utils.equalsOneOf(Location.getArea(), Island.Dungeon, Island.Kuudra) || hidePlayers.getHitThroughMode().getIndex() == 2);
+  }
 }

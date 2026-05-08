@@ -21,41 +21,41 @@ import net.minecraft.world.phys.HitResult;
 import java.util.Map;
 
 public class BoomRing extends Ring {
-    private final Pos target;
+  private final Pos target;
 
-    public BoomRing(Pos min, Pos max, Pos target, ArgumentManager manager, SubActionManager actions) {
-        super(min, max, RingType.BOOM.getRenderSizeOffset(), manager, actions);
-        this.target = target;
+  public BoomRing(Pos min, Pos max, Pos target, ArgumentManager manager, SubActionManager actions) {
+    super(min, max, RingType.BOOM.getRenderSizeOffset(), manager, actions);
+    this.target = target;
+  }
+
+  public BoomRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions, Map<String, Object> ignored) {
+    super(min, max, RingType.BOOM.getRenderSizeOffset(), manager, actions);
+    if (!(Minecraft.getInstance().hitResult instanceof BlockHitResult blockHitResult) || blockHitResult.getType() == HitResult.Type.MISS) {
+      this.target = null;
+      return;
     }
+    //Vec3 eyePos = mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0);
+    //Vec3 dir = blockHitResult.getLocation().subtract(eyePos).normalize().scale(EtherUtils.EPSILON);
 
-    public BoomRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions, Map<String, Object> ignored) {
-        super(min, max, RingType.BOOM.getRenderSizeOffset(), manager, actions);
-        if (!(Minecraft.getInstance().hitResult instanceof BlockHitResult blockHitResult) || blockHitResult.getType() == HitResult.Type.MISS) {
-            this.target = null;
-            return;
-        }
-        //Vec3 eyePos = mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0);
-        //Vec3 dir = blockHitResult.getLocation().subtract(eyePos).normalize().scale(EtherUtils.EPSILON);
+    this.target = new Pos(blockHitResult.getBlockPos());
+    //this.target.selfAdd(dir.x, dir.y, dir.z);
+  }
 
-        this.target = new Pos(blockHitResult.getBlockPos());
-        //this.target.selfAdd(dir.x, dir.y, dir.z);
-    }
+  @Override
+  public RingType getType() {
+    return RingType.BOOM;
+  }
 
-    @Override
-    public RingType getType() {
-        return RingType.BOOM;
-    }
-
-    @Override
-    public boolean run() {
-        if (!SwapManager.reserveSwap("INFINITE_SUPERBOOM_TNT", "SUPERBOOM_TNT")) return false;
-        BreakerAura.delay();
+  @Override
+  public boolean run() {
+    if (!SwapManager.reserveSwap("INFINITE_SUPERBOOM_TNT", "SUPERBOOM_TNT")) return false;
+    BreakerAura.delay();
 
 //        Vec3 eyePos = mc.player.position().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0);
 //        Vec3 targetVec = target.asVec3();
 
-        boolean swap = SwapManager.isDesynced();
-        PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
+    boolean swap = SwapManager.isDesynced();
+    PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
 //            BlockPos blockPos = BlockPos.containing(targetVec);
 //            BlockState blockState = Minecraft.getInstance().level.getBlockState(blockPos);
 //            if (blockState.getBlock() == Blocks.AIR) return;
@@ -68,35 +68,35 @@ public class BoomRing extends Ring {
 //                AutoP3.modMessage("Failed to find block hit result!");
 //                return;
 //            }
-            InteractUtils.breakBlock(target, false, true, swap);
-        });
-        return true;
-    }
+      InteractUtils.breakBlock(target, false, true, swap);
+    });
+    return true;
+  }
 
-    @Override
-    public Colour getColour() {
-        return AutoP3.getBoom().getValue();
-    }
+  @Override
+  public Colour getColour() {
+    return AutoP3.getBoom().getValue();
+  }
 
-    @Override
-    public int getPriority() {
-        return 60;
-    }
+  @Override
+  public int getPriority() {
+    return 60;
+  }
 
-    @Override
-    public boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3) {
-        return true;
-    }
+  @Override
+  public boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3) {
+    return true;
+  }
 
-    @Override
-    public JsonObject serialize() {
-        JsonObject obj = super.serialize();
-        obj.add("target", FileUtils.getGson().toJsonTree(target));
-        return obj;
-    }
+  @Override
+  public JsonObject serialize() {
+    JsonObject obj = super.serialize();
+    obj.add("target", FileUtils.getGson().toJsonTree(target));
+    return obj;
+  }
 
-    @Override
-    public void feedback() {
-        AutoP3.modMessage("Booming");
-    }
+  @Override
+  public void feedback() {
+    AutoP3.modMessage("Booming");
+  }
 }

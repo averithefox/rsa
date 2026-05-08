@@ -14,30 +14,28 @@ import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 
 @CommandInfo(name = "bloodblink", aliases = "bb", description = "Handles blood blinking rooms")
 public class BloodBlinkCommand extends Command {
+  @Override
+  public LiteralArgumentBuilder<ClientSuggestionProvider> build() {
+    return literal(name()).executes((source) -> {
+      if (!Location.getArea().is(Island.Dungeon)) {
+        RSA.chat("I don't think there's a blood room outside dungeons yo");
+        return 0;
+      }
 
-    @Override
-    public LiteralArgumentBuilder<ClientSuggestionProvider> build() {
-        return literal(name()).executes((source) -> {
-            if (!Location.getArea().is(Island.Dungeon)) {
-                RSA.chat("I don't think there's a blood room outside dungeons yo");
-                return 0;
-            }
+      BloodBlink bloodBlink = RSM.getModule(BloodBlink.class);
+      if (!bloodBlink.isEnabled()) {
+        RSA.chat("Please enable blood blink!");
+        return 0;
+      }
 
-            BloodBlink bloodBlink = RSM.getModule(BloodBlink.class);
-            if (!bloodBlink.isEnabled()) {
-                RSA.chat("Please enable blood blink!");
-                return 0;
-            }
+      if (Map.getCurrentRoom() == null || Map.getCurrentRoom().getData().type() != RoomType.ENTRANCE) {
+        RSA.chat("You can't blood blink outside of entrance!");
+        return 0;
+      }
 
-            if (Map.getCurrentRoom() == null || Map.getCurrentRoom().getData().type() != RoomType.ENTRANCE) {
-                RSA.chat("You can't blood blink outside of entrance!");
-                return 0;
-            }
-
-            RSA.chat("Trying blood blinking!");
-            bloodBlink.doBlink();
-            return 1;
-        });
-    }
-
+      RSA.chat("Trying blood blinking!");
+      bloodBlink.doBlink();
+      return 1;
+    });
+  }
 }

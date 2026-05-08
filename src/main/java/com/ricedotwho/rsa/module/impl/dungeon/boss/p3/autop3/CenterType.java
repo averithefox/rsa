@@ -6,20 +6,19 @@ import java.util.Arrays;
 
 @Getter
 public enum CenterType {
-    POS("pos"),
-    ANGLES("angles"),
-    ALL("all"),
-    YAW("yaw"),
-    PITCH("pitch");
+  POS("pos"),
+  ANGLES("angles"),
+  ALL("all"),
+  YAW("yaw"),
+  PITCH("pitch");
 
-    private final String name;
+  private final String name;
 
-    CenterType(String name) {
-        this.name = name;
-    }
+  CenterType(String name) {
+    this.name = name;
+  }
 
-    public static CenterType fromName(String name) {
-        return Arrays.stream(CenterType.values()).filter(c -> c.getName().equals(name)).findFirst().orElse(null);
-    }
-
+  public static CenterType fromName(String name) {
+    return Arrays.stream(CenterType.values()).filter(c -> c.getName().equals(name)).findFirst().orElse(null);
+  }
 }

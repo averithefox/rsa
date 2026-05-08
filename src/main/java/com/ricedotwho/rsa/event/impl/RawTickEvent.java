@@ -7,5 +7,5 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class RawTickEvent extends Event {
-    private final boolean cancel;
+  private final boolean cancel;
 }

@@ -49,83 +49,102 @@ import java.util.stream.IntStream;
 @Getter
 @ModuleInfo(aliases = "Auto P3", id = "AutoP3", category = Category.DUNGEONS, hasKeybind = true)
 public class AutoP3 extends Module implements ClientRotationProvider {
+  private static final MutableComponent PREFIX = Component.empty()
+    .append(Component.literal("[").withStyle(ChatFormatting.GOLD))
+    .append(Component.literal("byebyebalding").withStyle(ChatFormatting.DARK_GRAY))
+    .append(Component.literal("] ").withStyle(ChatFormatting.GOLD))
+    .append(Component.empty().withStyle(ChatFormatting.WHITE));
 
-    private static final MutableComponent PREFIX = Component.empty()
-            .append(Component.literal("[").withStyle(ChatFormatting.GOLD))
-            .append(Component.literal("byebyebalding").withStyle(ChatFormatting.DARK_GRAY))
-            .append(Component.literal("] ").withStyle(ChatFormatting.GOLD))
-            .append(Component.empty().withStyle(ChatFormatting.WHITE));
+  private final BooleanSetting forceSkyblock = new BooleanSetting("Force Skyblock", false);
+  private final BooleanSetting yap = new BooleanSetting("Feedback", false);
+  private final KeybindSetting triggerBind = new KeybindSetting("Trigger", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, this::trigger));
+  @Getter
+  private static final NumberSetting edgeDist = new NumberSetting("Edge Dist", 0, 0.1, 0.001, 0.001);
+  private final BooleanSetting depth = new BooleanSetting("Depth", false);
+  private final BooleanSetting strafe = new BooleanSetting("45", true);
+  private final GroupSetting<MovementRecorder> movementCat = new GroupSetting<>("Movement", new MovementRecorder(this));
 
-    private final BooleanSetting forceSkyblock = new BooleanSetting("Force Skyblock", false);
-    private final BooleanSetting yap = new BooleanSetting("Feedback", false);
-    private final KeybindSetting triggerBind = new KeybindSetting("Trigger", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, this::trigger));
-    @Getter private static final NumberSetting edgeDist = new NumberSetting("Edge Dist", 0, 0.1, 0.001, 0.001);
-    private final BooleanSetting depth = new BooleanSetting("Depth", false);
-    private final BooleanSetting strafe = new BooleanSetting("45", true);
-    private final GroupSetting<MovementRecorder> movementCat = new GroupSetting<>("Movement", new MovementRecorder(this));
+  private final DefaultGroupSetting colours = new DefaultGroupSetting("Colours", this);
+  @Getter
+  private static final ColourSetting align = new ColourSetting("Align", Colour.GREEN.copy());
+  @Getter
+  private static final ColourSetting blink = new ColourSetting("Blink", Colour.PINK.copy());
+  @Getter
+  private static final ColourSetting bonzo = new ColourSetting("Bonzo", Colour.MAGENTA.copy());
+  @Getter
+  private static final ColourSetting boom = new ColourSetting("Boom", Colour.RED.darker());
+  @Getter
+  private static final ColourSetting chat = new ColourSetting("Chat", Colour.YELLOW.copy());
+  @Getter
+  private static final ColourSetting command = new ColourSetting("Command", Colour.DARK_GRAY.copy());
+  @Getter
+  private static final ColourSetting edge = new ColourSetting("Edge", Colour.BLACK.copy());
+  @Getter
+  private static final ColourSetting fastAlign = new ColourSetting("Fast Align", Colour.GREEN.darker());
+  @Getter
+  private static final ColourSetting fastBonzo = new ColourSetting("Fast Bonzo", Colour.MAGENTA.darker());
+  @Getter
+  private static final ColourSetting jump = new ColourSetting("Jump", Colour.ORANGE.copy());
+  @Getter
+  private static final ColourSetting leap = new ColourSetting("Leap", Colour.BLUE.copy());
+  @Getter
+  private static final ColourSetting look = new ColourSetting("Look", Colour.GREEN.brighter());
+  @Getter
+  private static final ColourSetting movement = new ColourSetting("Movement", Colour.WHITE.copy());
+  @Getter
+  private static final ColourSetting pet = new ColourSetting("Pet", Colour.YELLOW.darker());
+  @Getter
+  private static final ColourSetting stop = new ColourSetting("Stop", Colour.RED.copy());
+  @Getter
+  private static final ColourSetting stopWatch = new ColourSetting("Stop Watch", Colour.DARK_GRAY.copy());
+  @Getter
+  private static final ColourSetting use = new ColourSetting("Use", Colour.GRAY.copy());
+  @Getter
+  private static final ColourSetting walk = new ColourSetting("Walk", Colour.CYAN.copy());
 
-    private final DefaultGroupSetting colours = new DefaultGroupSetting("Colours", this);
-    @Getter private static final ColourSetting align = new ColourSetting("Align", Colour.GREEN.copy());
-    @Getter private static final ColourSetting blink = new ColourSetting("Blink", Colour.PINK.copy());
-    @Getter private static final ColourSetting bonzo = new ColourSetting("Bonzo", Colour.MAGENTA.copy());
-    @Getter private static final ColourSetting boom = new ColourSetting("Boom", Colour.RED.darker());
-    @Getter private static final ColourSetting chat = new ColourSetting("Chat", Colour.YELLOW.copy());
-    @Getter private static final ColourSetting command = new ColourSetting("Command", Colour.DARK_GRAY.copy());
-    @Getter private static final ColourSetting edge = new ColourSetting("Edge", Colour.BLACK.copy());
-    @Getter private static final ColourSetting fastAlign = new ColourSetting("Fast Align", Colour.GREEN.darker());
-    @Getter private static final ColourSetting fastBonzo = new ColourSetting("Fast Bonzo", Colour.MAGENTA.darker());
-    @Getter private static final ColourSetting jump = new ColourSetting("Jump", Colour.ORANGE.copy());
-    @Getter private static final ColourSetting leap = new ColourSetting("Leap", Colour.BLUE.copy());
-    @Getter private static final ColourSetting look = new ColourSetting("Look", Colour.GREEN.brighter());
-    @Getter private static final ColourSetting movement = new ColourSetting("Movement", Colour.WHITE.copy());
-    @Getter private static final ColourSetting pet = new ColourSetting("Pet", Colour.YELLOW.darker());
-    @Getter private static final ColourSetting stop = new ColourSetting("Stop", Colour.RED.copy());
-    @Getter private static final ColourSetting stopWatch = new ColourSetting("Stop Watch", Colour.DARK_GRAY.copy());
-    @Getter private static final ColourSetting use = new ColourSetting("Use", Colour.GRAY.copy());
-    @Getter private static final ColourSetting walk = new ColourSetting("Walk", Colour.CYAN.copy());
+  private final SaveSetting<List<Ring>> data = new SaveSetting<>("Rings", "dungeon/ap3", "rings.json", ArrayList::new,
+    new TypeToken<List<Ring>>() {
+    }.getType(),
+    new GsonBuilder()
+      .registerTypeHierarchyAdapter(Ring.class, new RingAdapter())
+      .setPrettyPrinting().create(),
+    true, this::reload, null);
 
-    private final SaveSetting<List<Ring>> data = new SaveSetting<>("Rings", "dungeon/ap3", "rings.json", ArrayList::new,
-            new TypeToken<List<Ring>>() {}.getType(),
-            new GsonBuilder()
-                    .registerTypeHierarchyAdapter(Ring.class, new RingAdapter())
-                    .setPrettyPrinting().create(),
-            true, this::reload, null);
+  private final List<Ring> rings;
+  private boolean desync = false;
+  private boolean lastDesync = false;
+  @Getter
+  private final List<Ring> activeRings;
+  private final List<Ring> temp = new ArrayList<>();
+  private final List<Ring> redoList = new ArrayList<>();
 
-    private final List<Ring> rings;
-    private boolean desync = false;
-    private boolean lastDesync = false;
-    @Getter
-    private final List<Ring> activeRings;
-    private final List<Ring> temp = new ArrayList<>();
-    private final List<Ring> redoList = new ArrayList<>();
+  public AutoP3() {
+    this.registerProperty(
+      yap,
+      triggerBind,
+      edgeDist,
+      depth,
+      strafe,
+      forceSkyblock,
+      movementCat,
+      data,
+      colours
+    );
 
-    public AutoP3() {
-        this.registerProperty(
-                yap,
-                triggerBind,
-                edgeDist,
-                depth,
-                strafe,
-                forceSkyblock,
-                movementCat,
-                data,
-                colours
-        );
+    colours.add(align, blink, bonzo, boom, chat, command, edge, fastAlign, fastBonzo, jump, leap, look, movement, pet, stop, stopWatch, use, walk);
 
-        colours.add(align, blink, bonzo, boom, chat, command, edge, fastAlign, fastBonzo, jump, leap, look, movement, pet, stop, stopWatch, use, walk);
+    this.rings = new ArrayList<>();
+    this.activeRings = new ArrayList<>(5);
+  }
 
-        this.rings = new ArrayList<>();
-        this.activeRings = new ArrayList<>(5);
+  @SubscribeEvent
+  public void onTickEnd(ClientTickEvent.End event) {
+    if (!desync && lastDesync && Minecraft.getInstance().player != null) {
+      Minecraft.getInstance().player.setYRot(ClientRotationHandler.getClientYaw());
+      Minecraft.getInstance().player.setXRot(ClientRotationHandler.getClientPitch());
     }
-
-    @SubscribeEvent
-    public void onTickEnd(ClientTickEvent.End event) {
-        if (!desync && lastDesync && Minecraft.getInstance().player != null) {
-            Minecraft.getInstance().player.setYRot(ClientRotationHandler.getClientYaw());
-            Minecraft.getInstance().player.setXRot(ClientRotationHandler.getClientPitch());
-        }
-        lastDesync = desync;
-    }
+    lastDesync = desync;
+  }
 //
 //    int last = -1;
 //    @SubscribeEvent
@@ -138,36 +157,36 @@ public class AutoP3 extends Module implements ClientRotationProvider {
 //        last = packet.getId();
 //    }
 
-    @SubscribeEvent
-    public void onWorldLoad(WorldEvent.Load event) {
-        this.activeRings.clear();
-        reload();
+  @SubscribeEvent
+  public void onWorldLoad(WorldEvent.Load event) {
+    this.activeRings.clear();
+    reload();
+  }
+
+  public static void load(String config) {
+    AutoP3 ap3 = RSM.getModule(AutoP3.class);
+    ap3.getData().setFileName(config);
+    ap3.getData().updateFile();
+    ap3.getData().load();
+    ap3.reload();
+  }
+
+  @SubscribeEvent
+  public void onPollInputs(InputPollEvent event) {
+    if (!dungeonCheck()) return;
+    if (activeRings.isEmpty()) return;
+
+    MutableInput mutableInput = event.getInput();
+    Input input = event.getClientInput();
+
+    for (int i = 0; i < activeRings.size(); i++) {
+      Ring r = activeRings.get(i);
+      boolean bl2 = r.isActive() && r.tick(mutableInput, input, this);
+      if (!bl2) continue;
+      r.setInactive();
+      activeRings.remove(i--);
     }
-
-    public static void load(String config) {
-        AutoP3 ap3 = RSM.getModule(AutoP3.class);
-        ap3.getData().setFileName(config);
-        ap3.getData().updateFile();
-        ap3.getData().load();
-        ap3.reload();
-    }
-
-    @SubscribeEvent
-    public void onPollInputs(InputPollEvent event) {
-        if (!dungeonCheck()) return;
-        if (activeRings.isEmpty()) return;
-
-        MutableInput mutableInput = event.getInput();
-        Input input = event.getClientInput();
-
-        for (int i = 0 ; i < activeRings.size(); i++) {
-            Ring r = activeRings.get(i);
-            boolean bl2 = r.isActive() && r.tick(mutableInput, input, this);
-            if (!bl2) continue;
-            r.setInactive();
-            activeRings.remove(i--);
-        }
-    }
+  }
 
 //    @SubscribeEvent
 //    public void onSendPacket(PacketEvent.Send event) {
@@ -183,59 +202,59 @@ public class AutoP3 extends Module implements ClientRotationProvider {
 //        }
 //    }
 
-    private void reload() {
-        this.rings.clear();
-        this.rings.addAll(data.getValue());
+  private void reload() {
+    this.rings.clear();
+    this.rings.addAll(data.getValue());
+  }
+
+  protected void onDesyncEnable() {
+    ClientRotationHandler.registerProvider(this);
+
+    if (Minecraft.getInstance().player == null) return;
+    ClientRotationHandler.setYaw(Minecraft.getInstance().player.getYRot());
+  }
+
+  @SubscribeEvent
+  public void onTick(ClientTickEvent.Start event) {
+    if (!dungeonCheck() || mc.player == null) return;
+    desync = false;
+
+    Vec3 playerPos = mc.player.position();
+    Vec3 oldPos = mc.player.oldPosition();
+
+    List<Ring> sorted;
+    synchronized (rings) {
+      sorted = rings.stream().filter(r -> r.updateState(playerPos, oldPos) && (activeRings.isEmpty() || activeRings.stream().allMatch(active -> r.getPriority() >= active.getPriority()))).sorted(Comparator.comparingInt(Ring::getPriority).reversed()).toList();
     }
 
-    protected void onDesyncEnable() {
-        ClientRotationHandler.registerProvider(this);
+    if (sorted.isEmpty()) return;
 
-        if (Minecraft.getInstance().player == null) return;
-        ClientRotationHandler.setYaw(Minecraft.getInstance().player.getYRot());
+    boolean feedback = yap.getValue();
+    activeRings.removeIf(r -> !r.isActive());
+    //activeRings.clear();
+    temp.clear();
+
+    boolean stop = false;
+
+    for (Ring ring : sorted) {
+      temp.add(ring);
+      if (ring.checkArg()) continue;
+      if (ring.isStop()) stop = true;
+      ring.setTriggered();
+      ring.setActive();
+      if (feedback) ring.feedback();
+      if (!ring.execute()) break;
     }
 
-    @SubscribeEvent
-    public void onTick(ClientTickEvent.Start event) {
-        if (!dungeonCheck() || mc.player == null) return;
-        desync = false;
-
-        Vec3 playerPos = mc.player.position();
-        Vec3 oldPos = mc.player.oldPosition();
-
-        List<Ring> sorted;
-        synchronized (rings) {
-            sorted = rings.stream().filter(r -> r.updateState(playerPos, oldPos) && (activeRings.isEmpty() || activeRings.stream().allMatch(active -> r.getPriority() >= active.getPriority()))).sorted(Comparator.comparingInt(Ring::getPriority).reversed()).toList();
-        }
-
-        if (sorted.isEmpty()) return;
-
-        boolean feedback = yap.getValue();
-        activeRings.removeIf(r -> !r.isActive());
-        //activeRings.clear();
-        temp.clear();
-
-        boolean stop = false;
-
-        for (Ring ring : sorted) {
-            temp.add(ring);
-            if (ring.checkArg()) continue;
-            if (ring.isStop()) stop = true;
-            ring.setTriggered();
-            ring.setActive();
-            if (feedback) ring.feedback();
-            if (!ring.execute()) break;
-        }
-
-        if (stop) activeRings.removeIf(r -> {
-            if (r.shouldStop()) {
-                r.setInactive();
-                return true;
-            }
-            return false;
-        });
-        activeRings.addAll(temp.stream().filter(r -> !activeRings.contains(r)).toList());
-    }
+    if (stop) activeRings.removeIf(r -> {
+      if (r.shouldStop()) {
+        r.setInactive();
+        return true;
+      }
+      return false;
+    });
+    activeRings.addAll(temp.stream().filter(r -> !activeRings.contains(r)).toList());
+  }
 
 //    private int last = -1;
 //    @SubscribeEvent
@@ -248,144 +267,144 @@ public class AutoP3 extends Module implements ClientRotationProvider {
 //        last = pongPacket.getId();
 //    }
 
-    @SubscribeEvent
-    public void onRender(Render3DEvent.Extract event) {
-        if (!dungeonCheck()) return;
-        synchronized (rings) {
-            this.rings.forEach(r -> r.render(this.depth.getValue()));
-        }
+  @SubscribeEvent
+  public void onRender(Render3DEvent.Extract event) {
+    if (!dungeonCheck()) return;
+    synchronized (rings) {
+      this.rings.forEach(r -> r.render(this.depth.getValue()));
+    }
+  }
+
+  @SubscribeEvent
+  public void onTermOpen(TerminalEvent.Open event) {
+    consumeArg(TermArg.class, event);
+  }
+
+  @SubscribeEvent
+  public void onTermOpen(TerminalEvent.Close event) {
+    if (event.isServer()) {
+      consumeArg(TermCloseArg.class, true);
+    }
+  }
+
+  private void trigger() {
+    consumeArg(TriggerArg.class, true);
+    consumeArg(TermCloseArg.class, true);
+    consumeArg(TermArg.class, null);
+    consumeArg(LeapArg.class, true);
+  }
+
+  private <T> void consumeArg(Class<? extends Argument<T>> clazz, T value) {
+    if (mc.player == null) return;
+    Vec3 playerPos = mc.player.position();
+    Vec3 oldPos = mc.player.oldPosition();
+    activeRings.stream().filter(s -> s.isInNode(playerPos, oldPos)).toList().forEach(r -> {
+      r.consumeArg(clazz, value);
+    });
+  }
+
+  private boolean dungeonCheck() {
+    return this.forceSkyblock.getValue() || (mc.player != null && Location.getArea().is(Island.Dungeon) && Dungeon.isInBoss());
+  }
+
+  public void addRing(Ring ring) {
+    ring.setTriggered(); // So it doesn't activate instantly
+    synchronized (rings) {
+      this.rings.add(ring);
+    }
+    save();
+    modMessage("Added %s %s%s", Utils.capitalise(ring.getType().getName()), ChatFormatting.GRAY, ring.getArgManager().getList(ring.getSubManager().getList()));
+  }
+
+  public boolean insertRing(Ring ring, int index) {
+    if (index < 0 || index > rings.size()) return false;
+    ring.setTriggered(); // So it doesn't activate instantly
+    synchronized (rings) {
+      this.rings.add(index, ring);
+    }
+    save();
+    return true;
+  }
+
+  public boolean removeIndexed(int index) {
+    synchronized (rings) {
+      if (index < 0 || index >= rings.size()) return false;
+      rings.remove(index);
     }
 
-    @SubscribeEvent
-    public void onTermOpen(TerminalEvent.Open event) {
-        consumeArg(TermArg.class, event);
-    }
+    save();
+    return true;
+  }
 
-    @SubscribeEvent
-    public void onTermOpen(TerminalEvent.Close event) {
-        if (event.isServer()) {
-            consumeArg(TermCloseArg.class, true);
-        }
+  public void removeNearest(Vec3 pos) {
+    synchronized (rings) {
+      int index = IntStream.range(0, rings.size())
+        .boxed()
+        .min(Comparator.comparingDouble(i -> rings.get(i).getDistanceSq(pos)))
+        .orElse(-1);
+      if (index < 0) return;
+      Ring ring = rings.remove(index);
+      save();
+      modMessage("Removed %s", Utils.capitalise(ring.getType().getName()));
+      data.setValue(List.copyOf(this.rings));
     }
+  }
 
-    private void trigger() {
-        consumeArg(TriggerArg.class, true);
-        consumeArg(TermCloseArg.class, true);
-        consumeArg(TermArg.class, null);
-        consumeArg(LeapArg.class, true);
+  public void undo() {
+    if (rings.isEmpty()) {
+      modMessage("No Rings!");
+      return;
     }
+    Ring ring = rings.removeLast();
+    redoList.add(ring);
+    save();
+    modMessage("Undid %s", Utils.capitalise(ring.getType().getName()));
+  }
 
-    private <T> void consumeArg(Class<? extends Argument<T>> clazz, T value) {
-        if (mc.player == null) return;
-        Vec3 playerPos = mc.player.position();
-        Vec3 oldPos = mc.player.oldPosition();
-        activeRings.stream().filter(s -> s.isInNode(playerPos, oldPos)).toList().forEach(r -> {
-            r.consumeArg(clazz, value);
-        });
+  public void redo() {
+    if (redoList.isEmpty()) {
+      modMessage("No Rings!");
+      return;
     }
+    Ring ring = redoList.removeLast();
+    rings.add(ring);
+    save();
+    modMessage("Redid %s", Utils.capitalise(ring.getType().getName()));
+  }
 
-    private boolean dungeonCheck() {
-        return this.forceSkyblock.getValue() || (mc.player != null && Location.getArea().is(Island.Dungeon) && Dungeon.isInBoss());
-    }
+  public void setDesync(boolean bl) {
+    if (bl && !desync && !lastDesync) onDesyncEnable();
+    this.desync = bl;
+  }
 
-    public void addRing(Ring ring) {
-        ring.setTriggered(); // So it doesn't activate instantly
-        synchronized (rings) {
-            this.rings.add(ring);
-        }
-        save();
-        modMessage("Added %s %s%s", Utils.capitalise(ring.getType().getName()), ChatFormatting.GRAY, ring.getArgManager().getList(ring.getSubManager().getList()));
-    }
+  protected boolean getDesync() {
+    return this.desync;
+  }
 
-    public boolean insertRing(Ring ring, int index) {
-        if (index < 0 || index > rings.size()) return false;
-        ring.setTriggered(); // So it doesn't activate instantly
-        synchronized (rings) {
-            this.rings.add(index, ring);
-        }
-        save();
-        return true;
-    }
+  protected boolean getLastDesync() {
+    return this.lastDesync;
+  }
 
-    public boolean removeIndexed(int index) {
-        synchronized (rings) {
-            if (index < 0 || index >= rings.size()) return false;
-            rings.remove(index);
-        }
+  @Override
+  public boolean isClientRotationActive() {
+    return this.isEnabled() && desync;
+  }
 
-        save();
-        return true;
-    }
+  @Override
+  public boolean allowClientKeyInputs() {
+    return true;
+  }
 
-    public void removeNearest(Vec3 pos) {
-        synchronized (rings) {
-            int index = IntStream.range(0, rings.size())
-                .boxed()
-                .min(Comparator.comparingDouble(i -> rings.get(i).getDistanceSq(pos)))
-                .orElse(-1);
-            if (index < 0) return;
-            Ring ring = rings.remove(index);
-            save();
-            modMessage("Removed %s", Utils.capitalise(ring.getType().getName()));
-            data.setValue(List.copyOf(this.rings));
-        }
-    }
+  public void save() {
+    data.setValue(List.copyOf(this.rings));
+    data.save();
+  }
 
-    public void undo() {
-        if (rings.isEmpty()) {
-            modMessage("No Rings!");
-            return;
-        }
-        Ring ring = rings.removeLast();
-        redoList.add(ring);
-        save();
-        modMessage("Undid %s", Utils.capitalise(ring.getType().getName()));
-    }
+  public void load() {
+    data.load();
+  }
 
-    public void redo() {
-        if (redoList.isEmpty()) {
-            modMessage("No Rings!");
-            return;
-        }
-        Ring ring = redoList.removeLast();
-        rings.add(ring);
-        save();
-        modMessage("Redid %s", Utils.capitalise(ring.getType().getName()));
-    }
-
-    public void setDesync(boolean bl) {
-        if (bl && !desync && !lastDesync) onDesyncEnable();
-        this.desync = bl;
-    }
-
-    protected boolean getDesync() {
-        return this.desync;
-    }
-
-    protected boolean getLastDesync() {
-        return this.lastDesync;
-    }
-
-    @Override
-    public boolean isClientRotationActive() {
-        return this.isEnabled() && desync;
-    }
-
-    @Override
-    public boolean allowClientKeyInputs() {
-        return true;
-    }
-
-    public void save() {
-        data.setValue(List.copyOf(this.rings));
-        data.save();
-    }
-
-    public void load() {
-        data.load();
-    }
-
-    public static void modMessage(Object message, Object ... objects) {
-        ChatUtils.chatClean(PREFIX.copy().append(String.format(message.toString(), objects)));
-    }
+  public static void modMessage(Object message, Object... objects) {
+    ChatUtils.chatClean(PREFIX.copy().append(String.format(message.toString(), objects)));
+  }
 }

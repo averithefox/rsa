@@ -14,56 +14,56 @@ import net.minecraft.world.entity.player.Input;
 import java.util.Map;
 
 public class CommandRing extends Ring implements Accessor {
-    private final String command;
+  private final String command;
 
-    @Override
-    public RingType getType() {
-        return RingType.COMMAND;
-    }
+  @Override
+  public RingType getType() {
+    return RingType.COMMAND;
+  }
 
-    public CommandRing(Pos min, Pos max, ArgumentManager manage, SubActionManager actions, Map<String, Object> extra) {
-        this(min, max, (String) extra.get("command"), manage, actions);
-    }
+  public CommandRing(Pos min, Pos max, ArgumentManager manage, SubActionManager actions, Map<String, Object> extra) {
+    this(min, max, (String) extra.get("command"), manage, actions);
+  }
 
-    public CommandRing(Pos min, Pos max, String message, ArgumentManager manage, SubActionManager actions) {
-        super(min, max, RingType.COMMAND.getRenderSizeOffset(), manage, actions);
-        this.command = message;
-    }
+  public CommandRing(Pos min, Pos max, String message, ArgumentManager manage, SubActionManager actions) {
+    super(min, max, RingType.COMMAND.getRenderSizeOffset(), manage, actions);
+    this.command = message;
+  }
 
-    @Override
-    public boolean run() {
-        if (this.command.startsWith("`")) {
-            mc.getConnection().sendChat(this.command);
-        } else {
-            mc.getConnection().sendCommand(this.command);
-        }
-        return true;
+  @Override
+  public boolean run() {
+    if (this.command.startsWith("`")) {
+      mc.getConnection().sendChat(this.command);
+    } else {
+      mc.getConnection().sendCommand(this.command);
     }
+    return true;
+  }
 
-    @Override
-    public Colour getColour() {
-        return AutoP3.getCommand().getValue();
-    }
+  @Override
+  public Colour getColour() {
+    return AutoP3.getCommand().getValue();
+  }
 
-    @Override
-    public int getPriority() {
-        return 50;
-    }
+  @Override
+  public int getPriority() {
+    return 50;
+  }
 
-    @Override
-    public boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3) {
-        return true;
-    }
+  @Override
+  public boolean tick(MutableInput mutableInput, Input input, AutoP3 autoP3) {
+    return true;
+  }
 
-    @Override
-    public JsonObject serialize() {
-        JsonObject obj = super.serialize();
-        obj.addProperty("command", this.command);
-        return obj;
-    }
+  @Override
+  public JsonObject serialize() {
+    JsonObject obj = super.serialize();
+    obj.addProperty("command", this.command);
+    return obj;
+  }
 
-    @Override
-    public void feedback() {
-        AutoP3.modMessage("Executing \"" + this.command + "\"");
-    }
+  @Override
+  public void feedback() {
+    AutoP3.modMessage("Executing \"" + this.command + "\"");
+  }
 }

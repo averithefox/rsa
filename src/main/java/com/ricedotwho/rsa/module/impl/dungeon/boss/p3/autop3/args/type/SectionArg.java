@@ -9,49 +9,48 @@ import com.ricedotwho.rsm.utils.DungeonUtils;
 import net.minecraft.util.Mth;
 
 public class SectionArg extends Argument<Boolean> {
-    private final Phase7 section;
-    private boolean override = false;
+  private final Phase7 section;
+  private boolean override = false;
 
-    public SectionArg(Phase7 section) {
-        super(RingArgType.SECTION);
-        this.section = section;
+  public SectionArg(Phase7 section) {
+    super(RingArgType.SECTION);
+    this.section = section;
+  }
+
+  public SectionArg(int sec) {
+    super(RingArgType.SECTION);
+    this.section = DungeonUtils.getSectionFromI(Mth.clamp(sec, 1, 4) - 1);
+  }
+
+  @Override
+  public boolean check() {
+    if (override) {
+      override = false;
+      return true;
     }
+    return Dungeon.getP3Section() == this.section;
+  }
 
-    public SectionArg(int sec) {
-        super(RingArgType.SECTION);
-        this.section = DungeonUtils.getSectionFromI(Mth.clamp(sec, 1, 4) - 1);
-    }
+  @Override
+  public void consume(Boolean bl) {
+    override = true;
+  }
 
-    @Override
-    public boolean check() {
-        if (override) {
-            override = false;
-            return true;
-        }
-        return Dungeon.getP3Section() == this.section;
-    }
+  @Override
+  public void reset() {
+    override = false;
+  }
 
-    @Override
-    public void consume(Boolean bl) {
-        override = true;
-    }
+  public static SectionArg create(Object arg) {
+    return new SectionArg((int) arg);
+  }
 
-    @Override
-    public void reset() {
-        override = false;
-    }
+  public void serialize(JsonObject json) {
+    json.addProperty(getType().name(), section.name());
+  }
 
-    public static SectionArg create(Object arg) {
-        return new SectionArg((int) arg);
-    }
-
-    public void serialize(JsonObject json) {
-        json.addProperty(getType().name(), section.name());
-    }
-
-    @Override
-    public String stringValue() {
-        return "section " + section.name();
-    }
-
+  @Override
+  public String stringValue() {
+    return "section " + section.name();
+  }
 }

@@ -13,23 +13,23 @@ import java.math.BigDecimal;
 @Getter
 @ModuleInfo(aliases = "Terminal Solver", id = "TerminalSolver", category = Category.DUNGEONS, isOverwrite = true)
 public class TerminalSolver extends com.ricedotwho.rsm.module.impl.dungeon.boss.p3.terminal.TerminalSolver {
+  @Getter
+  private static final BooleanSetting anyRubix = new BooleanSetting("Any Click Rubix", false);
+  private final BooleanSetting offTickSlots = new BooleanSetting("Off Tick Slots", false);
 
-    @Getter private static final BooleanSetting anyRubix = new BooleanSetting("Any Click Rubix", false);
-    private final BooleanSetting offTickSlots = new BooleanSetting("Off Tick Slots", false);
+  public TerminalSolver() {
+    super();
+    this.registerProperty(
+      anyRubix,
+      offTickSlots
+    );
 
-    public TerminalSolver() {
-        super();
-        this.registerProperty(
-                anyRubix,
-                offTickSlots
-        );
+    getClickDelay().setMin(BigDecimal.ZERO);
+  }
 
-        getClickDelay().setMin(BigDecimal.ZERO);
-    }
-
-    @Override
-    public Term create(TerminalType type, String title) {
-        if (type == TerminalType.RUBIX) return new Rubix(title);
-        return type.create(title);
-    }
+  @Override
+  public Term create(TerminalType type, String title) {
+    if (type == TerminalType.RUBIX) return new Rubix(title);
+    return type.create(title);
+  }
 }

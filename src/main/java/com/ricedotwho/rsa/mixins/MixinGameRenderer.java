@@ -9,9 +9,8 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(GameRenderer.class)
 public class MixinGameRenderer {
-
-    @Redirect(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/CameraType;isFirstPerson()Z", ordinal = 0))
-    private boolean onRenderLevel(CameraType instance) {
-        return instance.isFirstPerson() && !Freecam.isDetached();
-    }
+  @Redirect(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/CameraType;isFirstPerson()Z", ordinal = 0))
+  private boolean onRenderLevel(CameraType instance) {
+    return instance.isFirstPerson() && !Freecam.isDetached();
+  }
 }

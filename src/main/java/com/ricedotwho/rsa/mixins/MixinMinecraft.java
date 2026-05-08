@@ -25,88 +25,76 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = Minecraft.class, priority = 600) // Low prio for SwapManager
 public abstract class MixinMinecraft {
+  @Shadow
+  private @Nullable Overlay overlay;
+  @Shadow
+  @Nullable
+  public Screen screen;
 
-    @Shadow
-    private @Nullable Overlay overlay;
-    @Shadow
-    @Nullable
-    public Screen screen;
+  @Shadow
+  protected abstract void handleKeybinds();
 
-    @Shadow
-    protected abstract void handleKeybinds();
+  @Unique
+  private boolean bla = false;
+  @Unique
+  private boolean blu = false;
 
-    @Unique
-    private boolean bla = false;
-    @Unique
-    private boolean blu = false;
-
-    @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
-    private void onTickStart(CallbackInfo ci) {
-        boolean c = TickFreeze.isFrozen();
-        new RawTickEvent(c).post();
-        if (c) {
-            ci.cancel();
-            return;
-        }
-
-        SwapManager.onPreTickStart(); // Must be called first, unless you have a good reason don't change the order
-        PacketOrderManager.onPreTickStart();
+  @Inject(method = "tick", at = @At("HEAD"), cancellable = true)
+  private void onTickStart(CallbackInfo ci) {
+    boolean c = TickFreeze.isFrozen();
+    new RawTickEvent(c).post();
+    if (c) {
+      ci.cancel();
+      return;
     }
 
-    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;handleKeybinds()V"))
-    public void onHandleKeyBinds(Minecraft instance) {
-        // Need to cancel it
+    SwapManager.onPreTickStart(); // Must be called first, unless you have a good reason don't change the order
+    PacketOrderManager.onPreTickStart();
+  }
+
+  @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;handleKeybinds()V"))
+  public void onHandleKeyBinds(Minecraft instance) {
+    // Need to cancel it
+  }
+
+  @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/DebugScreenOverlay;showDebugScreen()Z"))
+  public void onGetShowDebugScreen(CallbackInfo ci) { // Right before onHandleKeyBinds
+    if (this.overlay == null && Minecraft.getInstance().player != null) { // && (screen == null || (!(this.screen instanceof AbstractContainerScreen<?>)))
+      Profiler.get().popPush("Keybindings");
+      // Needed to still call the packet order
+      this.handleKeybinds();
+    }
+  }
+
+  @Inject(method = "handleKeybinds", at = @At("HEAD"))
+  public void onHandleKeybinds(CallbackInfo ci) {
+    bla = true;
+    blu = true;
+  }
+
+  @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;consumeClick()Z", ordinal = 14), method = "handleKeybinds")
+  public void onHandleInputEvent(CallbackInfo ci) {
+    if (bla) {
+      PacketOrderManager.execute(PacketOrderManager.STATE.ATTACK);
+      bla = false;
+    }
+  }
+
+  @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;consumeClick()Z", ordinal = 15), method = "handleKeybinds")
+  public void onHandleInputEvent2(CallbackInfo ci) {
+    if (blu) {
+      PacketOrderManager.execute(PacketOrderManager.STATE.ITEM_USE);
+      blu = false;
+      // Need bl because called in whileLoop
+    }
+  }
+
+  @Redirect(method = "startUseItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;useItemOn(Lnet/minecraft/client/player/LocalPlayer;Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/phys/BlockHitResult;)Lnet/minecraft/world/InteractionResult;"))
+  private InteractionResult skipBlockUse(MultiPlayerGameMode gameMode, LocalPlayer player, InteractionHand hand, BlockHitResult hit) {
+    if (CancelInteract.shouldCancelInteract(hit, player, player.getItemBySlot(hand.asEquipmentSlot()))) {
+      return InteractionResult.PASS;
     }
 
-    @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/DebugScreenOverlay;showDebugScreen()Z"))
-    public void onGetShowDebugScreen(CallbackInfo ci) { // Right before onHandleKeyBinds
-        if (this.overlay == null && Minecraft.getInstance().player != null) { // && (screen == null || (!(this.screen instanceof AbstractContainerScreen<?>)))
-            Profiler.get().popPush("Keybindings");
-            // Needed to still call the packet order
-            this.handleKeybinds();
-        }
-    }
-
-    @Inject(method = "handleKeybinds", at = @At("HEAD"))
-    public void onHandleKeybinds(CallbackInfo ci) {
-        bla = true;
-        blu = true;
-    }
-
-    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;consumeClick()Z", ordinal = 14), method = "handleKeybinds")
-    public void onHandleInputEvent(CallbackInfo ci) {
-        if (bla) {
-            PacketOrderManager.execute(PacketOrderManager.STATE.ATTACK);
-            bla = false;
-        }
-    }
-
-    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;consumeClick()Z", ordinal = 15), method = "handleKeybinds")
-    public void onHandleInputEvent2(CallbackInfo ci) {
-        if (blu) {
-            PacketOrderManager.execute(PacketOrderManager.STATE.ITEM_USE);
-            blu = false;
-            // Need bl because called in whileLoop
-        }
-    }
-
-    @Redirect(
-            method = "startUseItem",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;useItemOn(Lnet/minecraft/client/player/LocalPlayer;Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/phys/BlockHitResult;)Lnet/minecraft/world/InteractionResult;"
-            )
-    )
-    private InteractionResult skipBlockUse(
-            MultiPlayerGameMode gameMode,
-            LocalPlayer player,
-            InteractionHand hand,
-            BlockHitResult hit
-    ) {
-        if (CancelInteract.shouldCancelInteract(hit, player, player.getItemBySlot(hand.asEquipmentSlot()))) {
-            return InteractionResult.PASS;
-        }
-
-        return gameMode.useItemOn(player, hand, hit);
-    }
+    return gameMode.useItemOn(player, hand, hit);
+  }
 }

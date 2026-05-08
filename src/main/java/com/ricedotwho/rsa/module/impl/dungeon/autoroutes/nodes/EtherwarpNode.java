@@ -26,105 +26,105 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 
 public class EtherwarpNode extends Node {
-    protected final Pos localTarget;
-    @Getter
-    protected Pos realTargetPos;
+  protected final Pos localTarget;
+  @Getter
+  protected Pos realTargetPos;
 
-    public EtherwarpNode(Pos localPos, Pos localTargetPos, AwaitManager awaits, boolean start) {
-        super(localPos, awaits, start);
-        this.localTarget = localTargetPos;
-        this.realTargetPos = null;
+  public EtherwarpNode(Pos localPos, Pos localTargetPos, AwaitManager awaits, boolean start) {
+    super(localPos, awaits, start);
+    this.localTarget = localTargetPos;
+    this.realTargetPos = null;
+  }
+
+  @Override
+  public void calculate(UniqueRoom room) {
+    super.calculate(room);
+    this.realTargetPos = RoomUtils.getRealPosition(this.localTarget, room.getMainRoom());
+  }
+
+  @Override
+  public boolean run(Pos playerPos) {
+    LocalPlayer player = Minecraft.getInstance().player;
+    if (player == null) return cancel();
+
+    if (!SwapManager.reserveSwap(Items.DIAMOND_SHOVEL)) return cancel();
+
+    if (!Minecraft.getInstance().player.getLastSentInput().shift()) {
+      return cancel();
     }
 
-    @Override
-    public void calculate(UniqueRoom room) {
-        super.calculate(room);
-        this.realTargetPos = RoomUtils.getRealPosition(this.localTarget, room.getMainRoom());
-    }
+    // Hypixel uses old sneak height to find etherwarp position (2 packets ago)\
+    Pos playerCopy = playerPos.add(0.0d, EtherUtils.getEyeHeight(), 0.0d);
+    //ChatUtils.chat(playerCopy);
+    Pos targetDirection = this.realTargetPos.subtract(playerCopy);
+    Pos targetDeltaCopy = targetDirection.copy();
 
-    @Override
-    public boolean run(Pos playerPos) {
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null) return cancel();
+    boolean swap = SwapManager.isDesynced();
+    PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
+      if ((swap && !SwapManager.checkClientItem(Items.DIAMOND_SHOVEL)) || (!swap && !SwapManager.checkServerItem(Items.DIAMOND_SHOVEL))) {
+        // Swap didn't work??? It got swapped back? WTF
+        RSA.chat("Big fuck up! : " + swap + ", " + Minecraft.getInstance().player.getInventory().getItem(SwapManager.getServerSlot()).getItem());
+        return;
+      }
 
-        if (!SwapManager.reserveSwap(Items.DIAMOND_SHOVEL)) return cancel();
+      float[] angles = EtherUtils.getYawAndPitch(targetDeltaCopy.x, targetDeltaCopy.y, targetDeltaCopy.z);
+      if (!SwapManager.sendAirC08(angles[0], angles[1], swap, false)) {
+        RSA.chat("Failed to send ether C08!");
+        return;
+      }
+      //ChatUtils.chat("Sent ether C08! + " + angles[0] + ", " + angles[1]);
+      //ChatUtils.chat(angles[0] + ", " + angles[1]);
+    });
 
-        if (!Minecraft.getInstance().player.getLastSentInput().shift()) {
-            return cancel();
-        }
+    // By this point we assume the etherwarp will work
+    targetDirection.normalize();
+    BlockPos etherPos = this.realTargetPos.add(targetDirection.multiply(EtherUtils.EPSILON)).asBlockPos();
 
-        // Hypixel uses old sneak height to find etherwarp position (2 packets ago)\
-        Pos playerCopy = playerPos.add(0.0d, EtherUtils.getEyeHeight(), 0.0d);
-        //ChatUtils.chat(playerCopy);
-        Pos targetDirection = this.realTargetPos.subtract(playerCopy);
-        Pos targetDeltaCopy = targetDirection.copy();
+    playerPos.x = etherPos.getX() + 0.5d;
+    playerPos.y = etherPos.getY() + 1.05d; // Fuck you hypixel for the 0.05d
+    playerPos.z = etherPos.getZ() + 0.5d;
+    return true;
+  }
 
-        boolean swap = SwapManager.isDesynced();
-        PacketOrderManager.register(PacketOrderManager.STATE.ITEM_USE, () -> {
-            if ((swap && !SwapManager.checkClientItem(Items.DIAMOND_SHOVEL)) || (!swap && !SwapManager.checkServerItem(Items.DIAMOND_SHOVEL))) {
-                // Swap didn't work??? It got swapped back? WTF
-                RSA.chat("Big fuck up! : " + swap + ", " + Minecraft.getInstance().player.getInventory().getItem(SwapManager.getServerSlot()).getItem());
-                return;
-            }
+  @Override
+  public void render(boolean depth) {
+    Vec3 playerRealPos = this.getRealPos().asVec3();
+    Colour colour = this.getColour();
+    Renderer3D.addTask(new Ring(playerRealPos, depth, this.getRadius(), colour));
+    Renderer3D.addTask(new Line(playerRealPos, this.realTargetPos.asVec3(), colour, colour, true));
+  }
 
-            float[] angles = EtherUtils.getYawAndPitch(targetDeltaCopy.x, targetDeltaCopy.y, targetDeltaCopy.z);
-            if (!SwapManager.sendAirC08(angles[0], angles[1], swap, false)) {
-                RSA.chat("Failed to send ether C08!");
-                return;
-            }
-            //ChatUtils.chat("Sent ether C08! + " + angles[0] + ", " + angles[1]);
-            //ChatUtils.chat(angles[0] + ", " + angles[1]);
-        });
+  @Override
+  public int getPriority() {
+    return 5; // Slightly lower
+  }
 
-        // By this point we assume the etherwarp will work
-        targetDirection.normalize();
-        BlockPos etherPos = this.realTargetPos.add(targetDirection.multiply(EtherUtils.EPSILON)).asBlockPos();
+  @Override
+  public String getName() {
+    return "etherwarp";
+  }
 
-        playerPos.x = etherPos.getX() + 0.5d;
-        playerPos.y = etherPos.getY() + 1.05d; // Fuck you hypixel for the 0.05d
-        playerPos.z = etherPos.getZ() + 0.5d;
-        return true;
-    }
+  @Override
+  public Colour getColour() {
+    return this.isStart() ? AutoRoutes.getStartColour().getValue() : AutoRoutes.getEtherwarpColour().getValue();
+  }
 
-    @Override
-    public void render(boolean depth) {
-        Vec3 playerRealPos = this.getRealPos().asVec3();
-        Colour colour = this.getColour();
-        Renderer3D.addTask(new Ring(playerRealPos, depth, this.getRadius(), colour));
-        Renderer3D.addTask(new Line(playerRealPos, this.realTargetPos.asVec3(), colour, colour, true));
-    }
+  @Override
+  public JsonObject serialize() {
+    JsonObject json = super.serialize();
+    json.add("localTarget", FileUtils.getGson().toJsonTree(localTarget));
+    return json;
+  }
 
-    @Override
-    public int getPriority() {
-        return 5; // Slightly lower
-    }
-
-    @Override
-    public String getName() {
-        return "etherwarp";
-    }
-
-    @Override
-    public Colour getColour() {
-        return this.isStart() ? AutoRoutes.getStartColour().getValue() : AutoRoutes.getEtherwarpColour().getValue();
-    }
-
-    @Override
-    public JsonObject serialize() {
-        JsonObject json = super.serialize();
-        json.add("localTarget", FileUtils.getGson().toJsonTree(localTarget));
-        return json;
-    }
-
-    public static EtherwarpNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits, boolean start) {
-        // Should use client side eye height so it ray traces to the correct block, this may mean some angles fail server side but atleast it will go where you are trying to
-        // NO
-        Vec3 target = EtherUtils.rayTraceBlock(61, player.getYRot(), player.getXRot(), player.position().add(0d, AutoRoutes.getUse1_8Height().getValue() ? EtherUtils.SNEAK_EYE_HEIGHT : player.getEyeHeight(Pose.CROUCHING), 0d));
-        if (target == null) return null;
-        Room mainRoom = fullRoom.getMainRoom();
-        Pos playerRelative = RoomUtils.getRelativePosition(new Pos(player.position()), mainRoom);
-        Pos targetRelative = RoomUtils.getRelativePosition(new Pos(target), mainRoom);
-        //ChatUtils.chat("Relative : " + playerRelative);
-        return new EtherwarpNode(playerRelative, targetRelative, awaits, start);
-    }
+  public static EtherwarpNode supply(UniqueRoom fullRoom, LocalPlayer player, AwaitManager awaits, boolean start) {
+    // Should use client side eye height so it ray traces to the correct block, this may mean some angles fail server side but atleast it will go where you are trying to
+    // NO
+    Vec3 target = EtherUtils.rayTraceBlock(61, player.getYRot(), player.getXRot(), player.position().add(0d, AutoRoutes.getUse1_8Height().getValue() ? EtherUtils.SNEAK_EYE_HEIGHT : player.getEyeHeight(Pose.CROUCHING), 0d));
+    if (target == null) return null;
+    Room mainRoom = fullRoom.getMainRoom();
+    Pos playerRelative = RoomUtils.getRelativePosition(new Pos(player.position()), mainRoom);
+    Pos targetRelative = RoomUtils.getRelativePosition(new Pos(target), mainRoom);
+    //ChatUtils.chat("Relative : " + playerRelative);
+    return new EtherwarpNode(playerRelative, targetRelative, awaits, start);
+  }
 }

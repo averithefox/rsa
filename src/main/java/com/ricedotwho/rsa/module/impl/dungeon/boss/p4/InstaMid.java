@@ -24,83 +24,82 @@ import net.minecraft.world.phys.Vec3;
 @Getter
 @ModuleInfo(aliases = "InstaMid", id = "InstaMid", category = Category.DUNGEONS)
 public class InstaMid extends Module {
+  private final NumberSetting millis = new NumberSetting("Millis", 6000, 7000, 6415, 5);
 
-    private final NumberSetting millis = new NumberSetting("Millis", 6000, 7000, 6415, 5);
+  private boolean startOnNextFlying = false;
+  private int airTicks = 0;
 
-    private boolean startOnNextFlying = false;
-    private int airTicks = 0;
+  public InstaMid() {
+    this.registerProperty(
+      millis
+    );
+  }
 
-    public InstaMid() {
-        this.registerProperty(
-                millis
-        );
+  @Override
+  public void reset() {
+    startOnNextFlying = false;
+    airTicks = 0;
+  }
+
+  @SubscribeEvent
+  public void onLoad(WorldEvent.Load event) {
+    reset();
+  }
+
+  @SubscribeEvent
+  public void onPacketSend(PacketEvent.Send event) {
+    if (!(event.getPacket() instanceof ServerboundMovePlayerPacket packet)
+      || !Location.getArea().is(Island.Dungeon)
+      || !(Location.getFloor() == Floor.F7 || Location.getFloor() == Floor.M7)
+      || !Dungeon.isInBoss()
+      || !DungeonUtils.isPhase(Phase7.P4)
+      || !startOnNextFlying
+      || packet.isOnGround()
+      || !isOnPlatform()
+    ) return;
+
+    airTicks++;
+    if (airTicks > 3) {
+      startIMid();
     }
+  }
 
-    @Override
-    public void reset() {
-        startOnNextFlying = false;
-        airTicks = 0;
+  @SubscribeEvent
+  public void onChat(ChatEvent.Chat event) {
+    String unformatted = ChatFormatting.stripFormatting(event.getMessage().getString());
+    if (!Location.getArea().is(Island.Dungeon)
+      || !(Location.getFloor() == Floor.F7 || Location.getFloor() == Floor.M7)
+      || !DungeonUtils.isPhase(Phase7.P4)
+      || !"[BOSS] Necron: You went further than any human before, congratulations.".equals(unformatted)
+      || !isOnPlatform()
+      || mc.player == null
+    ) return;
+
+    if (mc.player.onGround()) {
+      startOnNextFlying = true;
+      Jump.jump();
+    } else {
+      startIMid();
     }
+  }
 
-    @SubscribeEvent
-    public void onLoad(WorldEvent.Load event) {
-        reset();
+  private void startIMid() {
+    startOnNextFlying = false;
+    RSA.chat("Attempting to InstaMid");
+    //mc.doRunTask(this::freeze);
+    freeze();
+  }
+
+  public void freeze() {
+    try {
+      Thread.sleep(this.millis.getValue().longValue());
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
     }
+  }
 
-    @SubscribeEvent
-    public void onPacketSend(PacketEvent.Send event) {
-        if (!(event.getPacket() instanceof ServerboundMovePlayerPacket packet)
-                || !Location.getArea().is(Island.Dungeon)
-                || !(Location.getFloor() == Floor.F7 || Location.getFloor() == Floor.M7)
-                || !Dungeon.isInBoss()
-                || !DungeonUtils.isPhase(Phase7.P4)
-                || !startOnNextFlying
-                || packet.isOnGround()
-                || !isOnPlatform()
-        ) return;
-
-        airTicks++;
-        if (airTicks > 3) {
-            startIMid();
-        }
-    }
-
-    @SubscribeEvent
-    public void onChat(ChatEvent.Chat event) {
-        String unformatted = ChatFormatting.stripFormatting(event.getMessage().getString());
-        if (!Location.getArea().is(Island.Dungeon)
-                || !(Location.getFloor() == Floor.F7 || Location.getFloor() == Floor.M7)
-                || !DungeonUtils.isPhase(Phase7.P4)
-                || !"[BOSS] Necron: You went further than any human before, congratulations.".equals(unformatted)
-                || !isOnPlatform()
-                || mc.player == null
-        ) return;
-
-        if (mc.player.onGround()) {
-            startOnNextFlying = true;
-            Jump.jump();
-        } else {
-            startIMid();
-        }
-    }
-
-    private void startIMid() {
-        startOnNextFlying = false;
-        RSA.chat("Attempting to InstaMid");
-        //mc.doRunTask(this::freeze);
-        freeze();
-    }
-
-    public void freeze() {
-        try {
-            Thread.sleep(this.millis.getValue().longValue());
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private boolean isOnPlatform() {
-        Vec3 pos = mc.player.position();
-        return pos.y() > 63 && pos.y() < 100 && (Math.pow(Math.abs(pos.x() - 54.5), 2) + Math.pow(Math.abs(pos.z() - 76.5), 2)) < 56.25;
-    }
+  private boolean isOnPlatform() {
+    Vec3 pos = mc.player.position();
+    return pos.y() > 63 && pos.y() < 100 && (Math.pow(Math.abs(pos.x() - 54.5), 2) + Math.pow(Math.abs(pos.z() - 76.5), 2)) < 56.25;
+  }
 }

@@ -7,18 +7,18 @@ import lombok.Getter;
 
 @AllArgsConstructor
 public abstract class Argument<T> implements Accessor {
-    @Getter
-    private final RingArgType type;
+  @Getter
+  private final RingArgType type;
 
-    public abstract boolean check();
+  public abstract boolean check();
 
-    public abstract void consume(T event);
+  public abstract void consume(T event);
 
-    public abstract void reset();
+  public abstract void reset();
 
-    public void serialize(JsonObject json) {
-        json.addProperty(getType().name(), true);
-    }
+  public void serialize(JsonObject json) {
+    json.addProperty(getType().name(), true);
+  }
 
-    public abstract String stringValue();
+  public abstract String stringValue();
 }

@@ -6,6 +6,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(ServerboundInteractPacket.class)
 public interface ServerboundInteractPacketAccessor {
-    @Accessor("entityId")
-    int getEntityID();
+  @Accessor("entityId")
+  int getEntityID();
 }

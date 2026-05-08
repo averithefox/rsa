@@ -16,38 +16,38 @@ import java.util.Collections;
 
 @Mixin(ClientPacketListener.class)
 public class ClientPacketListenerMixin implements IClientPacketListener {
-    @Shadow
-    private @Nullable LevelLoadTracker levelLoadTracker;
+  @Shadow
+  private @Nullable LevelLoadTracker levelLoadTracker;
 
-    @Shadow
-    @Final
-    private GameProfile localGameProfile;
+  @Shadow
+  @Final
+  private GameProfile localGameProfile;
 
-    @Shadow
-    @Final
-    private RegistryAccess.Frozen registryAccess;
+  @Shadow
+  @Final
+  private RegistryAccess.Frozen registryAccess;
 
-    @Shadow
-    @Final
-    private FeatureFlagSet enabledFeatures;
+  @Shadow
+  @Final
+  private FeatureFlagSet enabledFeatures;
 
-    public CommonListenerCookie getCookie() {
-        ClientPacketListener packetListener = (ClientPacketListener) (Object) this;
-        return new CommonListenerCookie(
-                this.levelLoadTracker,
-                this.localGameProfile,
-                null,
-                this.registryAccess,
-                this.enabledFeatures,
-                packetListener.serverBrand(),
-                packetListener.getServerData(),
-                null,
-                Collections.emptyMap(),
-                null,
-                Collections.emptyMap(),
-                null,
-                Collections.emptyMap(),
-                true
-                );
-    }
+  public CommonListenerCookie getCookie() {
+    ClientPacketListener packetListener = (ClientPacketListener) (Object) this;
+    return new CommonListenerCookie(
+      this.levelLoadTracker,
+      this.localGameProfile,
+      null,
+      this.registryAccess,
+      this.enabledFeatures,
+      packetListener.serverBrand(),
+      packetListener.getServerData(),
+      null,
+      Collections.emptyMap(),
+      null,
+      Collections.emptyMap(),
+      null,
+      Collections.emptyMap(),
+      true
+    );
+  }
 }

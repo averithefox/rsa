@@ -6,12 +6,12 @@ import org.spongepowered.asm.mixin.Overwrite;
 
 @Mixin(RSM.class)
 public class MixinRSM {
-    /**
-     * @author ricedotwho
-     * @reason change gui name
-     */
-    @Overwrite
-    public static String getName() {
-        return "RSA";
-    }
+  /**
+   * @author ricedotwho
+   * @reason change gui name
+   */
+  @Overwrite
+  public static String getName() {
+    return "RSA";
+  }
 }

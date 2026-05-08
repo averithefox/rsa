@@ -15,13 +15,12 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(value = LevelRenderer.class)
 public class MixinLevelRenderer {
-
-    @ModifyExpressionValue(method = "extractBlockOutline(Lnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/state/LevelRenderState;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;"))
-    private VoxelShape modifyOutlineShape(VoxelShape original, Camera camera, LevelRenderState levelRenderState) {
-        BlockHitResult hit = (BlockHitResult) Minecraft.getInstance().hitResult;
-        BlockPos pos = hit.getBlockPos();
-        BlockState state = Minecraft.getInstance().level.getBlockState(pos);
-        VoxelShape shape = SecretHitboxes.getShape(state, pos);
-        return shape != null ? shape : original;
-    }
+  @ModifyExpressionValue(method = "extractBlockOutline(Lnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/state/LevelRenderState;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;"))
+  private VoxelShape modifyOutlineShape(VoxelShape original, Camera camera, LevelRenderState levelRenderState) {
+    BlockHitResult hit = (BlockHitResult) Minecraft.getInstance().hitResult;
+    BlockPos pos = hit.getBlockPos();
+    BlockState state = Minecraft.getInstance().level.getBlockState(pos);
+    VoxelShape shape = SecretHitboxes.getShape(state, pos);
+    return shape != null ? shape : original;
+  }
 }

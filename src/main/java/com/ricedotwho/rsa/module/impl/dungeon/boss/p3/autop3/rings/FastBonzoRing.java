@@ -14,37 +14,36 @@ import net.minecraft.world.phys.Vec3;
 import java.util.Map;
 
 public class FastBonzoRing extends BonzoRing {
-    public FastBonzoRing(Vec3 pos) {
-        super(pos);
-    }
+  public FastBonzoRing(Vec3 pos) {
+    super(pos);
+  }
 
-    public FastBonzoRing(Pos min, Pos max, float yaw, float pitch, ArgumentManager manager, SubActionManager actions) {
-        super(min, max, yaw, pitch, manager, actions);
-    }
+  public FastBonzoRing(Pos min, Pos max, float yaw, float pitch, ArgumentManager manager, SubActionManager actions) {
+    super(min, max, yaw, pitch, manager, actions);
+  }
 
-    public FastBonzoRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions, Map<String, Object> extra) {
-        this(min, max, (Float) extra.getOrDefault("yaw", Minecraft.getInstance().gameRenderer.getMainCamera().yaw()), (Float) extra.getOrDefault("pitch", Minecraft.getInstance().gameRenderer.getMainCamera().getXRot()), manager, actions);
-    }
+  public FastBonzoRing(Pos min, Pos max, ArgumentManager manager, SubActionManager actions, Map<String, Object> extra) {
+    this(min, max, (Float) extra.getOrDefault("yaw", Minecraft.getInstance().gameRenderer.getMainCamera().yaw()), (Float) extra.getOrDefault("pitch", Minecraft.getInstance().gameRenderer.getMainCamera().getXRot()), manager, actions);
+  }
 
-    @Override
-    protected void registerWaitCondition() {
-        PacketOrderManager.registerReceiveListener((p) -> {
-            if (Minecraft.getInstance().player == null || this.state < 1) return true;
-            if (!(p instanceof ClientboundPingPacket))
-                return false;
-            this.state++;
-            return this.state >= BonzoRing.END_STATE;
-        });
-    }
+  @Override
+  protected void registerWaitCondition() {
+    PacketOrderManager.registerReceiveListener((p) -> {
+      if (Minecraft.getInstance().player == null || this.state < 1) return true;
+      if (!(p instanceof ClientboundPingPacket))
+        return false;
+      this.state++;
+      return this.state >= BonzoRing.END_STATE;
+    });
+  }
 
-    @Override
-    public Colour getColour() {
-        return AutoP3.getFastBonzo().getValue();
-    }
+  @Override
+  public Colour getColour() {
+    return AutoP3.getFastBonzo().getValue();
+  }
 
-    @Override
-    public RingType getType() {
-        return RingType.FAST_BONZO;
-    }
-
+  @Override
+  public RingType getType() {
+    return RingType.FAST_BONZO;
+  }
 }

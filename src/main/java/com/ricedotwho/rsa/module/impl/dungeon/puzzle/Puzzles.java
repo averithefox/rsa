@@ -9,14 +9,13 @@ import lombok.Getter;
 @Getter
 @ModuleInfo(aliases = "Puzzles", id = "Puzzles", category = Category.DUNGEONS, isOverwrite = true)
 public class Puzzles extends com.ricedotwho.rsm.module.impl.dungeon.puzzle.Puzzles {
+  private final GroupSetting<TicTacToe> ticTacToe = new GroupSetting<>("TTT", new AutoTTT(this));
+  private final GroupSetting<com.ricedotwho.rsm.module.impl.dungeon.puzzle.IceFill> iceFill = new GroupSetting<>("Ice Fill", new com.ricedotwho.rsa.module.impl.dungeon.puzzle.IceFill(this));
 
-    private final GroupSetting<TicTacToe> ticTacToe = new GroupSetting<>("TTT", new AutoTTT(this));
-    private final GroupSetting<com.ricedotwho.rsm.module.impl.dungeon.puzzle.IceFill> iceFill = new GroupSetting<>("Ice Fill", new com.ricedotwho.rsa.module.impl.dungeon.puzzle.IceFill(this));
-
-    public Puzzles() {
-        this.registerProperty(
-                ticTacToe,
-                iceFill
-        );
-    }
+  public Puzzles() {
+    this.registerProperty(
+      ticTacToe,
+      iceFill
+    );
+  }
 }

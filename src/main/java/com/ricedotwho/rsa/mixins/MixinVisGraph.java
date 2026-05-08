@@ -10,8 +10,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(VisGraph.class)
 public class MixinVisGraph {
-    @Inject(at = @At("HEAD"), method = "setOpaque", cancellable = true)
-    private void onMarkClosed(BlockPos blockPos, CallbackInfo ci) {
-        if (Freecam.isDetached()) ci.cancel();
-    }
+  @Inject(at = @At("HEAD"), method = "setOpaque", cancellable = true)
+  private void onMarkClosed(BlockPos blockPos, CallbackInfo ci) {
+    if (Freecam.isDetached()) ci.cancel();
+  }
 }

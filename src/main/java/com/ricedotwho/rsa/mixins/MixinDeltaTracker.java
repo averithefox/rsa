@@ -10,19 +10,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(DeltaTracker.Timer.class)
 public abstract class MixinDeltaTracker {
+  @Shadow
+  public abstract float getGameTimeDeltaPartialTick(boolean bl);
 
-    @Shadow
-    public abstract float getGameTimeDeltaPartialTick(boolean bl);
-
-    @Inject(method = "getGameTimeDeltaPartialTick", at = @At("HEAD"), cancellable = true)
-    private void isEntityFrozen(boolean bl, CallbackInfoReturnable<Float> cir) {
-        if (TickFreeze.isFrozen()) {
-            cir.setReturnValue(TickFreeze.getPartialTick());
-        }
+  @Inject(method = "getGameTimeDeltaPartialTick", at = @At("HEAD"), cancellable = true)
+  private void isEntityFrozen(boolean bl, CallbackInfoReturnable<Float> cir) {
+    if (TickFreeze.isFrozen()) {
+      cir.setReturnValue(TickFreeze.getPartialTick());
     }
+  }
 
-    @Inject(method = "advanceGameTime", at = @At("HEAD"))
-    public void advanceGameTime(long l, CallbackInfoReturnable<Integer> cir) {
-        TickFreeze.setLastTickPartialTicks(this.getGameTimeDeltaPartialTick(true));
-    }
+  @Inject(method = "advanceGameTime", at = @At("HEAD"))
+  public void advanceGameTime(long l, CallbackInfoReturnable<Integer> cir) {
+    TickFreeze.setLastTickPartialTicks(this.getGameTimeDeltaPartialTick(true));
+  }
 }

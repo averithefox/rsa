@@ -3,5 +3,5 @@ package com.ricedotwho.rsa.IMixin;
 import net.minecraft.network.protocol.Packet;
 
 public interface IConnection {
-    void sendPacketImmediately(Packet<?> packet);
+  void sendPacketImmediately(Packet<?> packet);
 }

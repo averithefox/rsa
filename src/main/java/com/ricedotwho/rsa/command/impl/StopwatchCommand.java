@@ -10,34 +10,33 @@ import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 
 @CommandInfo(name = "stopwatch", aliases = "sw", description = "Handles Stopwatches")
 public class StopwatchCommand extends Command {
-
-    @Override
-    public LiteralArgumentBuilder<ClientSuggestionProvider> build() {
-        return literal(name())
-                .then(literal("start")
-                        .executes(ctx -> {
-                            StopWatch.start();
-                            RSA.chat("Stopwatch started.");
-                            return 1;
-                        })
-                )
-                .then(literal("stop")
-                        .executes(ctx -> {
-                            long elapsed = StopWatch.stop();
-                            if (elapsed == -1) {
-                                RSA.chat("Start a stopwatch first!");
-                                return 0;
-                            }
-                            RSA.chat("End Time: %s", NumberUtils.millisToOptMSSMS(elapsed));
-                            return 1;
-                        })
-                )
-                .then(literal("reset")
-                        .executes(ctx -> {
-                            StopWatch.stop();
-                            RSA.chat("Stopwatch reset.");
-                            return 1;
-                        })
-                );
-    }
+  @Override
+  public LiteralArgumentBuilder<ClientSuggestionProvider> build() {
+    return literal(name())
+      .then(literal("start")
+        .executes(ctx -> {
+          StopWatch.start();
+          RSA.chat("Stopwatch started.");
+          return 1;
+        })
+      )
+      .then(literal("stop")
+        .executes(ctx -> {
+          long elapsed = StopWatch.stop();
+          if (elapsed == -1) {
+            RSA.chat("Start a stopwatch first!");
+            return 0;
+          }
+          RSA.chat("End Time: %s", NumberUtils.millisToOptMSSMS(elapsed));
+          return 1;
+        })
+      )
+      .then(literal("reset")
+        .executes(ctx -> {
+          StopWatch.stop();
+          RSA.chat("Stopwatch reset.");
+          return 1;
+        })
+      );
+  }
 }

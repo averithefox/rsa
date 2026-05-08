@@ -18,41 +18,40 @@ import java.util.Optional;
 
 @CommandInfo(name = "rdev", description = "Developer")
 public class RSADevCommand extends Command {
-
-    @Override
-    public LiteralArgumentBuilder<ClientSuggestionProvider> build() {
-        return literal(name())
-                .then(literal("tickrate")
-                        .then(argument("tick rate", FloatArgumentType.floatArg(0, 20))
-                                .executes(ctx -> {
-                                    Util.setTickRate(FloatArgumentType.getFloat(ctx, "tick rate"));
-                                    TaskComponent.onMilli(2500, () -> Util.setTickRate(20, false));
-                                    return 1;
-                                })
-                        )
-                        .then(literal("freeze")
-                                .executes(ctx -> {
-                                    TickFreeze.freeze(5000);
-                                    return 1;
-                                })
-                        )
-                )
-                .then(literal("iszero")
-                        .executes(ctx -> {
-                            RSA.chat("Zero: %s", Util.isZero());
-                            return 1;
-                        })
-                )
-                .then(literal("score")
-                        .executes(ctx -> {
-                            Optional<UniqueRoom> entrance = DungeonInfo.getUniqueRooms().stream().filter(r -> r.getType() == RoomType.ENTRANCE).findFirst();
-                            if (entrance.isPresent()) {
-                                RSA.chat(DungeonRoomScore.score(entrance.get()));
-                            } else{
-                                RSA.chat("Room Score: Failed to find entrance?");
-                            }
-                            return 1;
-                        })
-                );
-    }
+  @Override
+  public LiteralArgumentBuilder<ClientSuggestionProvider> build() {
+    return literal(name())
+      .then(literal("tickrate")
+        .then(argument("tick rate", FloatArgumentType.floatArg(0, 20))
+          .executes(ctx -> {
+            Util.setTickRate(FloatArgumentType.getFloat(ctx, "tick rate"));
+            TaskComponent.onMilli(2500, () -> Util.setTickRate(20, false));
+            return 1;
+          })
+        )
+        .then(literal("freeze")
+          .executes(ctx -> {
+            TickFreeze.freeze(5000);
+            return 1;
+          })
+        )
+      )
+      .then(literal("iszero")
+        .executes(ctx -> {
+          RSA.chat("Zero: %s", Util.isZero());
+          return 1;
+        })
+      )
+      .then(literal("score")
+        .executes(ctx -> {
+          Optional<UniqueRoom> entrance = DungeonInfo.getUniqueRooms().stream().filter(r -> r.getType() == RoomType.ENTRANCE).findFirst();
+          if (entrance.isPresent()) {
+            RSA.chat(DungeonRoomScore.score(entrance.get()));
+          } else {
+            RSA.chat("Room Score: Failed to find entrance?");
+          }
+          return 1;
+        })
+      );
+  }
 }

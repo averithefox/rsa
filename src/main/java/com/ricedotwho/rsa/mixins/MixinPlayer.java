@@ -12,11 +12,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Player.class)
 public abstract class MixinPlayer {
-    @Shadow
-    public abstract Inventory getInventory();
+  @Shadow
+  public abstract Inventory getInventory();
 
-    @Inject(method = "getDestroySpeed", at = @At("RETURN"), cancellable = true)
-    private void modifyBreakSpeed(BlockState state, CallbackInfoReturnable<Float> cir) {
-        DungeonBreaker.handleDigSpeed(state, this.getInventory().getSelectedItem(), cir);
-    }
+  @Inject(method = "getDestroySpeed", at = @At("RETURN"), cancellable = true)
+  private void modifyBreakSpeed(BlockState state, CallbackInfoReturnable<Float> cir) {
+    DungeonBreaker.handleDigSpeed(state, this.getInventory().getSelectedItem(), cir);
+  }
 }

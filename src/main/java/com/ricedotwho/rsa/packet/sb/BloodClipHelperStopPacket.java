@@ -7,19 +7,19 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 public record BloodClipHelperStopPacket() implements CustomPacketPayload {
-    public static final StreamCodec<FriendlyByteBuf, BloodClipHelperStopPacket> CODEC = CustomPacketPayload.codec(BloodClipHelperStopPacket::write, BloodClipHelperStopPacket::new);
-    public static final Type<BloodClipHelperStopPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath("zero", "bloodcliphelper/stop"));
+  public static final StreamCodec<FriendlyByteBuf, BloodClipHelperStopPacket> CODEC = CustomPacketPayload.codec(BloodClipHelperStopPacket::write, BloodClipHelperStopPacket::new);
+  public static final Type<BloodClipHelperStopPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath("zero", "bloodcliphelper/stop"));
 
-    public BloodClipHelperStopPacket(FriendlyByteBuf buf) {
-        this();
-    }
+  public BloodClipHelperStopPacket(FriendlyByteBuf buf) {
+    this();
+  }
 
-    public void write(FriendlyByteBuf buf) {
+  public void write(FriendlyByteBuf buf) {
 
-    }
+  }
 
-    @Override
-    public @NotNull Type<BloodClipHelperStopPacket> type() {
-        return TYPE;
-    }
+  @Override
+  public @NotNull Type<BloodClipHelperStopPacket> type() {
+    return TYPE;
+  }
 }

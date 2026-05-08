@@ -8,7 +8,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(Connection.class)
 public interface ConnectionAccessor {
-    @Accessor("bandwidthDebugMonitor")
-    @Nullable
-    BandwidthDebugMonitor getBandwidthDebugMonitor();
+  @Accessor("bandwidthDebugMonitor")
+  @Nullable BandwidthDebugMonitor getBandwidthDebugMonitor();
 }

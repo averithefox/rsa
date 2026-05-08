@@ -15,76 +15,76 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class StartsWith extends Terminal {
+  protected StartsWith(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
+    super(TerminalType.STARTSWITH, packet, menu);
+  }
 
-    protected StartsWith(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
-        super(TerminalType.STARTSWITH, packet, menu);
+  @Override
+  public TerminalState getNextState() {
+    if (this.solution == null) throw new IllegalStateException("Tried to get next state without solving!");
+
+    List<HashInfo> infos = new ArrayList<>(this.getType().getSlotCount());
+    int changedIndex = solution.getNext().index();
+    for (int i = 0; i < this.getType().getSlotCount(); i++) {
+      Slot slot = this.terminalContainer.getSlot(i);
+      HashInfo hashInfo = new HashInfo(slot.getItem());
+      if (slot.index == changedIndex)
+        hashInfo.setEnchanted(true);
+      infos.add(hashInfo);
     }
 
-    @Override
-    public TerminalState getNextState() {
-        if (this.solution == null) throw new IllegalStateException("Tried to get next state without solving!");
+    return Terminal.getTerminalState(TerminalType.STARTSWITH, infos);
+  }
 
-        List<HashInfo> infos = new ArrayList<>(this.getType().getSlotCount());
-        int changedIndex = solution.getNext().index();
-        for (int i = 0; i < this.getType().getSlotCount(); i++) {
-            Slot slot = this.terminalContainer.getSlot(i);
-            HashInfo hashInfo = new HashInfo(slot.getItem());
-            if (slot.index == changedIndex)
-                hashInfo.setEnchanted(true);
-            infos.add(hashInfo);
-        }
-
-        return Terminal.getTerminalState(TerminalType.STARTSWITH, infos);
+  @Override
+  public TerminalState getCurrentState() {
+    List<HashInfo> infos = new ArrayList<>(this.getType().getSlotCount());
+    for (int i = 0; i < this.getType().getSlotCount(); i++) {
+      Slot slot = this.terminalContainer.getSlot(i);
+      infos.add(new HashInfo(slot.getItem()));
     }
 
-    @Override
-    public TerminalState getCurrentState() {
-        List<HashInfo> infos = new ArrayList<>(this.getType().getSlotCount());
-        for (int i = 0; i < this.getType().getSlotCount(); i++) {
-            Slot slot = this.terminalContainer.getSlot(i);
-            infos.add(new HashInfo(slot.getItem()));
-        }
+    return Terminal.getTerminalState(TerminalType.STARTSWITH, infos);
+  }
 
-        return Terminal.getTerminalState(TerminalType.STARTSWITH, infos);
+  @Override
+  public void solve() {
+    super.solve();
+    Pattern pattern = Pattern.compile("What starts with: '(\\w+)'?");
+    Matcher matcher = pattern.matcher(this.getTitle());
+
+    if (!matcher.find()) {
+      return;
     }
 
-    @Override
-    public void solve() {
-        super.solve();
-        Pattern pattern = Pattern.compile("What starts with: '(\\w+)'?");
-        Matcher matcher = pattern.matcher(this.getTitle());
+    String matchLetter = matcher.group(1).toLowerCase();
 
-        if (!matcher.find()) {
-            return;
-        }
+    List<SolutionClick> solutionClicks = new ArrayList<>();
 
-        String matchLetter = matcher.group(1).toLowerCase();
+    for (Slot slot : this.terminalContainer.slots) {
+      ItemStack stack = slot.getItem();
 
-        List<SolutionClick> solutionClicks  = new ArrayList<>();
+      if (stack.isEmpty()) continue;
+      if (RSM.getModule(AutoTerms.class).getClickedSlotsTracker().contains(slot))
+        continue; // Fuck you, isEnchanted check doesn;t work
 
-        for (Slot slot : this.terminalContainer.slots) {
-            ItemStack stack = slot.getItem();
+      String name = ChatFormatting.stripFormatting(stack.getHoverName().getString()).toLowerCase();
 
-            if (stack.isEmpty()) continue;
-            if (RSM.getModule(AutoTerms.class).getClickedSlotsTracker().contains(slot)) continue; // Fuck you, isEnchanted check doesn;t work
-
-            String name = ChatFormatting.stripFormatting(stack.getHoverName().getString()).toLowerCase();
-
-            if (name.startsWith(matchLetter)) {
-                solutionClicks.add(new SolutionClick(ClickType.CLONE, slot.index, 0));
-            }
-        }
-
-        this.solution = new Solution(solutionClicks);
-        this.solveState = SolveState.SOLVED;
+      if (name.startsWith(matchLetter)) {
+        solutionClicks.add(new SolutionClick(ClickType.CLONE, slot.index, 0));
+      }
     }
 
-    @Override
-    public boolean isEnabled() {
-        return AutoTerms.getTerminals().get("Starts With");
-    }
+    this.solution = new Solution(solutionClicks);
+    this.solveState = SolveState.SOLVED;
+  }
 
-    protected static StartsWith supply(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
-        return new StartsWith(packet, menu);
-    }
+  @Override
+  public boolean isEnabled() {
+    return AutoTerms.getTerminals().get("Starts With");
+  }
+
+  protected static StartsWith supply(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
+    return new StartsWith(packet, menu);
+  }
 }

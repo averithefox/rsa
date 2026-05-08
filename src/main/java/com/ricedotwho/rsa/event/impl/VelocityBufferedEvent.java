@@ -6,5 +6,5 @@ import net.minecraft.network.protocol.Packet;
 
 @AllArgsConstructor
 public class VelocityBufferedEvent extends Event {
-    private final Packet<?> packet;
+  private final Packet<?> packet;
 }

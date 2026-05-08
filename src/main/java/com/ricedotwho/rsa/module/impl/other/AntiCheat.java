@@ -18,40 +18,41 @@ import static com.ricedotwho.rsa.module.impl.other.checks.InvWalkCheck.terminalC
 @Getter
 @ModuleInfo(aliases = "AntiCheat", id = "AntiCheat", category = Category.OTHER)
 public class AntiCheat extends Module {
-    public static final BooleanSetting termWalking = new BooleanSetting("Terminal Walking", false, () -> true);
-    private static final Pattern playerName = Pattern.compile("^(\\w+)\\s+activated a terminal");
+  public static final BooleanSetting termWalking = new BooleanSetting("Terminal Walking", false, () -> true);
+  private static final Pattern playerName = Pattern.compile("^(\\w+)\\s+activated a terminal");
 
-    public AntiCheat() {
-        this.registerProperty(
-                termWalking
+  public AntiCheat() {
+    this.registerProperty(
+      termWalking
 
-        );
-    }
+    );
+  }
 
-    @Override
-    public void onEnable() {
+  @Override
+  public void onEnable() {
 
-    }
+  }
 
-    @Override
-    public void onDisable() {
+  @Override
+  public void onDisable() {
 
-    }
+  }
 
-    @Override
-    public void reset() {
+  @Override
+  public void reset() {
 
-    }
+  }
 
-    @SubscribeEvent
-    public void InvWalk(Render3DEvent.Extract event){
-        if(!termWalking.getValue()) return;
-        setRunning(); InvWalkCheck.Check1();
-    }
+  @SubscribeEvent
+  public void InvWalk(Render3DEvent.Extract event) {
+    if (!termWalking.getValue()) return;
+    setRunning();
+    InvWalkCheck.Check1();
+  }
 
-    @SubscribeEvent
-    public void InvWalk2(ChatEvent.Chat event){
-        if(!termWalking.getValue()) return;
-        terminalCompletedMsg(event);
-    }
+  @SubscribeEvent
+  public void InvWalk2(ChatEvent.Chat event) {
+    if (!termWalking.getValue()) return;
+    terminalCompletedMsg(event);
+  }
 }

@@ -10,19 +10,18 @@ import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 
 @CommandInfo(name = "lavabounce", aliases = "lb", description = "Breaker Aura command")
 public class LavabounceCommand extends Command {
-
-    @Override
-    public LiteralArgumentBuilder<ClientSuggestionProvider> build() {
-        return literal(name())
-                .then(literal("load")
-                        .then(argument("config", StringArgumentType.greedyString())
-                                .executes(ctx -> {
-                                    String config = StringArgumentType.getString(ctx, "config");
-                                    LavaBounce.load(config);
-                                    RSA.chat("Lavabounce » Loaded %s", config);
-                                    return 1;
-                                })
-                        )
-                );
-    }
+  @Override
+  public LiteralArgumentBuilder<ClientSuggestionProvider> build() {
+    return literal(name())
+      .then(literal("load")
+        .then(argument("config", StringArgumentType.greedyString())
+          .executes(ctx -> {
+            String config = StringArgumentType.getString(ctx, "config");
+            LavaBounce.load(config);
+            RSA.chat("Lavabounce » Loaded %s", config);
+            return 1;
+          })
+        )
+      );
+  }
 }
