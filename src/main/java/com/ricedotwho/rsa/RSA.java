@@ -116,7 +116,9 @@ public class RSA implements Addon {
     @Override
     @SuppressWarnings("unchecked")
     public List<Class<? extends Module>> getModules() {
+        ClassLoader cl = RSA.class.getClassLoader();
         try (ScanResult result = new ClassGraph()
+                .overrideClassLoaders(cl)
                 .acceptPackages("com.ricedotwho.rsa")
                 .enableAnnotationInfo()
                 .scan()) {
@@ -129,7 +131,9 @@ public class RSA implements Addon {
     @Override
     @SuppressWarnings("unchecked")
     public List<Class<? extends ModComponent>> getComponents() {
+        ClassLoader cl = RSA.class.getClassLoader();
         try (ScanResult result = new ClassGraph()
+                .overrideClassLoaders(cl)
                 .acceptPackages("com.ricedotwho.rsa")
                 .enableAnnotationInfo()
                 .enableMethodInfo()
@@ -144,7 +148,9 @@ public class RSA implements Addon {
     @Override
     @SuppressWarnings("unchecked")
     public List<Class<? extends Command>> getCommands() {
+        ClassLoader cl = RSA.class.getClassLoader();
         try (ScanResult result = new ClassGraph()
+                .overrideClassLoaders(cl)
                 .acceptPackages("com.ricedotwho.rsa")
                 .enableAnnotationInfo()
                 .scan()) {

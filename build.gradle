@@ -61,7 +61,7 @@ dependencies {
         include "org.lwjgl:lwjgl-nanovg:$lwjglVersion:natives-$os"
     }
 
-    compileOnly "com.ricedotwho:rsm:1.0.0"
+    modImplementation "com.ricedotwho:rsm:1.0.0"
 
     annotationProcessor "org.projectlombok:lombok:1.18.32"
     compileOnly "org.projectlombok:lombok:1.18.32"
