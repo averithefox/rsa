@@ -21,12 +21,9 @@
     "ClientPacketListenerMixin",
     "MixinClientPacketListener",
     "MixinDeltaTracker",
-    "MixinDisconnect",
     "MixinEntityRenderer",
     "MixinGameRenderer",
     "MixinLevelRenderer",
-    "MixinLoginDisconnect",
-    "MixinTitleScreen",
     "MixinVisGraph"
   ]
 }

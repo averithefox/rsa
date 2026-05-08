@@ -5,9 +5,7 @@ import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.event.impl.RawTickEvent;
 import com.ricedotwho.rsa.module.impl.player.CancelInteract;
-import com.ricedotwho.rsa.screen.sidl.SessionLoginScreen;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.User;
 import net.minecraft.client.gui.screens.Overlay;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
@@ -24,7 +22,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(value = Minecraft.class, priority = 600) // Low prio for SwapManager
 public abstract class MixinMinecraft {
@@ -111,11 +108,5 @@ public abstract class MixinMinecraft {
         }
 
         return gameMode.useItemOn(player, hand, hit);
-    }
-
-    @Inject(at = @At("RETURN"), method = "getUser", cancellable = true)
-    private void onGetSSID(CallbackInfoReturnable<User> cir) {
-        if (SessionLoginScreen.getUser() != null)
-            cir.setReturnValue(SessionLoginScreen.getUser());
     }
 }
