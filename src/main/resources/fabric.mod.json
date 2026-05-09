@@ -5,7 +5,8 @@
   "name": "rsa",
   "description": "idk",
   "authors": [
-    "ricedotwho"
+    "ricedotwho",
+    "averithefox"
   ],
   "icon": "assets/rsa/logo.png",
   "environment": "client",
@@ -19,9 +20,11 @@
   ],
   "accessWidener": "rsa.classtweaker",
   "depends": {
-    "fabricloader": ">=0.17.3",
-    "minecraft": "~1.21.10",
+    "fabricloader": ">=${loaderVersion}",
+    "minecraft": "${minecraftVersion}",
     "java": ">=21",
+    "fabric-api": "*",
+    "fabric-language-kotlin": "*",
     "rsm": "*"
   }
 }

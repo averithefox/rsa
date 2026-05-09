@@ -1,5 +1,8 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
   id("net.fabricmc.fabric-loom-remap")
+  kotlin("jvm") version "2.3.21"
   id("com.gradleup.shadow") version "9.4.1"
   id("com.github.jmongard.git-semver-plugin") version "0.18.0"
 }
@@ -12,6 +15,7 @@ version = semver.infoVersion
 val minecraftVersion: String by project
 val loaderVersion: String by project
 val fabricApiVersion: String by project
+val fabricKotlinVersion: String by project
 val lwjglVersion: String by project
 
 repositories {
@@ -30,6 +34,7 @@ dependencies {
   modImplementation("net.fabricmc:fabric-loader:$loaderVersion")
 
   modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
+  modImplementation("net.fabricmc:fabric-language-kotlin:$fabricKotlinVersion")
   modImplementation("com.ricedotwho:rsm:1.0.0")
 
   shadowImplementation("com.googlecode.soundlibs:jlayer:1.0.1.4")
@@ -92,6 +97,12 @@ tasks {
     archiveClassifier = null
     from(shadowJar)
     inputFile = shadowJar.get().archiveFile
+  }
+}
+
+kotlin {
+  compilerOptions {
+    jvmTarget = JvmTarget.JVM_21
   }
 }
 
