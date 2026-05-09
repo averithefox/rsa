@@ -462,10 +462,11 @@ public class BloodBlink extends Module {
     event.getInput().apply(newInputs);
   }
 
-  private void cancel() {
+  private boolean cancel() {
     reset();
     this.state = 31; // End
     RSA.chat("Cancelling blood blink!");
+    return false;
   }
 
   private void pearl(float yaw, float pitch, Runnable succeed) {

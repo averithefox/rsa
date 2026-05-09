@@ -116,10 +116,10 @@ public class VelocityBuffer extends Module {
     super.onDisable();
   }
 
-  public void popQueue() {
-    if (Minecraft.getInstance().player == null) return;
+  public boolean popQueue() {
+    if (Minecraft.getInstance().player == null) return false;
     synchronized (queue) {
-      if (queue.isEmpty()) return;
+      if (queue.isEmpty()) return false;
       while (!queue.isEmpty()) {
         Packet<?> packet = queue.poll();
         this.receivePacket(packet);
@@ -136,6 +136,7 @@ public class VelocityBuffer extends Module {
       }
     }
     Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING.value(), 2f, 2f));
+    return false;
   }
 
 

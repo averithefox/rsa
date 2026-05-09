@@ -41,7 +41,7 @@ dependencies {
 
   modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
   modImplementation("net.fabricmc:fabric-language-kotlin:$fabricKotlinVersion")
-  modImplementation("com.ricedotwho:rsm:1.0.0")
+  modImplementation("com.ricedotwho:rsm:1.1.0")
 
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
 

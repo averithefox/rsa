@@ -173,11 +173,11 @@ public class BreakerAura extends Module {
     return Optional.ofNullable(closest);
   }
 
-  public void addOrRemoveBlock() {
-    if (!Location.getArea().is(Island.Dungeon) || !Dungeon.isInBoss() || mc.player == null) return;
+  public boolean addOrRemoveBlock() {
+    if (!Location.getArea().is(Island.Dungeon) || !Dungeon.isInBoss() || mc.player == null) return false;
     if (!(Minecraft.getInstance().hitResult instanceof BlockHitResult blockHitResult) || blockHitResult.getType() == HitResult.Type.MISS) {
       RSA.chat(ChatFormatting.RED + "Not looking at a block");
-      return;
+      return false;
     }
     Pos pos = new Pos(blockHitResult.getBlockPos());
 
@@ -189,5 +189,6 @@ public class BreakerAura extends Module {
       RSA.chat(ChatFormatting.GREEN + "Added " + pos.toChatString());
     }
     data.save();
+    return false;
   }
 }

@@ -287,11 +287,12 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     }
   }
 
-  private void trigger() {
+  private boolean trigger() {
     consumeArg(TriggerArg.class, true);
     consumeArg(TermCloseArg.class, true);
     consumeArg(TermArg.class, null);
     consumeArg(LeapArg.class, true);
+    return false;
   }
 
   private <T> void consumeArg(Class<? extends Argument<T>> clazz, T value) {

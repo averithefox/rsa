@@ -38,10 +38,8 @@ public class FreezeState extends Module {
   private static final int repeat = 3;
   private static final NumberSetting tickDelay = new NumberSetting("Amount of ticks", 1, 200, 20, 1);
   private static final KeybindSetting freezeKey = new KeybindSetting("Freeze Key", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, FreezeState::toggleFreeze));
-  private static final KeybindSetting advanceTick = new KeybindSetting("Advance Tick Key", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> {
-  }));
-  private static final KeybindSetting rewindTick = new KeybindSetting("Rewind Tick Key", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> {
-  }));
+  private static final KeybindSetting advanceTick = new KeybindSetting("Advance Tick Key", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> false));
+  private static final KeybindSetting rewindTick = new KeybindSetting("Rewind Tick Key", new Keybind(GLFW.GLFW_KEY_UNKNOWN, false, () -> false));
 
 
   public FreezeState() {
@@ -63,10 +61,11 @@ public class FreezeState extends Module {
     frozen = false;
   }
 
-  private static void toggleFreeze() {
-    if (!RSA.isInTestEnv()) return;
+  private static boolean toggleFreeze() {
+    if (!RSA.isInTestEnv()) return false;
     currentTick = PLAYER_POS.size();
     frozen = !frozen;
+    return false;
   }
 
   @SubscribeEvent

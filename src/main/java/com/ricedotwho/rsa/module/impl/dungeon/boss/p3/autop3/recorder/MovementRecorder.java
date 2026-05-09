@@ -64,7 +64,7 @@ public class MovementRecorder extends SubModule<AutoP3> {
     reset();
   }
 
-  private void toggleRecording() {
+  private boolean toggleRecording() {
     switch (state) {
       case RECORDING -> {
         state = State.IDLE;
@@ -79,6 +79,7 @@ public class MovementRecorder extends SubModule<AutoP3> {
       }
       case PLAYING -> AutoP3.modMessage("Cannot record while playing!");
     }
+    return false;
   }
 
   public static boolean isIdle() {

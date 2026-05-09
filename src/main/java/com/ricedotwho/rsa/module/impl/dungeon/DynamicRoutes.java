@@ -106,13 +106,14 @@ public class DynamicRoutes extends Module {
     EMPTY_UNIQUE = UniqueRoom.emptyUnique();
   }
 
-  public void openMap() {
+  public boolean openMap() {
     if (!Location.getArea().is(Island.Dungeon) || Dungeon.isInBoss()) {
       ChatUtils.chat("Cannot map pathfind here!");
-      return;
+      return false;
     }
 
     Minecraft.getInstance().setScreen(new MapScreen(this));
+    return false;
   }
 
   @SubscribeEvent

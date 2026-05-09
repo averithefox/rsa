@@ -143,20 +143,20 @@ public class LavaBounce extends Module {
     }
   }
 
-  public void addOrRemoveBlock() {
+  public boolean addOrRemoveBlock() {
     if (!debug.getValue() || !RSA.isInTestEnv()) {
-      if (!Location.getArea().is(Island.Dungeon) || !Dungeon.isInBoss() || mc.player == null) return;
+      if (!Location.getArea().is(Island.Dungeon) || !Dungeon.isInBoss() || mc.player == null) return false;
     }
     HitResult result = mc.player.pick(addBlockRange.getValue().doubleValue(), 1f, true);
     if (!(result instanceof BlockHitResult blockHitResult) || blockHitResult.getType() == HitResult.Type.MISS) {
       RSA.chat(ChatFormatting.RED + "Not looking at a block");
-      return;
+      return false;
     }
 
     BlockPos bp = blockHitResult.getBlockPos();
     if (!mc.level.getBlockState(bp).is(Blocks.LAVA)) {
       RSA.chat(ChatFormatting.RED + "Not lava!");
-      return;
+      return false;
     }
     Pos pos = new Pos(blockHitResult.getBlockPos());
 
@@ -168,5 +168,7 @@ public class LavaBounce extends Module {
       RSA.chat(ChatFormatting.GREEN + "Added " + pos.toChatString());
     }
     data.save();
+
+    return false;
   }
 }

@@ -75,9 +75,7 @@ public class AutoRoutes extends Module implements Accessor {
   private static final BooleanSetting use1_8Height = new BooleanSetting("Use 1.8 height for placing node", true);
   private final BooleanSetting editMode = new BooleanSetting("Edit Mode", false);
   private final KeybindSetting triggerBind = new KeybindSetting("Trigger Bind", new Keybind(GLFW.GLFW_MOUSE_BUTTON_1, true, this::onTrigger));
-  private final KeybindSetting triggerBindGui = new KeybindSetting("Trigger Bind Gui", new Keybind(GLFW.GLFW_KEY_UNKNOWN, true, false, false, () -> {
-    if (mc.screen != null) this.onTrigger();
-  }));
+  private final KeybindSetting triggerBindGui = new KeybindSetting("Trigger Bind Gui", new Keybind(GLFW.GLFW_KEY_UNKNOWN, true, false, false, () -> false));
   private final KeybindSetting addBlockBind = new KeybindSetting("Add Block Bind", new Keybind(GLFW.GLFW_KEY_SEMICOLON, false, this::addBlockToInNode));
   private final KeybindSetting routeStartBind = new KeybindSetting("Route to start Bind", new Keybind(GLFW.GLFW_KEY_ENTER, false, this::routeToStart));
 
@@ -329,15 +327,16 @@ public class AutoRoutes extends Module implements Accessor {
     this.forceNextNotSneak = bl;
   }
 
-  public void onTrigger() {
-    if (!this.isEnabled() || !Location.getArea().is(Island.Dungeon) || Map.getCurrentRoom() == null) return;
+  public boolean onTrigger() {
+    if (!this.isEnabled() || !Location.getArea().is(Island.Dungeon) || Map.getCurrentRoom() == null) return false;
 
     List<Node> nodes = this.activeNodes.get(Map.getCurrentRoom().getData());
     if (nodes != null) nodes.forEach(Node::reset);
     if (this.realNode instanceof BatNode) this.realNode.setTriggered(true);
-    if (this.realNode == null || !this.realNode.hasAwaits()) return;
+    if (this.realNode == null || !this.realNode.hasAwaits()) return false;
     this.realNode.getAwaitManager().consume(AwaitClick.class, true);
     this.realNode.getAwaitManager().consume(AwaitSecrets.class, 100); // Skip secret
+    return false;
   }
 
   @SubscribeEvent
@@ -426,25 +425,26 @@ public class AutoRoutes extends Module implements Accessor {
     return bl;
   }
 
-  private void addBlockToInNode() {
+  private boolean addBlockToInNode() {
     Room currentRoom = Map.getCurrentRoom();
     if (!Location.getArea().is(Island.Dungeon) || Dungeon.isInBoss() || currentRoom == null || this.activeNodes.isEmpty() || mc.player == null || !this.activeNodes.containsKey(currentRoom.getData()))
-      return;
+      return false;
     Pos playerPos = new Pos(mc.player.position());
     Optional<BreakNode> opt = this.activeNodes.get(currentRoom.getData()).stream().filter(n -> n.isInNode(playerPos) && n instanceof BreakNode).map(n -> (BreakNode) n).findFirst();
     if (opt.isEmpty()) {
       RSA.chat("Not in break node");
-      return;
+      return false;
     }
     opt.get().addOrRemoveBlock();
+    return false;
   }
 
-  private void routeToStart() {
-    if (mc.player == null || hasGuiOpen()) return;
-    if (!Location.getArea().is(Island.Dungeon) || Dungeon.isInBoss() || this.activeNodes.isEmpty()) return;
+  private boolean routeToStart() {
+    if (mc.player == null || hasGuiOpen()) return false;
+    if (!Location.getArea().is(Island.Dungeon) || Dungeon.isInBoss() || this.activeNodes.isEmpty()) return false;
 
     Room currentRoom = Map.getCurrentRoom();
-    if (currentRoom == null || !this.activeNodes.containsKey(currentRoom.getData())) return;
+    if (currentRoom == null || !this.activeNodes.containsKey(currentRoom.getData())) return false;
 
     Vec3 startPos = mc.player.position();
 
@@ -452,7 +452,7 @@ public class AutoRoutes extends Module implements Accessor {
 
     if (closestStart == null) {
       RSA.chat("Couldn't find a start node.");
-      return;
+      return false;
     }
 
     Pos goalPos = closestStart.getRealPos();
@@ -461,11 +461,12 @@ public class AutoRoutes extends Module implements Accessor {
     DynamicRoutes dynamicRoutes = RSM.getModule(DynamicRoutes.class);
     if (!dynamicRoutes.isEnabled()) {
       RSA.chat("Couldn't use dynamic routes (disabled).");
-      return;
+      return false;
     }
 
     dynamicRoutes.cancelPathing();
     dynamicRoutes.executePath(startPos, goal);
+    return false;
   }
 
   public void save() {

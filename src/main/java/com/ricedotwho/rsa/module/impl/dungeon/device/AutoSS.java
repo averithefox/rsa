@@ -240,12 +240,13 @@ public class AutoSS extends Module {
   }
 
 
-  public void SSR() {
-    if (!areaCheck()) return;
+  public boolean SSR() {
+    if (!areaCheck()) return false;
     if (sendChat.getValue() && Minecraft.getInstance().getConnection() != null) {
       Minecraft.getInstance().getConnection().sendCommand("pc SSRS SSRS SSRS!");
     }
     start();
+    return false;
   }
 
   public void resetState() {
