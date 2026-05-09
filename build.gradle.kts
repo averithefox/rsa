@@ -19,6 +19,7 @@ val fabricKotlinVersion: String by project
 val lwjglVersion: String by project
 
 repositories {
+  maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
   mavenLocal()
 }
 
@@ -32,6 +33,8 @@ dependencies {
   minecraft("com.mojang:minecraft:$minecraftVersion")
   mappings(loom.officialMojangMappings())
   modImplementation("net.fabricmc:fabric-loader:$loaderVersion")
+
+  modLocalRuntime("me.djtheredstoner:DevAuth-fabric:1.2.2")
 
   modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
   modImplementation("net.fabricmc:fabric-language-kotlin:$fabricKotlinVersion")
@@ -57,6 +60,8 @@ loom {
   runConfigs.named("client") {
     isIdeConfigGenerated = true
     vmArgs.add("-Dmixin.debug.export=true")
+    vmArgs.add("-Ddevauth.enabled=true")
+    vmArgs.add("-Ddevauth.account=alt")
   }
 }
 
