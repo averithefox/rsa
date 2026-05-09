@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.other;
 
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
@@ -18,6 +17,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
+import rsa.RSA;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,14 +64,14 @@ public class FreezeState extends Module {
   }
 
   private static void toggleFreeze() {
-    if (RSA.notInTestEnv) return;
+    if (!RSA.isInTestEnv()) return;
     currentTick = PLAYER_POS.size();
     frozen = !frozen;
   }
 
   @SubscribeEvent
   public void onTick(ClientTickEvent.Start event) {
-    if (RSA.notInTestEnv) return;
+    if (!RSA.isInTestEnv()) return;
     if (!frozen) return;
     if (Minecraft.getInstance().screen != null) return;
     LocalPlayer player = Minecraft.getInstance().player;
@@ -107,7 +107,7 @@ public class FreezeState extends Module {
 
   @SubscribeEvent
   public void PosSet(Render3DEvent.Extract event) {
-    if (RSA.notInTestEnv) return;
+    if (!RSA.isInTestEnv()) return;
     if (frozen) {
       LocalPlayer player = Minecraft.getInstance().player;
       if (player == null) return;

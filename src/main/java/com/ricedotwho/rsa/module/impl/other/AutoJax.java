@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.other;
 
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.game.ChatEvent;
 import com.ricedotwho.rsm.event.impl.game.ServerTickEvent;
@@ -19,6 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector2f;
+import rsa.RSA;
 
 import java.util.List;
 

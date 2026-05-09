@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p5;
 
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.FastLeap;
 import com.ricedotwho.rsa.utils.InteractUtils;
@@ -40,6 +39,7 @@ import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.EnumUtils;
+import rsa.RSA;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;

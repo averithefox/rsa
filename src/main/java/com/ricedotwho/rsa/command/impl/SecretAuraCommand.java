@@ -1,12 +1,12 @@
 package com.ricedotwho.rsa.command.impl;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.module.impl.dungeon.SecretAura;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
+import rsa.RSA;
 
 @CommandInfo(name = "sa", aliases = "secretaura", description = "Developer")
 public class SecretAuraCommand extends Command {

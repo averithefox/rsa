@@ -3,7 +3,6 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Shorts;
 import com.google.common.primitives.SignedBytes;
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.event.impl.RawTickEvent;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.*;
 import com.ricedotwho.rsm.RSM;
@@ -46,6 +45,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import rsa.RSA;
 
 import java.util.List;
 

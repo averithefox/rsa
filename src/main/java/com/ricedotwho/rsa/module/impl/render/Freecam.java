@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.render;
 
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.camera.CameraHandler;
 import com.ricedotwho.rsm.component.impl.camera.CameraPositionProvider;
@@ -21,6 +20,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import rsa.RSA;
 
 @Getter
 @ModuleInfo(aliases = "Freecam", id = "Freecam", category = Category.RENDER, hasKeybind = true)

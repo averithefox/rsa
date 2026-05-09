@@ -2,13 +2,13 @@ package com.ricedotwho.rsa.command.impl;
 
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
 import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
 import net.minecraft.client.player.LocalPlayer;
+import rsa.RSA;
 
 @CommandInfo(name = "rotate", aliases = "rt", description = "Rotate your camera to a yaw and pitch")
 public class RotateCommand extends Command {

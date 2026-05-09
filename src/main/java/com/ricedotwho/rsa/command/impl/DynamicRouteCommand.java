@@ -3,7 +3,6 @@ package com.ricedotwho.rsa.command.impl;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.pathfinding.GoalDungeonRoom;
 import com.ricedotwho.rsa.component.impl.pathfinding.GoalDungeonXYZ;
 import com.ricedotwho.rsa.component.impl.pathfinding.GoalXYZ;
@@ -21,6 +20,7 @@ import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.commands.arguments.coordinates.WorldCoordinates;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
+import rsa.RSA;
 
 import java.util.ArrayList;
 import java.util.List;

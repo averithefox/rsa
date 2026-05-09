@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.dungeon.autoroutes.nodes;
 
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.DynamicRoutes;
@@ -20,6 +19,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
+import rsa.RSA;
 
 public class DynamicEtherwarpNode extends Node {
   private final float yaw;

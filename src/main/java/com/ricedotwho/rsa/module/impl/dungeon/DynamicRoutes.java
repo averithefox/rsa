@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.pathfinding.EtherwarpPathfinder;
 import com.ricedotwho.rsa.component.impl.pathfinding.Goal;
 import com.ricedotwho.rsa.component.impl.pathfinding.Path;
@@ -40,6 +39,7 @@ import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
 import net.minecraft.world.entity.player.Input;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
+import rsa.RSA;
 
 import java.util.ArrayList;
 import java.util.List;

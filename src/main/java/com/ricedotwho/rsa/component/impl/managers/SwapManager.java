@@ -1,7 +1,6 @@
 package com.ricedotwho.rsa.component.impl.managers;
 
 import com.ricedotwho.rsa.interfaces.IMultiPlayerGameMode;
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.data.Rotation;
 import com.ricedotwho.rsm.utils.EtherUtils;
 import com.ricedotwho.rsm.utils.ItemUtils;
@@ -23,6 +22,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import rsa.RSA;
 
 import java.util.Arrays;
 import java.util.function.Predicate;

@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.component.impl.pathfinding;
 
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.pathfinding.openset.BinaryHeapOpenSet;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.ChatUtils;
@@ -8,6 +7,7 @@ import com.ricedotwho.rsm.utils.EtherUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 import org.apache.logging.log4j.util.TriConsumer;
+import rsa.RSA;
 
 import java.util.ArrayList;
 import java.util.HashMap;

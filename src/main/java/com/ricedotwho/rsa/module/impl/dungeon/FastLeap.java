@@ -1,7 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.utils.GuiUtils;
@@ -40,6 +39,7 @@ import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import rsa.RSA;
 
 import java.util.Arrays;
 import java.util.regex.Matcher;

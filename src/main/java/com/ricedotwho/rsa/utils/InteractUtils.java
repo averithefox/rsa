@@ -1,9 +1,8 @@
 package com.ricedotwho.rsa.utils;
 
-import com.ricedotwho.rsa.interfaces.IMultiPlayerGameMode;
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
+import com.ricedotwho.rsa.interfaces.IMultiPlayerGameMode;
 import com.ricedotwho.rsm.data.Pos;
 import com.ricedotwho.rsm.utils.Accessor;
 import com.ricedotwho.rsm.utils.EtherUtils;
@@ -23,6 +22,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import rsa.RSA;
 
 @UtilityClass
 public class InteractUtils implements Accessor {

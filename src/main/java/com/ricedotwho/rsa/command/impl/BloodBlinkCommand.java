@@ -1,7 +1,6 @@
 package com.ricedotwho.rsa.command.impl;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.module.impl.dungeon.BloodBlink;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
@@ -11,6 +10,7 @@ import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.component.impl.map.Map;
 import com.ricedotwho.rsm.component.impl.map.map.RoomType;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
+import rsa.RSA;
 
 @CommandInfo(name = "bloodblink", aliases = "bb", description = "Handles blood blinking rooms")
 public class BloodBlinkCommand extends Command {

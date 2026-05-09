@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.other.checks;
 
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.module.impl.other.AntiCheat;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.game.ChatEvent;
@@ -13,6 +12,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
+import rsa.RSA;
 
 import java.util.*;
 import java.util.regex.Matcher;

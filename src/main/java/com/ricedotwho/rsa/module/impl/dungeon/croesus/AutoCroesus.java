@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.dungeon.croesus;
 
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.utils.InteractUtils;
 import com.ricedotwho.rsm.component.impl.location.Floor;
@@ -40,6 +39,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import rsa.RSA;
 
 import java.util.*;
 import java.util.function.BooleanSupplier;

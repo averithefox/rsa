@@ -2,7 +2,6 @@ package com.ricedotwho.rsa.command.impl;
 
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.TickFreeze;
 import com.ricedotwho.rsa.component.impl.pathfinding.score.DungeonRoomScore;
 import com.ricedotwho.rsa.utils.Util;
@@ -13,6 +12,7 @@ import com.ricedotwho.rsm.component.impl.map.map.RoomType;
 import com.ricedotwho.rsm.component.impl.map.map.UniqueRoom;
 import com.ricedotwho.rsm.component.impl.task.TaskComponent;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
+import rsa.RSA;
 
 import java.util.Optional;
 

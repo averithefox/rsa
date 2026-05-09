@@ -1,7 +1,7 @@
 package com.ricedotwho.rsa.utils;
 
-import com.ricedotwho.rsa.RSA;
 import javazoom.jl.player.Player;
+import rsa.RSA;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
@@ -23,7 +23,6 @@ public class SoundPlayer {
     new Thread(() -> {
       try (FileInputStream fis = new FileInputStream(soundFile.toFile());
            BufferedInputStream bis = new BufferedInputStream(fis)) {
-
         Player player = new Player(bis);
         player.play();
       } catch (Exception e) {

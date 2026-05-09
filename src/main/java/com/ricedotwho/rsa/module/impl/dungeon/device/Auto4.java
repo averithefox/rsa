@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.dungeon.device;
 
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.module.impl.dungeon.FastLeap;
@@ -27,6 +26,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
+import rsa.RSA;
 
 import java.util.ArrayList;
 import java.util.Arrays;

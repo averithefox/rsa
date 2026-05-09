@@ -1,12 +1,12 @@
 package com.ricedotwho.rsa.component.impl.pathfinding;
 
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.component.impl.map.map.Room;
 import com.ricedotwho.rsm.component.impl.map.utils.ScanUtils;
 import com.ricedotwho.rsm.utils.EtherUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import rsa.RSA;
 
 import java.util.HashMap;
 import java.util.List;

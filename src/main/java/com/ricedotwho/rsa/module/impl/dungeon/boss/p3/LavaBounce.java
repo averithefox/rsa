@@ -1,7 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3;
 
 import com.google.common.reflect.TypeToken;
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.event.impl.RawTickEvent;
@@ -35,6 +34,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import org.lwjgl.glfw.GLFW;
+import rsa.RSA;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -79,7 +79,7 @@ public class LavaBounce extends Module {
 
   @SubscribeEvent
   public void onTick(RawTickEvent event) {
-    if (!debug.getValue() || RSA.isNotInTestEnv()) {
+    if (!debug.getValue() || !RSA.isInTestEnv()) {
       if (event.isCancel() || !Location.getArea().is(Island.Dungeon) || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || mc.level == null || mc.player == null || mc.player.isInLava() || mc.player.onGround())
         return;
     }
@@ -132,7 +132,7 @@ public class LavaBounce extends Module {
 
   @SubscribeEvent
   public void onRender3D(Render3DEvent.Extract event) {
-    if (!debug.getValue() || RSA.isNotInTestEnv()) {
+    if (!debug.getValue() || !RSA.isInTestEnv()) {
       if (!Location.getArea().is(Island.Dungeon) || !renderBlocks.getValue() || !useConfig.getValue() || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || mc.level == null || mc.player == null)
         return;
     }
@@ -144,7 +144,7 @@ public class LavaBounce extends Module {
   }
 
   public void addOrRemoveBlock() {
-    if (!debug.getValue() || RSA.isNotInTestEnv()) {
+    if (!debug.getValue() || !RSA.isInTestEnv()) {
       if (!Location.getArea().is(Island.Dungeon) || !Dungeon.isInBoss() || mc.player == null) return;
     }
     HitResult result = mc.player.pick(addBlockRange.getValue().doubleValue(), 1f, true);

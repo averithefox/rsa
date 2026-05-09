@@ -2,12 +2,12 @@ package com.ricedotwho.rsa.command.impl;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.BreakerAura;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
+import rsa.RSA;
 
 @CommandInfo(name = "breakeraura", aliases = "ba", description = "Breaker Aura command")
 public class DungeonBreakerCommand extends Command {

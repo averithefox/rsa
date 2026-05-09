@@ -1,7 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss;
 
 import com.google.common.reflect.TypeToken;
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.event.impl.RawTickEvent;
 import com.ricedotwho.rsa.module.impl.dungeon.DungeonBreaker;
@@ -39,6 +38,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.lwjgl.glfw.GLFW;
+import rsa.RSA;
 
 import java.util.HashSet;
 import java.util.List;
@@ -90,7 +90,7 @@ public class BreakerAura extends Module {
 
   @SubscribeEvent
   public void onTick(RawTickEvent event) {
-    if (!debug.getValue() || RSA.isNotInTestEnv())
+    if (!debug.getValue() || !RSA.isInTestEnv())
       if (event.isCancel() || !Location.getArea().is(Island.Dungeon) || mc.level == null || mc.player == null || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty() || edit.getValue() || charges <= 0)
         return;
 //        if (delay > 0) {
@@ -125,7 +125,7 @@ public class BreakerAura extends Module {
 
   @SubscribeEvent
   public void onRender3D(Render3DEvent.Extract event) {
-    if (!debug.getValue() || RSA.isNotInTestEnv())
+    if (!debug.getValue() || !RSA.isInTestEnv())
       if (!Location.getArea().is(Island.Dungeon) || !renderBlocks.getValue() || mc.level == null || mc.player == null || !Dungeon.isInBoss() || !Utils.equalsOneOf(Location.getFloor(), Floor.M7, Floor.F7) || data.getValue().isEmpty())
         return;
 

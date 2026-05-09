@@ -1,11 +1,11 @@
 package com.ricedotwho.rsa.component.impl.pathfinding;
 
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.component.impl.map.handler.DungeonInfo;
 import com.ricedotwho.rsm.component.impl.map.map.*;
 import com.ricedotwho.rsm.data.Pair;
 import lombok.Getter;
 import net.minecraft.util.Mth;
+import rsa.RSA;
 
 import java.util.*;
 

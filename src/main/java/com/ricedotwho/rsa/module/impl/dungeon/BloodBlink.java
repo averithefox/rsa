@@ -2,7 +2,6 @@ package com.ricedotwho.rsa.module.impl.dungeon;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import com.ricedotwho.rsa.component.impl.pathfinding.score.DungeonRoomScore;
@@ -58,6 +57,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import org.lwjgl.glfw.GLFW;
+import rsa.RSA;
 
 import java.awt.*;
 import java.io.InputStreamReader;

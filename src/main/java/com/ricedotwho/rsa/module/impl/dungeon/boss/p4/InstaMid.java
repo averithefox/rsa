@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p4;
 
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.Jump;
 import com.ricedotwho.rsm.component.impl.location.Floor;
 import com.ricedotwho.rsm.component.impl.location.Island;
@@ -20,6 +19,7 @@ import lombok.Getter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.world.phys.Vec3;
+import rsa.RSA;
 
 @Getter
 @ModuleInfo(aliases = "InstaMid", id = "InstaMid", category = Category.DUNGEONS)

@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.component.impl.pathfinding.score;
 
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.component.api.ModComponent;
 import com.ricedotwho.rsm.component.impl.map.handler.DungeonInfo;
 import com.ricedotwho.rsm.component.impl.map.map.*;
@@ -8,6 +7,7 @@ import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.world.WorldEvent;
 import com.ricedotwho.rsm.utils.Utils;
 import lombok.Getter;
+import rsa.RSA;
 
 import java.util.*;
 

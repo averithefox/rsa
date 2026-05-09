@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.other;
 
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.module.Module;
 import com.ricedotwho.rsm.module.api.Category;
 import com.ricedotwho.rsm.module.api.ModuleInfo;
@@ -15,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import rsa.RSA;
 
 @Getter
 @ModuleInfo(aliases = "Dev Utils", id = "DevUtils", category = Category.OTHER)

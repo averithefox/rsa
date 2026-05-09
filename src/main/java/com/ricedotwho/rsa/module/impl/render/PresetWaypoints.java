@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.render;
 
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.component.impl.Renderer3D;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
@@ -19,6 +18,7 @@ import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.StringUtil;
+import rsa.RSA;
 
 @Getter
 @ModuleInfo(aliases = "PWaypoints", id = "PresetWaypoints", category = Category.RENDER)

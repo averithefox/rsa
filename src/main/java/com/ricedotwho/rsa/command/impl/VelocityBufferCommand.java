@@ -1,12 +1,12 @@
 package com.ricedotwho.rsa.command.impl;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.module.impl.movement.VelocityBuffer;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
+import rsa.RSA;
 
 @CommandInfo(name = "velobuffer", aliases = "vb", description = "Toggle and pop buffered velocity")
 public class VelocityBufferCommand extends Command {

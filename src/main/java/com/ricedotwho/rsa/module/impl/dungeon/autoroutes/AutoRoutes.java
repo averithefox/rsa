@@ -2,7 +2,6 @@ package com.ricedotwho.rsa.module.impl.dungeon.autoroutes;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.pathfinding.Goal;
 import com.ricedotwho.rsa.component.impl.pathfinding.GoalDungeonXYZ;
 import com.ricedotwho.rsa.event.impl.RawTickEvent;
@@ -54,6 +53,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
+import rsa.RSA;
 
 import java.io.File;
 import java.io.IOException;

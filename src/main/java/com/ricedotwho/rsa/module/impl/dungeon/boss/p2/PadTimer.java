@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p2;
 
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.component.impl.location.Island;
 import com.ricedotwho.rsm.component.impl.location.Location;
 import com.ricedotwho.rsm.data.Colour;
@@ -23,6 +22,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.StringUtil;
 import org.joml.Vector2d;
+import rsa.RSA;
 
 @Getter
 @ModuleInfo(aliases = "Pad Timer", id = "PadTimer", category = Category.DUNGEONS)

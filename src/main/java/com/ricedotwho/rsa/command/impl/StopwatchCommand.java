@@ -1,12 +1,12 @@
 package com.ricedotwho.rsa.command.impl;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.utils.StopWatch;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
 import com.ricedotwho.rsm.utils.NumberUtils;
 import net.minecraft.client.multiplayer.ClientSuggestionProvider;
+import rsa.RSA;
 
 @CommandInfo(name = "stopwatch", aliases = "sw", description = "Handles Stopwatches")
 public class StopwatchCommand extends Command {

@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.player;
 
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.component.impl.TickFreeze;
 import com.ricedotwho.rsm.component.impl.task.TaskComponent;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
@@ -17,6 +16,7 @@ import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.BlockHitResult;
+import rsa.RSA;
 
 @Getter
 @ModuleInfo(aliases = "Bonzo Helper", id = "BonzoHelper", category = Category.PLAYER)

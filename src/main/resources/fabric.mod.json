@@ -12,7 +12,10 @@
   "environment": "client",
   "entrypoints": {
     "rsm": [
-      "com.ricedotwho.rsa.RSA"
+      {
+        "value": "rsa.RSA",
+        "adapter": "kotlin"
+      }
     ]
   },
   "mixins": [

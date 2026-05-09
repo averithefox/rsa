@@ -2,7 +2,6 @@ package com.ricedotwho.rsa.module.impl.player.autopet;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
-import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsa.module.impl.player.autopet.pet.PetRule;
 import com.ricedotwho.rsa.utils.GuiUtils;
 import com.ricedotwho.rsm.RSM;
@@ -37,6 +36,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemLore;
+import rsa.RSA;
 
 import java.util.ArrayList;
 import java.util.Iterator;
