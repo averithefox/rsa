@@ -7,11 +7,13 @@
   },
   "mixins": [
     "ClipContextMixin",
+    "CommodoreAccessor",
     "ConnectionMixin",
     "LivingEntityMixin",
     "LowPriorityConnectionMixin",
     "MinecraftMixin",
     "MultiPlayerGameModeMixin",
+    "NodeAccessor",
     "PlayerMixin",
     "RSMMixin"
   ],

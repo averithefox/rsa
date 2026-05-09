@@ -41,6 +41,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import rsa.command.impl.AutoCroesusCommand
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -69,13 +70,13 @@ object RSA : Addon {
 
     Renderer3D.registerLine(Ring::class.java)
 
-    RSA.SOUNDS_FOLDER = FabricLoader.getInstance()
+    SOUNDS_FOLDER = FabricLoader.getInstance()
       .configDir
       .resolve("rsm")
       .resolve("sounds")
 
     try {
-      Files.createDirectories(RSA.SOUNDS_FOLDER)
+      Files.createDirectories(SOUNDS_FOLDER)
     } catch (e: Exception) {
       e.printStackTrace()
     }
