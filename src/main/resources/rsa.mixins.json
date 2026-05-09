@@ -6,24 +6,21 @@
     "defaultRequire": 1
   },
   "mixins": [
-    "ConnectionAccessor",
-    "MixinClientConnection",
-    "MixinClipContext",
-    "MixinLivingEntity",
-    "MixinLowPriorityConnection",
-    "MixinMinecraft",
-    "MixinMultiPlayerGameMode",
-    "MixinPlayer",
-    "MixinRSM",
-    "ServerboundInteractPacketAccessor"
+    "ClipContextMixin",
+    "ConnectionMixin",
+    "LivingEntityMixin",
+    "LowPriorityConnectionMixin",
+    "MinecraftMixin",
+    "MultiPlayerGameModeMixin",
+    "PlayerMixin",
+    "RSMMixin"
   ],
   "client": [
     "ClientPacketListenerMixin",
-    "MixinClientPacketListener",
-    "MixinDeltaTracker",
-    "MixinEntityRenderer",
-    "MixinGameRenderer",
-    "MixinLevelRenderer",
-    "MixinVisGraph"
+    "DeltaTrackerMixin",
+    "EntityRendererMixin",
+    "GameRendererMixin",
+    "LevelRendererMixin",
+    "VisGraphMixin"
   ]
 }

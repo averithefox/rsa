@@ -2,7 +2,7 @@ package com.ricedotwho.rsa.command.impl;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import com.ricedotwho.rsa.IMixin.IConnection;
+import com.ricedotwho.rsa.interfaces.IConnection;
 import com.ricedotwho.rsm.command.Command;
 import com.ricedotwho.rsm.command.api.CommandInfo;
 import net.minecraft.client.Minecraft;
@@ -20,7 +20,7 @@ public class LimboCommand extends Command {
   private int limbo(CommandContext<ClientSuggestionProvider> clientSuggestionProviderCommandContext) {
     if (Minecraft.getInstance().getConnection() == null) return 0;
     // nneed to send immediately because swap manager blocks
-    ((IConnection) Minecraft.getInstance().getConnection().getConnection()).sendPacketImmediately(new ServerboundSetCarriedItemPacket(9));
+    ((IConnection) Minecraft.getInstance().getConnection().getConnection()).rsa$sendPacketImmediately(new ServerboundSetCarriedItemPacket(9));
     return 1;
   }
 }

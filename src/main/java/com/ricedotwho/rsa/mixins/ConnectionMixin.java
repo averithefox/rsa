@@ -12,11 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = Connection.class, priority = 600) // Needs lower priority for SwapManager
-public abstract class MixinClientConnection {
-
-  @Shadow
-  @Nullable BandwidthDebugMonitor bandwidthDebugMonitor;
-
+public abstract class ConnectionMixin {
   @Inject(method = "send(Lnet/minecraft/network/protocol/Packet;)V", at = @At("HEAD"), cancellable = true)
   private void onSend(Packet<?> packet, CallbackInfo ci) {
     // Don't use Connection.sendPacket

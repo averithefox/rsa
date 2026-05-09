@@ -1,7 +1,7 @@
-package com.ricedotwho.rsa.IMixin;
+package com.ricedotwho.rsa.interfaces;
 
 import net.minecraft.client.multiplayer.CommonListenerCookie;
 
 public interface IClientPacketListener {
-  CommonListenerCookie getCookie();
+  CommonListenerCookie rsa$getCookie();
 }

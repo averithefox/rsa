@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type;
 
-import com.ricedotwho.rsa.mixins.ServerboundInteractPacketAccessor;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.RingArgType;
 import com.ricedotwho.rsm.event.impl.client.PacketEvent;
@@ -27,8 +26,7 @@ public class RelicArg extends Argument<PacketEvent.Send> {
   public void consume(PacketEvent.Send event) {
     if (!(event.getPacket() instanceof ServerboundInteractPacket interactPacket)) return;
     if (Minecraft.getInstance().level == null) return;
-    int id = ((ServerboundInteractPacketAccessor) interactPacket).getEntityID();
-    Entity entity = Minecraft.getInstance().level.getEntity(id);
+    Entity entity = Minecraft.getInstance().level.getEntity(interactPacket.entityId);
     if (!(entity instanceof ArmorStand armorStand)) return;
     String name = ChatFormatting.stripFormatting(armorStand.getItemBySlot(EquipmentSlot.HEAD).getHoverName().getString());
     if (!name.contains("corrupted") || !name.contains("relic")) return;

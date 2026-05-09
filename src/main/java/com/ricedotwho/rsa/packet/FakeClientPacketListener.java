@@ -1,6 +1,6 @@
 package com.ricedotwho.rsa.packet;
 
-import com.ricedotwho.rsa.IMixin.IClientPacketListener;
+import com.ricedotwho.rsa.interfaces.IClientPacketListener;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -20,7 +20,7 @@ public class FakeClientPacketListener extends ClientPacketListener {
   }
 
   private static CommonListenerCookie extractCookie(ClientPacketListener listener) {
-    return ((IClientPacketListener) listener).getCookie();
+    return ((IClientPacketListener) listener).rsa$getCookie();
   }
 
   @Override

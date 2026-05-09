@@ -1,6 +1,6 @@
 package com.ricedotwho.rsa.mixins;
 
-import com.ricedotwho.rsa.IMixin.IMultiPlayerGameMode;
+import com.ricedotwho.rsa.interfaces.IMultiPlayerGameMode;
 import com.ricedotwho.rsa.component.impl.managers.SwapManager;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(MultiPlayerGameMode.class)
-public abstract class MixinMultiPlayerGameMode implements IMultiPlayerGameMode {
+public abstract class MultiPlayerGameModeMixin implements IMultiPlayerGameMode {
   @Shadow
   protected abstract void ensureHasSentCarriedItem();
 
@@ -23,12 +23,12 @@ public abstract class MixinMultiPlayerGameMode implements IMultiPlayerGameMode {
   private int carriedIndex;
 
   @Override
-  public void sendPacketSequenced(ClientLevel world, PredictiveAction packetCreator) {
+  public void rsa$sendPacketSequenced(ClientLevel world, PredictiveAction packetCreator) {
     this.startPrediction(world, packetCreator);
   }
 
   @Override
-  public void syncSlot() {
+  public void rsa$syncSlot() {
     this.ensureHasSentCarriedItem();
   }
 

@@ -1,6 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss;
 
-import com.ricedotwho.rsa.IMixin.IConnection;
+import com.ricedotwho.rsa.interfaces.IConnection;
 import com.ricedotwho.rsa.module.impl.dungeon.autoroutes.FakeKeyboardInput;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.recorder.MovementRecorder;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
@@ -266,7 +266,7 @@ public class Blink extends Module implements ClientRotationProvider {
 
     synchronized (queue) { // Need to block, to make sure that other threads don't modify flushing
       this.flushing = true;
-      ((IConnection) Minecraft.getInstance().getConnection().getConnection()).sendPacketImmediately(packet);
+      ((IConnection) Minecraft.getInstance().getConnection().getConnection()).rsa$sendPacketImmediately(packet);
       this.flushing = false;
     }
   }
@@ -308,7 +308,7 @@ public class Blink extends Module implements ClientRotationProvider {
 
       for (int i = 0; i < sendCount; i++) {
         Packet<?> packet = queue.removeFirst();
-        ((IConnection) Minecraft.getInstance().getConnection().getConnection()).sendPacketImmediately(packet);
+        ((IConnection) Minecraft.getInstance().getConnection().getConnection()).rsa$sendPacketImmediately(packet);
       }
 
       flushing = false;
@@ -325,7 +325,7 @@ public class Blink extends Module implements ClientRotationProvider {
         return;
       }
       queue.forEach(packet -> {
-        ((IConnection) Minecraft.getInstance().getConnection().getConnection()).sendPacketImmediately(packet);
+        ((IConnection) Minecraft.getInstance().getConnection().getConnection()).rsa$sendPacketImmediately(packet);
       });
 
       this.queue.clear();

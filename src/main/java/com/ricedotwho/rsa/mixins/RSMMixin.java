@@ -5,7 +5,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 
 @Mixin(RSM.class)
-public class MixinRSM {
+public class RSMMixin {
   /**
    * @author ricedotwho
    * @reason change gui name

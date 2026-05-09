@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(value = LevelRenderer.class)
-public class MixinLevelRenderer {
+public class LevelRendererMixin {
   @ModifyExpressionValue(method = "extractBlockOutline(Lnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/state/LevelRenderState;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getShape(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/phys/shapes/CollisionContext;)Lnet/minecraft/world/phys/shapes/VoxelShape;"))
   private VoxelShape modifyOutlineShape(VoxelShape original, Camera camera, LevelRenderState levelRenderState) {
     BlockHitResult hit = (BlockHitResult) Minecraft.getInstance().hitResult;

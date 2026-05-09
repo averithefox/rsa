@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(DeltaTracker.Timer.class)
-public abstract class MixinDeltaTracker {
+public abstract class DeltaTrackerMixin {
   @Shadow
   public abstract float getGameTimeDeltaPartialTick(boolean bl);
 

@@ -1,6 +1,6 @@
 package com.ricedotwho.rsa.component.impl.managers;
 
-import com.ricedotwho.rsa.IMixin.IMultiPlayerGameMode;
+import com.ricedotwho.rsa.interfaces.IMultiPlayerGameMode;
 import com.ricedotwho.rsa.RSA;
 import com.ricedotwho.rsm.data.Rotation;
 import com.ricedotwho.rsm.utils.EtherUtils;
@@ -120,13 +120,13 @@ public class SwapManager {
     IMultiPlayerGameMode manager = ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode);
 
     int i = Minecraft.getInstance().player.getInventory().getSelectedSlot();
-    if (syncSlots) manager.syncSlot();
+    if (syncSlots) manager.rsa$syncSlot();
     if (syncSlots && !checkServerSlot(i)) {
       RSA.chat("Failed to swap to slot : " + i);
       return false;
     }
 
-    manager.sendPacketSequenced(Minecraft.getInstance().level, sequence -> new ServerboundUseItemPacket(InteractionHand.MAIN_HAND, sequence, yaw, pitch));
+    manager.rsa$sendPacketSequenced(Minecraft.getInstance().level, sequence -> new ServerboundUseItemPacket(InteractionHand.MAIN_HAND, sequence, yaw, pitch));
     if (swing) Minecraft.getInstance().player.swing(InteractionHand.MAIN_HAND);
     return true;
   }
@@ -155,14 +155,14 @@ public class SwapManager {
     if (syncSlot) {
       IMultiPlayerGameMode manager = ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode);
       int i = Minecraft.getInstance().player.getInventory().getSelectedSlot();
-      manager.syncSlot();
+      manager.rsa$syncSlot();
       if (!checkServerSlot(i)) {
         RSA.chat("Failed to swap to slot : " + i);
         return false;
       }
     }
 
-    ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode).sendPacketSequenced(Minecraft.getInstance().level, sequence -> new ServerboundUseItemOnPacket(InteractionHand.MAIN_HAND, result, sequence));
+    ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode).rsa$sendPacketSequenced(Minecraft.getInstance().level, sequence -> new ServerboundUseItemOnPacket(InteractionHand.MAIN_HAND, result, sequence));
     if (swing) Minecraft.getInstance().player.swing(InteractionHand.MAIN_HAND);
     return true;
   }
@@ -230,7 +230,7 @@ public class SwapManager {
     if (syncSlot) {
       IMultiPlayerGameMode manager = ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode);
       int i = Minecraft.getInstance().player.getInventory().getSelectedSlot();
-      manager.syncSlot();
+      manager.rsa$syncSlot();
       if (!checkServerSlot(i)) {
         RSA.chat("Failed to swap to slot : " + i);
         return false;
@@ -240,7 +240,7 @@ public class SwapManager {
     if (action == ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK) {
       Minecraft.getInstance().getConnection().send(new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK, result, Direction.DOWN, 0));
     } else {
-      ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode).sendPacketSequenced(Minecraft.getInstance().level, sequence -> new ServerboundPlayerActionPacket(action, result, face, sequence));
+      ((IMultiPlayerGameMode) Minecraft.getInstance().gameMode).rsa$sendPacketSequenced(Minecraft.getInstance().level, sequence -> new ServerboundPlayerActionPacket(action, result, face, sequence));
     }
     if (swing) Minecraft.getInstance().player.swing(InteractionHand.MAIN_HAND);
     return true;

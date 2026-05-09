@@ -1,3 +1,4 @@
 classTweaker v1 named
 
 accessible method net/minecraft/client/gui/screens/MenuScreens getConstructor (Lnet/minecraft/world/inventory/MenuType;)Lnet/minecraft/client/gui/screens/MenuScreens$ScreenConstructor;
+accessible field net/minecraft/network/protocol/game/ServerboundInteractPacket entityId I

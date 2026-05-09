@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Player.class)
-public abstract class MixinPlayer {
+public abstract class PlayerMixin {
   @Shadow
   public abstract Inventory getInventory();
 
