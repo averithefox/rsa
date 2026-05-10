@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals;
 
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
 import com.ricedotwho.rsm.RSM;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
@@ -10,6 +9,7 @@ import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -71,8 +71,8 @@ public class Melody extends Terminal {
 
     this.queue.clear();
     AutoTerms module = RSM.getModule(AutoTerms.class);
-    boolean skip = module.getMelodySkip().getValue() && (mod == 1 || mod == 5) && (!module.getMelodySkipFirst().getValue() || buttonIndex > 18);
-    if (module.isAnnounceMelody()) {
+    boolean skip = module.getMelodySkip() && (mod == 1 || mod == 5) && (!module.getMelodySkipFirst() || buttonIndex > 18);
+    if (module.getAnnounceMelody()) {
       Melody.sendMelodyMessage(buttonIndex / 9);
     }
 

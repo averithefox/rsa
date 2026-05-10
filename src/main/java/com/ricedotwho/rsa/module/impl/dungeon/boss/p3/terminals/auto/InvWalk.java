@@ -19,6 +19,7 @@ import lombok.Getter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Input;
 import org.joml.Vector2d;
+import rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
 
 import java.util.Arrays;
 import java.util.List;

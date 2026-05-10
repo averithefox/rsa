@@ -242,8 +242,8 @@ public class AutoP3 extends Module implements ClientRotationProvider {
       if (ring.isStop()) stop = true;
       ring.setTriggered();
       ring.setActive();
-      if (feedback) ring.feedback();
-      if (!ring.execute()) break;
+      if (feedback) modMessage("[%d] %s", rings.indexOf(ring), ring.getType());
+//      if (!ring.execute()) break;
     }
 
     if (stop) activeRings.removeIf(r -> {

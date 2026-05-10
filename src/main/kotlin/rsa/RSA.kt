@@ -13,7 +13,6 @@ import com.ricedotwho.rsa.module.impl.dungeon.boss.p2.PadTimer
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.LavaBounce
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.TermAura
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.AutoP3
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.solver.TerminalSolver
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p4.InstaMid
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p5.Relics
@@ -42,6 +41,7 @@ import net.minecraft.network.chat.Component
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import rsa.command.impl.AutoCroesusCommand
+import rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms
 import java.nio.file.Files
 import java.nio.file.Path
 
