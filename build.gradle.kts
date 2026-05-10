@@ -23,7 +23,6 @@ val commodoreVersion: String by project
 repositories {
   maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
   maven("https://jitpack.io")
-  mavenLocal()
 }
 
 val shadowImplementation by configurations.creating {
@@ -41,8 +40,8 @@ dependencies {
 
   modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
   modImplementation("net.fabricmc:fabric-language-kotlin:$fabricKotlinVersion")
-  modImplementation("com.ricedotwho:rsm:1.1.0")
 
+  implementation(kotlin("reflect"))
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
 
   shadowImplementation("com.googlecode.soundlibs:jlayer:1.0.1.4")

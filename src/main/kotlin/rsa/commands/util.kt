@@ -1,4 +1,4 @@
-package rsa.command
+package rsa.commands
 
 import com.github.stivais.commodore.Commodore
 import com.mojang.brigadier.builder.LiteralArgumentBuilder

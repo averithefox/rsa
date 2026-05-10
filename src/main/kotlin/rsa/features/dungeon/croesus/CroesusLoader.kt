@@ -1,7 +1,6 @@
-package rsa.module.impl.dungeon.croesus
+package rsa.features.dungeon.croesus
 
 import com.ricedotwho.rsa.module.impl.dungeon.croesus.AutoCroesus
-import com.ricedotwho.rsm.utils.FileUtils
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream

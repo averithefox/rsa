@@ -40,7 +40,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import rsa.RSA;
-import rsa.module.impl.dungeon.croesus.CroesusLoader;
+import rsa.features.dungeon.croesus.CroesusLoader;
 
 import java.util.*;
 import java.util.function.BooleanSupplier;

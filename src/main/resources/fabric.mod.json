@@ -11,7 +11,7 @@
   "icon": "assets/rsa/logo.png",
   "environment": "client",
   "entrypoints": {
-    "rsm": [
+    "client": [
       {
         "value": "rsa.RSA",
         "adapter": "kotlin"

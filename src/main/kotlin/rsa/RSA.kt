@@ -31,37 +31,38 @@ import com.ricedotwho.rsa.module.impl.render.*
 import com.ricedotwho.rsa.packet.sb.BloodClipHelperStartPacket
 import com.ricedotwho.rsa.packet.sb.BloodClipHelperStopPacket
 import com.ricedotwho.rsa.utils.render3d.type.Ring
-import com.ricedotwho.rsm.addon.Addon
 import com.ricedotwho.rsm.component.impl.Renderer3D
-import com.ricedotwho.rsm.utils.ChatUtils
+import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.MutableComponent
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import rsa.command.impl.AutoCroesusCommand
+import rsa.commands.AutoCroesusCommand
 import java.nio.file.Files
 import java.nio.file.Path
 
-object RSA : Addon {
+object RSA : ClientModInitializer {
   @JvmStatic
   @get:JvmName("SOUNDS_FOLDER")
   lateinit var SOUNDS_FOLDER: Path
 
   @JvmStatic
-  val prefix: Component = Component.empty()
+  val prefix: MutableComponent = Component.empty()
     .append(Component.literal("[").withStyle(ChatFormatting.DARK_GRAY))
     .append(Component.literal("R").withColor(0xB263DF))
     .append(Component.literal("S").withColor(0xC57BEA))
     .append(Component.literal("A").withColor(0xD793F4))
     .append(Component.literal("] ").withStyle(ChatFormatting.DARK_GRAY))
+    get() = field.copy()
 
   @JvmStatic
   val logger: Logger = LogManager.getLogger("rsa")
 
-  override fun onInitialize() {
+  override fun onInitializeClient() {
     // packet reg
     PayloadTypeRegistry.playC2S().register(BloodClipHelperStartPacket.TYPE, BloodClipHelperStartPacket.CODEC)
     PayloadTypeRegistry.playC2S().register(BloodClipHelperStopPacket.TYPE, BloodClipHelperStopPacket.CODEC)
@@ -82,9 +83,7 @@ object RSA : Addon {
     }
   }
 
-  override fun onUnload() = Unit
-
-  override fun getModules() = listOf(
+  val MODULES = listOf(
     AutoUlt::class,
     BloodBlink::class,
     BloodCamp::class,
@@ -124,16 +123,16 @@ object RSA : Addon {
     Freecam::class,
     HidePlayers::class,
     PresetWaypoints::class,
-  ).map { it.java }
+  )
 
-  override fun getComponents() = listOf(
+  val COMPONENTS = listOf(
     Edge::class,
     Jump::class,
     TickFreeze::class,
     DungeonRoomScore::class
-  ).map { it.java }
+  )
 
-  override fun getCommands() = listOf(
+  val COMMANDS = listOf(
     AutoCroesusCommand::class,
     AutoPetCommand::class,
     BBGCommand::class,
@@ -148,27 +147,12 @@ object RSA : Addon {
     SecretAuraCommand::class,
     StopwatchCommand::class,
     VelocityBufferCommand::class
-  ).map { it.java }
+  )
 
   @JvmStatic
   fun isInTestEnv(): Boolean {
     val mc = Minecraft.getInstance()
     val conn = mc.connection ?: return false
     return conn.connection.remoteAddress.toString().contains("hypixelp3sim.zapto.org") || mc.hasSingleplayerServer()
-  }
-
-  @JvmStatic
-  fun chat(message: Any, vararg objects: Any) {
-    ChatUtils.chatClean(prefix.copy().append(String.format(message.toString(), *objects)))
-  }
-
-  @JvmStatic
-  fun chat(text: String) {
-    ChatUtils.chatClean(prefix.copy().append(text))
-  }
-
-  @JvmStatic
-  fun chat(component: Component) {
-    ChatUtils.chatClean(prefix.copy().append(component))
   }
 }
