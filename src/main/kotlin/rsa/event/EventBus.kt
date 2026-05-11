@@ -1,13 +1,13 @@
-package rsa.events
+package rsa.event
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.reflect.KClass
 
-// todo: use KClass after everything gets rewritten in kotlin
 object EventBus : Subscriber {
-  private val listeners = ConcurrentHashMap<Class<out Event>, CopyOnWriteArrayList<Listener>>()
+  private val listeners = ConcurrentHashMap<KClass<out Event>, CopyOnWriteArrayList<Listener>>()
 
-  override fun <T : Event> subscribe(clazz: Class<T>, priority: Int, callback: (T) -> Unit) {
+  override fun <T : Event> subscribe(clazz: KClass<T>, priority: Int, callback: (T) -> Unit) {
     @Suppress("unchecked_cast") val listener = Listener(priority, callback as ((Event) -> Unit))
 
     val typedListeners = listeners.computeIfAbsent(clazz) { CopyOnWriteArrayList() }
@@ -21,7 +21,7 @@ object EventBus : Subscriber {
    */
   @JvmStatic
   fun <T : Event> publish(event: T): Boolean {
-    listeners[event::class.java]?.forEach { listener ->
+    listeners[event::class]?.forEach { listener ->
       listener.callback(event)
       if (event is CancelableEvent && event.isCanceled) return true
     }

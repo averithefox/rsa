@@ -1,3 +1,3 @@
-package rsa.events
+package rsa.event
 
 abstract class Event

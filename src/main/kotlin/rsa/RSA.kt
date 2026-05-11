@@ -41,7 +41,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import rsa.commands.AutoCroesusCommand
+import rsa.command.impl.AutoCroesusCommand
 import java.nio.file.Files
 import java.nio.file.Path
 

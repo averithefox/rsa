@@ -1,8 +1,9 @@
-package rsa.commands
+package rsa.command.impl
 
 import com.github.stivais.commodore.Commodore
 import com.ricedotwho.rsa.module.impl.dungeon.croesus.AutoCroesus
-import rsa.features.dungeon.croesus.CroesusLoader
+import rsa.command.toLiteralArgumentBuilder
+import rsa.feature.impl.dungeon.croesus.CroesusLoader
 
 @CommandInfo(name = "autocroesus", aliases = ["ac"], description = "Configuring and starting AutoCroesus")
 class AutoCroesusCommand : Command() {

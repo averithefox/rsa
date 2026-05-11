@@ -1,6 +1,6 @@
 @file:JvmName("Ref")
 
-package rsa.utils
+package rsa.util
 
 import net.minecraft.client.Minecraft
 

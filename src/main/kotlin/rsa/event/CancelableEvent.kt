@@ -1,4 +1,4 @@
-package rsa.events
+package rsa.event
 
 abstract class CancelableEvent : Event() {
   var isCanceled = false

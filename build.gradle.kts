@@ -120,6 +120,7 @@ kotlin {
   compilerOptions {
     jvmTarget = JvmTarget.JVM_21
     freeCompilerArgs.add("-Xlambdas=class")
+    freeCompilerArgs.add("-Xexplicit-backing-fields")
   }
 }
 

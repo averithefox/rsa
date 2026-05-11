@@ -1,4 +1,4 @@
-package rsa.utils
+package rsa.util
 
 import net.minecraft.network.chat.Component
 import rsa.RSA
