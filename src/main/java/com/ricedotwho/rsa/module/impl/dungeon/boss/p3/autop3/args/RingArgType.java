@@ -16,7 +16,8 @@ public enum RingArgType {
   DELAY(DelayArg::create, DelayArg.class, List.of("delay", "d")),
   TERM_CLOSE(TermCloseArg::create, TermCloseArg.class, List.of("termclose", "close", "tc")),
   SECTION(SectionArg::create, SectionArg.class, List.of("section", "s")),
-  VELOCITY(VelocityArg::create, VelocityArg.class, List.of("velobuffered", "velo"));
+  VELOCITY(VelocityArg::create, VelocityArg.class, List.of("velobuffered", "velo")),
+  CHAT_MATCH(ChatMatchArg::create, ChatMatchArg.class, List.of("chatmatch"));
 
   private final Function<Object, Argument<?>> factory;
   @Getter

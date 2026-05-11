@@ -39,6 +39,7 @@ import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.ChatFormatting
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.MutableComponent
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import rsa.command.impl.AutoCroesusCommand
@@ -51,12 +52,13 @@ object RSA : Addon {
   lateinit var SOUNDS_FOLDER: Path
 
   @JvmStatic
-  val prefix: Component = Component.empty()
+  val prefix: MutableComponent = Component.empty()
     .append(Component.literal("[").withStyle(ChatFormatting.DARK_GRAY))
     .append(Component.literal("R").withColor(0xB263DF))
     .append(Component.literal("S").withColor(0xC57BEA))
     .append(Component.literal("A").withColor(0xD793F4))
     .append(Component.literal("] ").withStyle(ChatFormatting.DARK_GRAY))
+    get() = field.copy()
 
   @JvmStatic
   val logger: Logger = LogManager.getLogger("rsa")
@@ -159,16 +161,16 @@ object RSA : Addon {
 
   @JvmStatic
   fun chat(message: Any, vararg objects: Any) {
-    ChatUtils.chatClean(prefix.copy().append(String.format(message.toString(), *objects)))
+    ChatUtils.chatClean(prefix.append(String.format(message.toString(), *objects)))
   }
 
   @JvmStatic
   fun chat(text: String) {
-    ChatUtils.chatClean(prefix.copy().append(text))
+    ChatUtils.chatClean(prefix.append(text))
   }
 
   @JvmStatic
   fun chat(component: Component) {
-    ChatUtils.chatClean(prefix.copy().append(component))
+    ChatUtils.chatClean(prefix.append(component))
   }
 }

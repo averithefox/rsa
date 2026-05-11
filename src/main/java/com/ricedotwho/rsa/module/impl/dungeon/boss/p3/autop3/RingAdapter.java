@@ -92,6 +92,7 @@ public class RingAdapter implements JsonDeserializer<Ring>, JsonSerializer<Ring>
         case TERM_CLOSE -> new TermCloseArg();
         case SECTION -> new SectionArg(EnumUtils.getEnum(Phase7.class, entry.getValue().getAsString(), Phase7.UNKNOWN));
         case VELOCITY -> new VelocityArg(entry.getValue().getAsInt());
+        case CHAT_MATCH -> new ChatMatchArg(entry.getValue().getAsString());
       };
       map.put(type, condition);
     }

@@ -3,10 +3,7 @@ package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.Argument;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.LeapArg;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.TermArg;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.TermCloseArg;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.TriggerArg;
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.args.type.*;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.recorder.MovementRecorder;
 import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.autop3.rings.Ring;
 import com.ricedotwho.rsm.RSM;
@@ -20,6 +17,7 @@ import com.ricedotwho.rsm.data.Keybind;
 import com.ricedotwho.rsm.data.MutableInput;
 import com.ricedotwho.rsm.event.api.SubscribeEvent;
 import com.ricedotwho.rsm.event.impl.client.InputPollEvent;
+import com.ricedotwho.rsm.event.impl.game.ChatEvent;
 import com.ricedotwho.rsm.event.impl.game.ClientTickEvent;
 import com.ricedotwho.rsm.event.impl.game.TerminalEvent;
 import com.ricedotwho.rsm.event.impl.render.Render3DEvent;
@@ -44,6 +42,7 @@ import org.lwjgl.glfw.GLFW;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.IntStream;
 
 @Getter
@@ -242,7 +241,8 @@ public class AutoP3 extends Module implements ClientRotationProvider {
       if (ring.isStop()) stop = true;
       ring.setTriggered();
       ring.setActive();
-      if (feedback) ring.feedback();
+      if (feedback)
+        modMessage("[%d] %s", rings.indexOf(ring), ring.getType().getName().toLowerCase(Locale.ROOT)); //ring.feedback();
       if (!ring.execute()) break;
     }
 
@@ -285,6 +285,11 @@ public class AutoP3 extends Module implements ClientRotationProvider {
     if (event.isServer()) {
       consumeArg(TermCloseArg.class, true);
     }
+  }
+
+  @SubscribeEvent
+  public void onChat(ChatEvent.Chat event) {
+    consumeArg(ChatMatchArg.class, event);
   }
 
   private boolean trigger() {

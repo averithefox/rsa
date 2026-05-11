@@ -162,7 +162,7 @@ public class BBGCommand extends Command {
         case UUID -> dataMap.put("uuid", v.getValue());
 
         // conditional
-        case TERM, RELIC, LEAP, GROUND, TRIGGER, DELAY, TERM_CLOSE, SECTION, VELOCITY -> {
+        case TERM, RELIC, LEAP, GROUND, TRIGGER, DELAY, TERM_CLOSE, SECTION, VELOCITY, CHAT_MATCH -> {
           RingArgType a = RingArgType.fromAliases(v.key.toLowerCase());
           if (a == null) {
             AutoP3.modMessage("Failed to parse arg type! %s, key: %s, value: %s", k, v.key(), v.getValue());
@@ -487,6 +487,7 @@ public class BBGCommand extends Command {
     TERM_CLOSE(Void.class, "termclose", "close"),
     SECTION(Integer.class, "section", "s"),
     VELOCITY(Integer.class, "velobuffered", "velo"),
+    CHAT_MATCH(String.class, "chatmatch"),
 
     // sub actions
     LOOK(Void.class, "look"),
