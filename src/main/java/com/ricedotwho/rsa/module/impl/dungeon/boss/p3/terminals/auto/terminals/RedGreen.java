@@ -1,12 +1,15 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals;
 
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import org.jetbrains.annotations.NotNull;
+import rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
+import rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.Terminal;
+import rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.TerminalType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,31 +20,31 @@ public class RedGreen extends Terminal {
   }
 
   @Override
-  public TerminalState getNextState() {
-    if (this.solution == null) throw new IllegalStateException("Tried to get next state without solving!");
+  public @NotNull TerminalState getNextState() {
+    if (this.getSolution() == null) throw new IllegalStateException("Tried to get next state without solving!");
 
     List<HashInfo> infos = new ArrayList<>(this.getType().getSlotCount());
-    int changedIndex = solution.getNext().index();
+    int changedIndex = this.getSolution().getNext().index();
     for (int i = 0; i < this.getType().getSlotCount(); i++) {
-      Slot slot = this.terminalContainer.getSlot(i);
+      Slot slot = this.getTerminalContainer().getSlot(i);
       HashInfo hashInfo = new HashInfo(slot.getItem());
       if (slot.index == changedIndex)
-        hashInfo.setItem(Items.LIME_STAINED_GLASS_PANE);
+        hashInfo.setItemHash(Items.LIME_STAINED_GLASS_PANE.hashCode());
       infos.add(hashInfo);
     }
 
-    return Terminal.getTerminalState(TerminalType.REDGREEN, infos);
+    return getTerminalState(TerminalType.REDGREEN, infos);
   }
 
   @Override
-  public TerminalState getCurrentState() {
+  public @NotNull TerminalState getCurrentState() {
     List<HashInfo> infos = new ArrayList<>(this.getType().getSlotCount());
     for (int i = 0; i < this.getType().getSlotCount(); i++) {
-      Slot slot = this.terminalContainer.getSlot(i);
+      Slot slot = this.getTerminalContainer().getSlot(i);
       infos.add(new HashInfo(slot.getItem()));
     }
 
-    return Terminal.getTerminalState(TerminalType.REDGREEN, infos);
+    return getTerminalState(TerminalType.REDGREEN, infos);
   }
 
   @Override
@@ -49,7 +52,7 @@ public class RedGreen extends Terminal {
     super.solve();
 
     List<SolutionClick> solutionClicks = new ArrayList<>();
-    for (Slot slot : this.terminalContainer.slots) {
+    for (Slot slot : this.getTerminalContainer().slots) {
       ItemStack stack = slot.getItem();
       if (stack.isEmpty()) continue;
       if (stack.getItem() != Items.RED_STAINED_GLASS_PANE) continue;
@@ -57,8 +60,8 @@ public class RedGreen extends Terminal {
       solutionClicks.add(new SolutionClick(ClickType.CLONE, slot.index, 0));
     }
 
-    this.solution = new Solution(solutionClicks);
-    this.solveState = SolveState.SOLVED;
+    this.setSolution(new Solution(solutionClicks));
+    this.setSolveState(SolveState.SOLVED);
   }
 
   @Override
@@ -66,7 +69,7 @@ public class RedGreen extends Terminal {
     return AutoTerms.getTerminals().get("Red Green");
   }
 
-  protected static RedGreen supply(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
+  public static RedGreen supply(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
     return new RedGreen(packet, menu);
   }
 }

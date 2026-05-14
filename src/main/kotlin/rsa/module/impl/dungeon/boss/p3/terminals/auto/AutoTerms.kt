@@ -1,8 +1,12 @@
 package rsa.module.impl.dungeon.boss.p3.terminals.auto
 
 import com.ricedotwho.rsa.event.impl.RawTickEvent
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.InvWalk
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.*
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.ClickedSlotsTracker
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.Colors
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.Melody
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.SolutionClick
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.StartsWith
+import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.TerminalState
 import com.ricedotwho.rsm.RSM
 import com.ricedotwho.rsm.component.impl.location.Island
 import com.ricedotwho.rsm.component.impl.location.Location
@@ -28,7 +32,15 @@ import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.network.HashedStack
 import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.common.ClientboundPingPacket
-import net.minecraft.network.protocol.game.*
+import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
+import net.minecraft.network.protocol.game.ClientboundContainerSetContentPacket
+import net.minecraft.network.protocol.game.ClientboundContainerSetDataPacket
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
+import net.minecraft.network.protocol.game.ClientboundHorseScreenOpenPacket
+import net.minecraft.network.protocol.game.ClientboundMerchantOffersPacket
+import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
+import net.minecraft.network.protocol.game.ClientboundSetCursorItemPacket
+import net.minecraft.network.protocol.game.ServerboundContainerClickPacket
 import net.minecraft.world.entity.player.Input
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.inventory.AbstractContainerMenu
@@ -36,6 +48,7 @@ import net.minecraft.world.inventory.MenuType
 import net.minecraft.world.item.ItemStack
 import rsa.RSA
 import rsa.module.getValue
+import rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.Terminal
 import rsa.module.provideDelegate
 
 @ModuleInfo(aliases = ["AutoTerms"], id = "AutoTerms", category = Category.DUNGEONS)
@@ -50,7 +63,7 @@ object AutoTerms : Module() {
 
   var terminalContainer: AbstractContainerMenu? = null
     private set
-  private val clickedSlotsTracker = ClickedSlotsTracker()
+  val clickedSlotsTracker = ClickedSlotsTracker()
 
   private var predictedState: TerminalState? = null
 
@@ -70,7 +83,7 @@ object AutoTerms : Module() {
   val announceMelody: Boolean by BooleanSetting("Announce Melody", true)
 
   private val noLimbo by BooleanSetting("No Limbo", true)
-  private val invWalkGroup by GroupSetting("Invwalk", InvWalk(this))
+  private val invWalkGroup by GroupSetting("Invwalk", InvWalk)
 
   @SubscribeEvent
   private fun onWorldLoad(event: WorldEvent.Load) {
@@ -83,14 +96,14 @@ object AutoTerms : Module() {
     val terminal = terminal ?: return
     if (!isInTerm() || terminal is Melody) return
 
-    if (terminal.shouldSolve() && !terminal.isSolved) {
+    if (terminal.shouldSolve && !terminal.isSolved) {
       terminal.solve()
     }
 
     if (!terminal.isSolved) return
 
     predictedState?.let {
-      val newState = terminal.currentState
+      val newState = terminal.getCurrentState()
       if (!it.matches(newState)) {
         firstClick = true
         lastClickTime = System.currentTimeMillis()
@@ -114,7 +127,7 @@ object AutoTerms : Module() {
     if (!isInTerm() || clickedWindow) return
 
     if (!terminal.isSolved) return
-    val solution = terminal.solution
+    val solution = terminal.solution ?: return
     if (solution.length < 1) return
 
     sendWindowClick(solution.next)
@@ -170,7 +183,7 @@ object AutoTerms : Module() {
   /// This should run before {@link Terminals#onPacket(PacketEvent.Receive)}
   @SubscribeEvent(priority = EventPriority.HIGH)
   private fun onReceivePacket(event: PacketEvent.Receive) {
-    val cancel = !invWalkGroup.invwalkMaybeFix.value
+    val cancel = !invWalkGroup.invwalkMaybeFix
     when (val packet = event.packet) {
       is ClientboundPingPacket -> {
         lastPingTicks = 5
@@ -180,13 +193,13 @@ object AutoTerms : Module() {
         if (packet.containerId !in 1..100) return
         val player = mc.player ?: return
 
-        val predState = terminal?.run { if (isSolved) nextState else null } ?: TerminalState(null, 0)
+        val predState = terminal?.run { if (isSolved) getNextState() else null } ?: TerminalState(null, 0)
 
-        terminalContainer = packet.type.create(packet.containerId, player.inventory)
-
+        val terminalContainer = packet.type.create(packet.containerId, player.inventory)
+        this.terminalContainer = terminalContainer
         terminal = Terminal.fromPacket(packet, terminalContainer)
         if (terminal == null) {
-          terminalContainer = null
+          this.terminalContainer = null
           return
         }
 
@@ -203,7 +216,7 @@ object AutoTerms : Module() {
 
         if (invWalkGroup.isEnabled) {
           event.isCancelled = true
-          if (invWalkGroup.invwalkMaybeFix.value) {
+          if (invWalkGroup.invwalkMaybeFix) {
             setContainerMenu(packet.type, packet.containerId, packet.title)
           }
         }
@@ -313,7 +326,7 @@ object AutoTerms : Module() {
     if (terminal is StartsWith || terminal is Colors) {
       clickedSlotsTracker.clickSlot(terminalContainer.getSlot(click.index()))
     }
-    sendWindowClick(terminal.windowID, click, player, terminalContainer)
+    sendWindowClick(terminal.windowId, click, player, terminalContainer)
   }
 
   private fun close() {

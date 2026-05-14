@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals;
 
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.InvWalk;
 import com.ricedotwho.rsm.component.impl.Terminals;
 import com.ricedotwho.rsm.utils.Utils;
 import net.minecraft.client.Minecraft;
@@ -11,6 +10,8 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import rsa.module.impl.dungeon.boss.p3.terminals.auto.InvWalk;
+import rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.Terminal;
 
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +32,7 @@ public class TerminalRenderer {
 
     int slotCount = Utils.getGuiSlotCount(this.terminalContainer.getType());
 
-    boolean bl = InvWalk.getUseOverrides().getValue() && (terminal instanceof StartsWith || terminal instanceof Colors);
+    boolean bl = InvWalk.getUseOverrides() && (terminal instanceof StartsWith || terminal instanceof Colors);
     if (bl && terminal.isSolved())
       tryUpdateOverrides(terminal);
 

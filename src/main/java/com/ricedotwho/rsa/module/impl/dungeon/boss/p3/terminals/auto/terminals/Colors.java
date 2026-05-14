@@ -1,6 +1,5 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals;
 
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
 import com.ricedotwho.rsm.RSM;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
@@ -8,6 +7,10 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
+import rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.Terminal;
+import rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.TerminalType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,31 +36,31 @@ public class Colors extends Terminal {
   );
 
   @Override
-  public TerminalState getNextState() {
-    if (this.solution == null) throw new IllegalStateException("Tried to get next state without solving!");
+  public @NotNull TerminalState getNextState() {
+    if (this.getSolution() == null) throw new IllegalStateException("Tried to get next state without solving!");
 
     List<HashInfo> infos = new ArrayList<>(this.getType().getSlotCount());
-    int changedIndex = solution.getNext().index();
+    int changedIndex = this.getSolution().getNext().index();
     for (int i = 0; i < this.getType().getSlotCount(); i++) {
-      Slot slot = this.terminalContainer.getSlot(i);
+      Slot slot = this.getTerminalContainer().getSlot(i);
       HashInfo hashInfo = new HashInfo(slot.getItem());
       if (slot.index == changedIndex)
         hashInfo.setEnchanted(true);
       infos.add(hashInfo);
     }
 
-    return Terminal.getTerminalState(TerminalType.COLORS, infos);
+    return getTerminalState(TerminalType.COLORS, infos);
   }
 
   @Override
-  public TerminalState getCurrentState() {
+  public @NotNull TerminalState getCurrentState() {
     List<HashInfo> infos = new ArrayList<>(this.getType().getSlotCount());
     for (int i = 0; i < this.getType().getSlotCount(); i++) {
-      Slot slot = this.terminalContainer.getSlot(i);
+      Slot slot = this.getTerminalContainer().getSlot(i);
       infos.add(new HashInfo(slot.getItem()));
     }
 
-    return Terminal.getTerminalState(TerminalType.COLORS, infos);
+    return getTerminalState(TerminalType.COLORS, infos);
   }
 
   @Override
@@ -74,7 +77,7 @@ public class Colors extends Terminal {
 
     List<SolutionClick> solutionClicks = new ArrayList<>();
 
-    for (Slot slot : this.terminalContainer.slots) {
+    for (Slot slot : this.getTerminalContainer().slots) {
       ItemStack stack = slot.getItem();
 
       if (stack.isEmpty()) continue;
@@ -88,8 +91,8 @@ public class Colors extends Terminal {
       }
     }
 
-    this.solution = new Solution(solutionClicks);
-    this.solveState = SolveState.SOLVED;
+    this.setSolution(new Solution(solutionClicks));
+    this.setSolveState(SolveState.SOLVED);
   }
 
   @Override
@@ -109,8 +112,7 @@ public class Colors extends Terminal {
     return itemName;
   }
 
-
-  protected static Colors supply(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
+  public static Colors supply(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
     return new Colors(packet, menu);
   }
 }

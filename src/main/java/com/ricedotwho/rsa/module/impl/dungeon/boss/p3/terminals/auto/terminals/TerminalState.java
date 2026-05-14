@@ -1,6 +1,7 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals;
 
 import lombok.Getter;
+import rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.TerminalType;
 
 public class TerminalState {
   private final TerminalType type;

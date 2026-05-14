@@ -9,7 +9,10 @@ import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import org.jetbrains.annotations.NotNull;
 import rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
+import rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.Terminal;
+import rsa.module.impl.dungeon.boss.p3.terminals.auto.terminals.TerminalType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,7 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Melody extends Terminal {
-  private LinkedList<SolutionClick> queue;
+  private final LinkedList<SolutionClick> queue;
   private byte melodyState; // Only used to announce
 
   protected Melody(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
@@ -27,19 +30,19 @@ public class Melody extends Terminal {
   }
 
   @Override
-  public TerminalState getNextState() {
+  public @NotNull TerminalState getNextState() {
     return this.getCurrentState();
   }
 
   @Override
-  public TerminalState getCurrentState() {
+  public @NotNull TerminalState getCurrentState() {
     List<HashInfo> infos = new ArrayList<>(this.getType().getSlotCount());
     for (int i = 0; i < this.getType().getSlotCount(); i++) {
-      Slot slot = this.terminalContainer.getSlot(i);
+      Slot slot = this.getTerminalContainer().getSlot(i);
       infos.add(new HashInfo(slot.getItem()));
     }
 
-    return Terminal.getTerminalState(TerminalType.MELODY, infos);
+    return getTerminalState(TerminalType.MELODY, infos);
   }
 
   public boolean onTickStart(AutoTerms autoTerms) {
@@ -53,19 +56,19 @@ public class Melody extends Terminal {
   public void solve() {
     super.solve();
 
-    this.solution = new Solution(Collections.emptyList());
-    this.solveState = SolveState.SOLVED;
+    this.setSolution(new Solution(Collections.emptyList()));
+    this.setSolveState(SolveState.SOLVED);
   }
 
   @Override
-  public void loadSlot(ClientboundContainerSetSlotPacket packet) {
+  public void loadSlot(@NotNull ClientboundContainerSetSlotPacket packet) {
     super.loadSlot(packet);
     int slot = packet.getSlot();
-    if (packet.getContainerId() != this.getWindowID()) return;
+    if (packet.getContainerId() != this.getWindowId()) return;
     if (slot < 10 || slot >= this.getType().getSlotCount()) return;
     ItemStack stack = packet.getItem();
     if (stack.getItem() != Items.LIME_STAINED_GLASS_PANE) return;
-    if (this.terminalContainer.slots.get(slot % 9).getItem().getItem() != Items.MAGENTA_STAINED_GLASS_PANE) return;
+    if (this.getTerminalContainer().slots.get(slot % 9).getItem().getItem() != Items.MAGENTA_STAINED_GLASS_PANE) return;
     int buttonIndex = ((slot / 9) - 1) * 9 + 16;
     int mod = slot % 9;
 
@@ -95,34 +98,15 @@ public class Melody extends Terminal {
   public static void sendMelodyMessage(int state) {
     if (Minecraft.getInstance().getConnection() == null) return;
     switch (state) {
-      case 0 -> {
-        Minecraft.getInstance().getConnection().sendChat("Camel Terminal Start!");
-        return;
-      }
-
-      case 1 -> {
-        Minecraft.getInstance().getConnection().sendChat("Camel Terminal 1/4!");
-        return;
-      }
-
-      case 2 -> {
-        Minecraft.getInstance().getConnection().sendChat("Camel Terminal 2/4!");
-        return;
-      }
-
-      case 3 -> {
-        Minecraft.getInstance().getConnection().sendChat("Camel Terminal 3/4!");
-        return;
-      }
-
-      case 4 -> {
-        Minecraft.getInstance().getConnection().sendChat("Camel Terminal 4/4!");
-        return;
-      }
+      case 0 -> Minecraft.getInstance().getConnection().sendChat("Camel Terminal Start!");
+      case 1 -> Minecraft.getInstance().getConnection().sendChat("Camel Terminal 1/4!");
+      case 2 -> Minecraft.getInstance().getConnection().sendChat("Camel Terminal 2/4!");
+      case 3 -> Minecraft.getInstance().getConnection().sendChat("Camel Terminal 3/4!");
+      case 4 -> Minecraft.getInstance().getConnection().sendChat("Camel Terminal 4/4!");
     }
   }
 
-  protected static Melody supply(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
+  public static Melody supply(ClientboundOpenScreenPacket packet, AbstractContainerMenu menu) {
     return new Melody(packet, menu);
   }
 }

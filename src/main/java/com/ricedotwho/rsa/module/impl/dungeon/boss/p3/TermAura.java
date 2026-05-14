@@ -1,7 +1,6 @@
 package com.ricedotwho.rsa.module.impl.dungeon.boss.p3;
 
 import com.ricedotwho.rsa.component.impl.managers.PacketOrderManager;
-import com.ricedotwho.rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
 import com.ricedotwho.rsa.utils.InteractUtils;
 import com.ricedotwho.rsm.RSM;
 import com.ricedotwho.rsm.component.impl.location.Floor;
@@ -26,6 +25,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import rsa.module.impl.dungeon.boss.p3.terminals.auto.AutoTerms;
 
 
 @ModuleInfo(aliases = "Term Aura", id = "TermAura", category = Category.DUNGEONS, hasKeybind = true)
