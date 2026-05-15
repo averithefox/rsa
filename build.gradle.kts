@@ -17,6 +17,7 @@ val minecraftVersion: String by project
 val loaderVersion: String by project
 val fabricApiVersion: String by project
 val fabricKotlinVersion: String by project
+val rsmVersion: String by project
 val lwjglVersion: String by project
 val commodoreVersion: String by project
 
@@ -41,23 +42,12 @@ dependencies {
 
   modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
   modImplementation("net.fabricmc:fabric-language-kotlin:$fabricKotlinVersion")
-  modImplementation("com.ricedotwho:rsm:1.1.0")
+  modImplementation("com.ricedotwho:rsm:$rsmVersion")
 
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
 
   shadowImplementation("com.googlecode.soundlibs:jlayer:1.0.1.4")
   shadowImplementation("com.googlecode.soundlibs:mp3spi:1.9.5.4")
-  shadowImplementation("io.github.classgraph:classgraph:4.8.174")
-
-  shadowImplementation("io.netty:netty-codec-socks:4.2.12.Final") {
-    isTransitive = false
-  }
-
-  shadowImplementation("org.lwjgl:lwjgl-nanovg:$lwjglVersion")
-  listOf("windows", "linux", "macos", "macos-arm64").forEach {
-    shadowImplementation("org.lwjgl:lwjgl-nanovg:$lwjglVersion:natives-$it")
-  }
-
   shadowImplementation("com.github.stivais:Commodore:$commodoreVersion")
 
   annotationProcessor("org.projectlombok:lombok:1.18.32")
