@@ -29,7 +29,7 @@ jobs:
 
       - name: build rsm
         run: |
-          git clone https://github.com/rs-mod/rsm.git
+          git clone https://github.com/averithefox/rsm.git
           cd rsm
           chmod +x ./gradlew
           ./gradlew publishToMavenLocal
