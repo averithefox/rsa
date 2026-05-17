@@ -28,6 +28,6 @@
     "java": ">=21",
     "fabric-api": "*",
     "fabric-language-kotlin": "*",
-    "rsm": "*"
+    "rsm": "~${rsmVersion}"
   }
 }
