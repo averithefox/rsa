@@ -155,8 +155,7 @@ object RSA : Addon {
   @JvmStatic
   fun isInTestEnv(): Boolean {
     val mc = Minecraft.getInstance()
-    val conn = mc.connection ?: return false
-    return conn.connection.remoteAddress.toString().contains("hypixelp3sim.zapto.org") || mc.hasSingleplayerServer()
+    return mc.currentServer?.ip?.contains("hypixelp3sim.zapto.org") == true || mc.hasSingleplayerServer()
   }
 
   @JvmStatic
