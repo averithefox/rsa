@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
   id("net.fabricmc.fabric-loom-remap")
   kotlin("jvm") version "2.3.21"
@@ -42,7 +40,7 @@ dependencies {
 
   modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
   modImplementation("net.fabricmc:fabric-language-kotlin:$fabricKotlinVersion")
-  modImplementation("com.ricedotwho:rsm:$rsmVersion")
+  modImplementation("me.averi:rsm:$rsmVersion")
 
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
 
@@ -107,13 +105,9 @@ tasks {
 }
 
 kotlin {
+  jvmToolchain(21)
+
   compilerOptions {
-    jvmTarget = JvmTarget.JVM_21
     freeCompilerArgs.add("-Xlambdas=class")
   }
-}
-
-java {
-  sourceCompatibility = JavaVersion.VERSION_21
-  targetCompatibility = JavaVersion.VERSION_21
 }
