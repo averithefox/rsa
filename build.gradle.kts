@@ -6,10 +6,6 @@ plugins {
   id("com.github.jmongard.git-semver-plugin") version "0.18.0"
 }
 
-semver {
-  groupVersionIncrements = false
-}
-
 version = semver.infoVersion
 val minecraftVersion: String by project
 val loaderVersion: String by project
